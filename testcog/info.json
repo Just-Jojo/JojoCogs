@@ -1,0 +1,12 @@
+{
+    "author": [
+        "Jojo#7791"
+    ],
+    "min_bot_version": "3.4.0",
+    "min_python_version": [
+        3,
+        8,
+        5
+    ],
+    "install_msg": "Thanks for installing! This is a very buggy cog so I wouldn't really recommend using it unless you want to get frustrated at me :p"
+}
