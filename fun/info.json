@@ -1,0 +1,13 @@
+{
+    "author": [
+        "Jojo#7791"
+    ],
+    "min_bot_version": "3.4.0",
+    "min_python_version": [
+        3,
+        7,
+        0
+    ],
+    "install_msg": "Thank you for installing Jojo's fun cog. If you need help please tag me in the MatrixDevTeam server https://discord.gg/JmCFyq7 (or you can dm me @ Jojo#7791)",
+    "description": "Just a fun cog filled with some fun commands"
+}
