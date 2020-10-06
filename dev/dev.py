@@ -9,7 +9,7 @@ class Dev(commands.Cog):
 
     @commands.command(name="sudo", aliases=["mock"])
     @commands.is_owner()
-    async def _mock(self, ctx, user: Member, *, command):
+    async def _mock(self, ctx, user: commands.Greedy[Member], *, command):
         msg = copy(ctx.message)
         msg.author = user
         msg.content = ctx.prefix + command
