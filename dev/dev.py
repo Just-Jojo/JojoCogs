@@ -1,5 +1,5 @@
-from redbot.core import commands
-from discord import Member
+from redbot.core import commands, checks
+import discord
 from copy import copy
 
 
@@ -7,10 +7,10 @@ class Dev(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(hidden=True)
-    @commands.is_owner()
-    async def sudo(self, ctx, user: Member, *, command):
-        """Sudo another user invoking a command.
+    @commands.command()
+    @checks.is_owner()
+    async def mock(self, ctx, user: discord.Member, *, command):
+        """Mock another user invoking a command.
         The prefix must not be entered.
         """
         msg = copy(ctx.message)
