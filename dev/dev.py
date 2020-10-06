@@ -7,9 +7,9 @@ class Dev(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(name="sudo", aliases=["mock"])
     @commands.is_owner()
-    async def sudo(self, ctx, user: Member, *, command):
+    async def _mock(self, ctx, user: Member, *, command):
         msg = copy(ctx.message)
         msg.author = user
         msg.content = ctx.prefix + command
