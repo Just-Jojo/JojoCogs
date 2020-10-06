@@ -13,6 +13,7 @@ class Dev(commands.Cog):
         """Mock another user invoking a command.
         The prefix must not be entered.
         """
+        print("This is working")
         msg = copy(ctx.message)
         msg.author = user
         msg.content = ctx.prefix + command
