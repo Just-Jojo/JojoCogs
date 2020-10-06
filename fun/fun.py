@@ -10,9 +10,3 @@ class Fun(commands.Cog):
     @commands.command()
     async def coffee(self, ctx):
         await ctx.send("☕")
-
-    @commands.command()
-    async def read_from_file(self, ctx):
-        with open("something.txt", "r") as f:
-            something_txt = f.read()
-        await ctx.send("Found this in the file: {0}".format(something_txt))
