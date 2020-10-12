@@ -29,3 +29,29 @@ class TestCog(commands.Cog):
             await ctx.send("You have purchased a {0} and called it {1}".format(pet_type, pet_name))
         else:
             await ctx.send("You do not have enough money to buy that pet!")
+
+    @commands.command()
+    async def hunger(self, ctx, pet_name: str):
+        try:
+            pet = await self.config.user(ctx.author).get_raw(pet_name)
+        except KeyError:
+            await ctx.send("You don't own that pet!")
+            return
+        hunger = pet.get("hunger")
+        await ctx.send("Your pet has {}/100 hunger".format(hunger))
+
+    @commands.command()
+    async def feed(self, ctx, pet_name: str, food: int):
+        try:
+            pet = await self.config.user(ctx.author).pets.get_raw(pet_name)
+        except KeyError:
+            await ctx.send("You don't own that pet!")
+            return
+
+        hunger = pet.get("hunger")
+        new_hunger = max(hunger - food, 0)
+
+        await self.config.user(ctx.author).pets.set_raw(
+            pet_name, "hunger", value=new_hunger
+        )
+        await ctx.send("Your pet is now at {}/100 hunger!".format(new_hunger))
