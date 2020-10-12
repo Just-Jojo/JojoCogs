@@ -55,3 +55,12 @@ class TestCog(commands.Cog):
             pet_name, "hunger", value=new_hunger
         )
         await ctx.send("Your pet is now at {}/100 hunger!".format(new_hunger))
+
+    @commands.command()
+    @commands.is_owner()
+    async def clear_pets(self, ctx):
+        try:
+            await self.config.clear_all()
+            await ctx.send("Cleared the data")
+        except:
+            await ctx.send("Could not clear the data")
