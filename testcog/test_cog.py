@@ -31,6 +31,15 @@ class TestCog(commands.Cog):
             await ctx.send("You do not have enough money to buy that pet!")
 
     @commands.command()
+    async def pets(self, ctx):
+        try:
+            pet_list = await self.config.user(ctx.author).get_raw("pets")
+            await ctx.send(pet_list)
+        except:
+            await ctx.send("You don't have any pets!")
+            return
+
+    @commands.command()
     async def hunger(self, ctx, pet_name: str):
         try:
             pet = await self.config.user(ctx.author).pets.get_raw(pet_name)
