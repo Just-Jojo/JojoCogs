@@ -33,7 +33,7 @@ class TestCog(commands.Cog):
     @commands.command()
     async def hunger(self, ctx, pet_name: str):
         try:
-            pet = await self.config.user(ctx.author).get_raw(pet_name)
+            pet = await self.config.user(ctx.author).pets.get_raw(pet_name)
         except KeyError:
             await ctx.send("You don't own that pet!")
             return
