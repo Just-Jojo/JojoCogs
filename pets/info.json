@@ -1,0 +1,12 @@
+{
+    "author": [
+        "Jojo#7791"
+    ],
+    "min_bot_version": "3.4.0",
+    "min_python_version": [
+        3,
+        8,
+        5
+    ],
+    "install_msg": "This cog is designed for having collectable pets (I kinda got this idea from the config documentation so thanks Red :D)\nIf you have any questions about this cog please contact Jojo on discord (Jojo#7791) or join the Matrix dev base: https://discord.gg/JmCFyq7"
+}
