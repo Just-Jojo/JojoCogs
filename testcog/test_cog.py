@@ -31,7 +31,7 @@ class TestCog(commands.Cog):
 
         if await bank.can_spend(ctx.author, cost):
             await self.config.user(ctx.author).pets.set_raw(
-                pet_name, value={"cost": cost, "hunger": 0}
+                pet_type, pet_name, value={"cost": cost, "hunger": 0}
             )
             await ctx.send("You have purchased a {0} and called it {1}".format(pet_type, pet_name))
         else:
