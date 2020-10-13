@@ -14,6 +14,13 @@ class TestCog(commands.Cog):
             pets={}
         )
 
+    def humanize_dict(self, dictionary: dict):
+        x = []
+        for key, item in dictionary.items():
+            y = "{0}: {1}".format(key, item)
+            x.append(y)
+        return "\n".join(x)
+
     @commands.command()
     async def buy_pet(self, ctx, pet_type: str, pet_name: str):
         try:
@@ -38,7 +45,8 @@ class TestCog(commands.Cog):
             await ctx.send("You don't have any pets!")
             return
         if len(pet_list.keys()) > 0:
-            await ctx.send(pet_list)
+            pet_list_humanized = self.humanize_dict(pet)
+            await ctx.send(pet_list_humanized)
         else:
             await ctx.send("You don't have any pets!")
 
