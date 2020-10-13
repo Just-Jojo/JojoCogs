@@ -28,6 +28,6 @@ class Fun(commands.Cog):
         if item and item.lower() in stalk.keys():
             if await bank.can_spend(ctx.author, amount=stalk[item.lower()]):
                 cur_name = await bank.get_currency_name(ctx.guild)
-                await ctx.send("You bought a {name} for {item} {currency_name}".format(name=item.lower(), item=stalk[item.lower()]), currency_name=cur_name)
+                await ctx.send("You bought a {name} for {item} {curr_name}".format(name=item.lower(), item=stalk[item.lower()]), curr_name=cur_name)
         else:
             await ctx.send(self.readable_dict(stalk))
