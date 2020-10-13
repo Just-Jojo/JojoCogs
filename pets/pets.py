@@ -44,7 +44,7 @@ class Pets(commands.Cog):
             await ctx.send("Could not clear the data")
 
     @commands.command(name="addpet")
-    @checks.mod_or_permissions(manage_server=True)
+    @checks.mod_or_permissions(administrator=True)
     async def add_pet(self, ctx, pet_type: str, cost: int):
         try:
             await self.config.guild(ctx.guild).set_raw(pet_type, value=cost)
