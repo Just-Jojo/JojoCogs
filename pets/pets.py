@@ -21,7 +21,17 @@ class Pets(commands.Cog):
             x.append(y)
         return "\n".join(x)
 
-    @commands.command()
+    @commands.command(name="petsclear")
+    @commands.is_owner()
+    async def clear_pets(self, ctx):
+        try:
+            await self.config.clear_all()
+            await ctx.send("Cleared the data")
+        except:
+
+            await ctx.send("Could not clear the data")
+
+    @commands.command(name="buy")
     async def buy_pet(self, ctx, pet_type: str, pet_name: str):
         try:
             cost = await self.config.get_raw(pet_type)
@@ -77,10 +87,11 @@ class Pets(commands.Cog):
         await ctx.send("Your pet is now at {}/100 hunger!".format(new_hunger))
 
     @commands.command()
-    @commands.is_owner()
-    async def clear_pets(self, ctx):
+    async def pet_list(self, ctx):
         try:
-            await self.config.clear_all()
-            await ctx.send("Cleared the data")
+            pet_list = await self.config.get_raw()
         except:
-            await ctx.send("Could not clear the data")
+            await ctx.send("I could not find any pets!")
+            return
+        pet_list_readable = self.readable_dict(pet_list)
+        await ctx.send(pet_list_readable)
