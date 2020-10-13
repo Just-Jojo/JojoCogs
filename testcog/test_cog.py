@@ -45,7 +45,7 @@ class TestCog(commands.Cog):
             await ctx.send("You don't have any pets!")
             return
         if len(pet_list.keys()) > 0:
-            pet_list_humanized = self.humanize_dict(pet)
+            pet_list_humanized = self.humanize_dict(pet_list)
             await ctx.send(pet_list_humanized)
         else:
             await ctx.send("You don't have any pets!")
