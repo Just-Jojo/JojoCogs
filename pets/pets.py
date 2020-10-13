@@ -1,4 +1,5 @@
 from redbot.core import commands, Config, bank
+import discord
 
 
 class Pets(commands.Cog):
@@ -20,6 +21,11 @@ class Pets(commands.Cog):
             y = "{0}: {1}".format(key, item)
             x.append(y)
         return "\n".join(x)
+
+    async def update_balance(self, user: discord.Member, amount: int):
+        old_bal = await bank.get_balance(user)
+        new_bal = old_bal - amount
+        await bank.set_balance(user, new_bal)
 
     @commands.command(name="petsclear")
     @commands.is_owner()
@@ -44,6 +50,7 @@ class Pets(commands.Cog):
                 pet_type, pet_name, value={"cost": cost, "hunger": 0}
             )
             await ctx.send("You have purchased a {0} and called it {1}".format(pet_type, pet_name))
+            await self.update_balance(ctx.author, cost)
         else:
             await ctx.send("You do not have enough money to buy that pet!")
 
