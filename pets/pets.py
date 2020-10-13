@@ -7,9 +7,13 @@ class Pets(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 2958485)
         self.config.register_global(
+            fish=15,
             dog=30,
+            snake=30,
             cat=35,
-            birb=40
+            birb=40,
+            lizard=45,
+            panda=60
         )
         self.config.register_user(
             pets={}
@@ -38,7 +42,7 @@ class Pets(commands.Cog):
             await ctx.send("Could not clear the data")
 
     @commands.command(name="buypet")
-    async def buy_pet(self, ctx, pet_type: str, pet_name: str):
+    async def buy_pet(self, ctx, pet_type: str, *, pet_name: str):
         try:
             cost = await self.config.get_raw(pet_type)
         except KeyError:
