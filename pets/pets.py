@@ -1,5 +1,7 @@
 from redbot.core import commands, Config, bank
+from redbot.core import checks
 import discord
+import traceback as tb
 
 
 class Pets(commands.Cog):
@@ -40,6 +42,17 @@ class Pets(commands.Cog):
         except:
 
             await ctx.send("Could not clear the data")
+
+    @commands.command(name="addpet")
+    @checks.mod_or_permissions(manage_server=True)
+    async def add_pet(self, ctx, pet_type: str, cost: int):
+        try:
+            await self.config.guild(ctx.guild).set_raw(pet_type, value=cost)
+            await ctx.send("Added {0} to the list of pets\nYou can purchase it for {1}".format(pet_type, cost))
+        except:
+            print(f"Ignoring exception in {ctx.command}")
+            tb.print_exc()
+            await ctx.send("Could not add that to the pet list")
 
     @commands.command(name="buypet")
     async def buy_pet(self, ctx, pet_type: str, *, pet_name: str):
