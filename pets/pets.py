@@ -86,7 +86,7 @@ class Pets(commands.Cog):
         )
         await ctx.send("Your pet is now at {}/100 hunger!".format(new_hunger))
 
-    @commands.command()
+    @commands.command(name="petlist", aliases=["plist"])
     async def pet_list(self, ctx):
         try:
             pet_list = await self.config.get_raw()
@@ -94,4 +94,4 @@ class Pets(commands.Cog):
             await ctx.send("I could not find any pets!")
             return
         pet_list_readable = self.readable_dict(pet_list)
-        await ctx.send(pet_list_readable)
+        await ctx.send("Pet: cost\n{0}".format(pet_list_readable))
