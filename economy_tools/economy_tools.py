@@ -11,4 +11,7 @@ class EconomyTools(commands.Cog):
     async def balance(self, ctx, user: dis.Member = None):
         if user is None:
             user = ctx.author
-        await ctx.send(await bank.get_balance(user))
+
+        user_bal = await bank.get_balance(user)
+        user_bank_currency_name = await bank.get_currency_name(ctx.guild)
+        await ctx.send("{0.display_name} has {1} {2}".format(user, user_bal, user_bank_currency_name))
