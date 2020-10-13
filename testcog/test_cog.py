@@ -34,10 +34,13 @@ class TestCog(commands.Cog):
     async def pets(self, ctx):
         try:
             pet_list = await self.config.user(ctx.author).get_raw("pets")
-            await ctx.send(pet_list)
         except:
             await ctx.send("You don't have any pets!")
             return
+        if len(pet_list.keys()) > 0:
+            await ctx.send(pet_list)
+        else:
+            await ctx.send("You don't have any pets!")
 
     @commands.command()
     async def hunger(self, ctx, pet_name: str):
