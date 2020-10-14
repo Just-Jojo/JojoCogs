@@ -12,7 +12,9 @@ class Fun(commands.Cog):
             scone=15,
             doughnut=9
         )
-        self.config.register_member(items={})
+        self.config.register_member(
+            stalk={}
+        )
 
     def readable_dict(self, dictionary: dict):
         x = []
@@ -33,12 +35,12 @@ class Fun(commands.Cog):
             await ctx.send("I could not find that item!")
             return
         if await bank.can_spend(ctx.author, cost):
-            old_bal = await bank.get_balance(ctx.author)
-            new_bal = old_bal - cost
+            # old_bal = await bank.get_balance(ctx.author)
+            # new_bal = old_bal - cost
             # await self.config.user(ctx.author).items.set_raw(item, value=cost)
             # await ctx.send("You bought a {0}!".format(item))
             # await bank.set_balance(ctx.author, new_bal)
-            await self.config.user(ctx.author).items.set_raw(item, value={"Cost": cost})
+            await self.config.user(ctx.author).stalk.set_raw(item, value={"Cost": cost})
 
     @commands.command(name="storeclear")
     @checks.is_owner()
