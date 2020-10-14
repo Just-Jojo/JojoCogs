@@ -66,4 +66,4 @@ class Fun(commands.Cog):
     @commands.command()
     async def items(self, ctx):
         items_ = await self.config.user(ctx.author).items.get_raw()
-        await ctx.send("You have\n{}".format(items_))
+        await ctx.send("You have\n{0}".format(items_))
