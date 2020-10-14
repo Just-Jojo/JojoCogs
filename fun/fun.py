@@ -1,4 +1,5 @@
 from redbot.core import commands, bank, Config
+from redbot.core import checks
 from discord import Member
 
 
@@ -42,3 +43,9 @@ class Fun(commands.Cog):
                 await ctx.send("You bought a {0} for {1} {2}".format(item.lower(), stalk[item.lower()], cur_name))
         else:
             await ctx.send(self.readable_dict(stalk))
+
+    @commands.command(name="storeclear")
+    @checks.is_owner()
+    async def clear_store(self, ctx):
+        await self.config.clear()
+        await ctx.send("Cleared the store")
