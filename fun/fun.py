@@ -28,7 +28,7 @@ class Fun(commands.Cog):
     @store.command(name="buy")
     async def _buy(self, ctx, item: str):
         try:
-            cost = await self.config.guild(ctx.guild).items.get_raw(item)
+            cost = await self.config.guild(ctx.guild).get_raw(item)
         except KeyError:
             await ctx.send("I could not find that item!")
             return
