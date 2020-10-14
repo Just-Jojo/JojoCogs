@@ -13,7 +13,6 @@ class EconomyTools(commands.Cog):
         return x, y
 
     @commands.command()
-    # , account: bool = False):
     async def balance(self, ctx, user: dis.Member = None):
         if user is None:
             user = ctx.author

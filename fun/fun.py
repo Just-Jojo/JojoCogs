@@ -21,6 +21,13 @@ class Fun(commands.Cog):
             x.append(y)
         return "\n".join(x)
 
+    async def bank_utils(self, ctx: commands.Context, user: Member = None):
+        name = await bank.get_currency_name(ctx.guild())
+        if user is not None:
+            balance = await bank.get_balance(ctx.author)
+            return name, balance
+        return name
+
     @commands.group()
     async def store(self, ctx):
         """Store commmands"""
@@ -32,12 +39,15 @@ class Fun(commands.Cog):
         except KeyError:
             await ctx.send("I could not find that item!")
             return
+
         if await bank.can_spend(ctx.author, cost):
-            old_bal = await bank.get_balance(ctx.author)
+            cur_name, old_bal = await self.bank_utils(ctx, ctx.author)
             new_bal = old_bal - cost
             await self.config.user(ctx.author).items.set_raw(item, value=cost)
-            await ctx.send("You bought a {0}!".format(item))
+            await ctx.send("You bought a {0} for {1} {2}!".format(item, cost, cur_name))
             await bank.set_balance(ctx.author, new_bal)
+        else:
+            await ctx.send("You can't buy {0}! You don't have enough {1} to buy it!".format(item, cur_name))
 
     @commands.command(name="storeclear")
     @checks.is_owner()
