@@ -22,7 +22,7 @@ class Fun(commands.Cog):
         return "\n".join(x)
 
     async def bank_utils(self, ctx: commands.Context, user: Member = None):
-        name = await bank.get_currency_name(ctx.guild())
+        name = await bank.get_currency_name(ctx.guild)
         if user is not None:
             balance = await bank.get_balance(ctx.author)
             return name, balance
