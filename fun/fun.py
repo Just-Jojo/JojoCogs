@@ -22,6 +22,15 @@ class Fun(commands.Cog):
         return "\n".join(x)
 
     async def bank_utils(self, ctx: commands.Context, user: Member = None):
+        """Returns the name of the bank's currency and can optionally return the balance of a member
+
+        Args:
+            ctx (commands.Context): Needed for the guild to get the bank credit
+            user (Member, optional): Optional to get the balance of a user. Defaults to None.
+
+        Returns:
+            str, int (optional)
+        """
         name = await bank.get_currency_name(ctx.guild)
         if user is not None:
             balance = await bank.get_balance(ctx.author)
@@ -34,6 +43,7 @@ class Fun(commands.Cog):
 
     @store.command(name="buy")
     async def _buy(self, ctx, item: str):
+        """Purchase an item from the store"""
         try:
             cost = await self.config.guild(ctx.guild).get_raw(item)
         except KeyError:
@@ -52,6 +62,7 @@ class Fun(commands.Cog):
     @commands.command(name="storeclear")
     @checks.is_owner()
     async def clear_store(self, ctx):
+        """Clear out the store of items"""
         await self.config.clear()
         await ctx.send("Cleared the store")
 
