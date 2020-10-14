@@ -6,18 +6,12 @@ class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 13814755994)
-        # _default_user = {
-        #     "items": {"coffee": 0,
-        #               "doughnut": 0,
-        #               "scone": 0}
-        # }
+
         self.config.register_member(
-            {
-                "items": {
-                    "coffee": 0,
-                    "doughnut": 0,
-                    "scone": 0
-                }
+            items={
+                "coffee": 0,
+                "dougnut": 0,
+                "scone": 0
             }
         )  # **_default_user)
 
