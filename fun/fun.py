@@ -54,3 +54,11 @@ class Fun(commands.Cog):
     async def clear_store(self, ctx):
         await self.config.clear()
         await ctx.send("Cleared the store")
+
+    @commands.command(name="useitem", aliases=["use", "item"])
+    async def use_item(self, ctx, item: str):
+        # try:
+        await self.config.user(ctx.author).items.clear_raw(item)
+        await ctx.send("You used a {}!".format(item))
+        # except:
+        #     await ctx.send("You could not use that item!")
