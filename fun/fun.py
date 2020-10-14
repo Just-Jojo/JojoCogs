@@ -35,9 +35,10 @@ class Fun(commands.Cog):
         if await bank.can_spend(ctx.author, cost):
             old_bal = await bank.get_balance(ctx.author)
             new_bal = old_bal - cost
-            await self.config.user(ctx.author).items.set_raw(item, value=cost)
-            await ctx.send("You bought a {0}!".format(item))
-            await bank.set_balance(ctx.author, new_bal)
+            # await self.config.user(ctx.author).items.set_raw(item, value=cost)
+            # await ctx.send("You bought a {0}!".format(item))
+            # await bank.set_balance(ctx.author, new_bal)
+            await self.config.user(ctx.author).items.set_raw(item, value={"Cost": cost})
 
     @commands.command(name="storeclear")
     @checks.is_owner()
