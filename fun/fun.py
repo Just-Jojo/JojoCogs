@@ -70,4 +70,7 @@ class Fun(commands.Cog):
     @commands.command()
     async def items(self, ctx):
         items_ = await self.config.user(ctx.author).items.get_raw()
-        await ctx.send("You have\n{0}".format(self.readable_dict(items_)))
+        if items_:
+            await ctx.send("You have\n{0}".format(self.readable_dict(items_)))
+        else:
+            await ctx.send("You do not have any items!\nYou can buy some using `[p]store buy`")
