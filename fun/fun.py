@@ -62,3 +62,8 @@ class Fun(commands.Cog):
         await ctx.send("You used a {}!".format(item))
         # except:
         #     await ctx.send("You could not use that item!")
+
+    @commands.command()
+    async def items(self, ctx):
+        items_ = await self.config.user(ctx.author).items.get_raw()
+        await ctx.send("You have\n{}".format(items_))
