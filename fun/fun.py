@@ -7,7 +7,7 @@ class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 13814755994)
-        self.config.register_global(
+        self.config.register_guild(
             coffee=10,
             scone=15,
             doughnut=9
@@ -28,7 +28,7 @@ class Fun(commands.Cog):
     @store.command(name="buy")
     async def _buy(self, ctx, item: str):
         try:
-            cost = await self.config.user(ctx.author).items.get_raw(item)
+            cost = await self.config.guild(ctx.guild).items.get_raw(item)
         except KeyError:
             await ctx.send("I could not find that item!")
             return
