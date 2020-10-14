@@ -36,7 +36,7 @@ class Fun(commands.Cog):
         if item and item.lower() in stalk.keys():
             if await bank.can_spend(ctx.author, amount=stalk[item.lower()]):
                 cur_name = await bank.get_currency_name(ctx.guild)
-                up = await self.config.user(ctx.author).items.get_raw()
+                up = await self.config.user(ctx.author).items.get_raw(item.lower())
                 upd = up + 1
                 await self.config.user(ctx.author).items.set_raw(item.lower(), upd)
                 await ctx.send("You bought a {0} for {1} {2}".format(item.lower(), stalk[item.lower()], cur_name))
