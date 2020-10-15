@@ -1,4 +1,4 @@
-from .economy_tools import EconomyTools,
+from .economy_tools import EconomyTools
 from .jojo_eco import JojoEconomy
 
 
