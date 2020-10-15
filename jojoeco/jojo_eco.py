@@ -7,7 +7,8 @@ import random
 class JojoEconomy(commands.Cog):
     default_guild_settings = {
         "PAYDAY_TIME": 100,
-        "REGISTER_CREDITS": 100
+        "REGISTER_CREDITS": 100,
+        "PAYDAY_CREDITS": 120
     }
     default_global_settings = default_guild_settings
     default_member_settings = {"next_payday": 0}
