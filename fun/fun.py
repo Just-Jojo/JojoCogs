@@ -1,4 +1,4 @@
-from redbot.core import commands, bank, Config
+from redbot.core import commands, bank, Config, modlog
 from redbot.core import checks
 from discord import Member
 
@@ -85,3 +85,16 @@ class Fun(commands.Cog):
             await ctx.send("You have\n{0}".format(self.readable_dict(items_)))
         else:
             await ctx.send("You do not have any items!\nYou can buy some using `[p]store buy`")
+
+    @commands.command(name="paidkick")
+    @bank.cost(500000)
+    async def kick_fun(self, ctx, user: Member = None):
+        if user is None:
+            raise bank.AbortPurchase
+        await ctx.guild.kick(user)
+        case = await modlog.create_case(
+            ctx.bot, ctx.guild, ctx.message.created_at, action_type="kick",
+            user=user, moderator=ctx.author, reason="{0.display_name} has redeemed a kick command and used it on {1}!".format(
+                ctx.author, user)
+        )
+        await ctx.send("Done. It was about time")
