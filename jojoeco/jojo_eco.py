@@ -12,7 +12,7 @@ class JojoEconomy(commands.Cog):
     }
     default_global_settings = default_guild_settings
     default_member_settings = {"next_payday": 0}
-
+    default_role_settings = {"PAYDAY_CREDITS": 0}
     default_user_settings = default_member_settings
 
     def __init__(self, bot):
@@ -22,6 +22,7 @@ class JojoEconomy(commands.Cog):
         self.config.register_guild(**self.default_guild_settings)
         self.config.register_member(**self.default_member_settings)
         self.config.register_user(**self.default_user_settings)
+        self.config.register_role(**self.default_role_settings)
 
     async def red_delete_data_for_user(
         self,
