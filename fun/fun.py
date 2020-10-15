@@ -87,7 +87,7 @@ class Fun(commands.Cog):
             await ctx.send("You do not have any items!\nYou can buy some using `[p]store buy`")
 
     @commands.command(name="paidkick")
-    @bank.cost(500000)
+    @bank.cost(5000)
     async def kick_fun(self, ctx, user: Member = None):
         if user is None:
             raise bank.AbortPurchase
