@@ -1,6 +1,6 @@
 from redbot.core import commands, bank, Config, modlog
 from redbot.core import checks
-from discord import Member
+import discord
 
 
 class Fun(commands.Cog):
@@ -21,7 +21,7 @@ class Fun(commands.Cog):
             x.append(y)
         return "\n".join(x)
 
-    async def bank_utils(self, ctx: commands.Context, user: Member = None):
+    async def bank_utils(self, ctx: commands.Context, user: discord.Member = None):
         """Returns the name of the bank's currency and can optionally return the balance of a member
 
         Args:
@@ -88,13 +88,17 @@ class Fun(commands.Cog):
 
     @commands.command(name="paidkick")
     @bank.cost(5000)
-    async def kick_fun(self, ctx, user: Member = None):
+    async def kick_fun(self, ctx, user: discord.Member = None):
         if user is None:
             raise bank.AbortPurchase
-        await ctx.guild.kick(user)
-        case = await modlog.create_case(
-            ctx.bot, ctx.guild, ctx.message.created_at, action_type="kick",
-            user=user, moderator=ctx.author, reason="{0.display_name} has redeemed a kick command and used it on {1}!".format(
-                ctx.author, user)
-        )
-        await ctx.send("Done. It was about time")
+        try:
+            await ctx.guild.kick(user)
+            case = await modlog.create_case(
+                ctx.bot, ctx.guild, ctx.message.created_at, action_type="kick",
+                user=user, moderator=ctx.author, reason="{0.display_name} has redeemed a kick command and used it on {1}!".format(
+                    ctx.author, user)
+            )
+            await ctx.send("Done. It was about time")
+        except discord.Forbidden:
+            await ctx.send("I could not kick that member!")
+            raise bank.AbortPurchase
