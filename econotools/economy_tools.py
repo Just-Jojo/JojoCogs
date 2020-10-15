@@ -18,3 +18,10 @@ class EconomyTools(commands.Cog):
             user = ctx.author
         user_bal, user_bank_cur_name = await self.get_currency(ctx, user)
         await ctx.send("{0.display_name} has {1} {2}".format(user, user_bal, user_bank_cur_name))
+
+    @commands.command()
+    async def account(self, ctx, user: dis.Member = None):
+        if user is None:
+            user = ctx.author
+        user_acc = await bank.get_account(user)
+        await ctx.send(user_acc)
