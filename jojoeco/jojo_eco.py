@@ -7,24 +7,17 @@ import discord
 
 class JojoEconomy(commands.Cog):
     default_guild_settings = {
-        "PAYDAY_TIME": 100,
-        "REGISTER_CREDITS": 100,
         "PAYDAY_CREDITS": 120,
-        "STEAL_COOLDOWN": 120,
-        "WORK_COOLDOWN": 60
+        "REGISTER_CREDITS": 100,
     }
     default_global_settings = default_guild_settings
-    default_member_settings = {"next_payday": 0}
     default_role_settings = {"PAYDAY_CREDITS": 0}
-    default_user_settings = default_member_settings
 
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 6472514, force_registration=True)
         self.config.register_global(**self.default_global_settings)
         self.config.register_guild(**self.default_guild_settings)
-        self.config.register_member(**self.default_member_settings)
-        self.config.register_user(**self.default_user_settings)
         self.config.register_role(**self.default_role_settings)
 
     async def red_delete_data_for_user(
@@ -49,8 +42,8 @@ class JojoEconomy(commands.Cog):
     async def work(self, ctx):
         """Work for some credits"""
         name = await bank.get_currency_name(ctx.guild)
-        await bank.deposit_credits(ctx.author, await self.config.PAYDAY_CREDITS)
-        await ctx.send("You got {0} {1}".format(await self.config.PAYDAY_CREDITS, name))
+        await bank.deposit_credits(ctx.author, self.config.PAYDAY_CREDITS)
+        await ctx.send("You got {0} {1}".format(self.config.PAYDAY_CREDITS, name))
 
     @commands.command()
     @commands.cooldown(1, 120, commands.BucketType.user)
