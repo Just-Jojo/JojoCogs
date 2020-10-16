@@ -9,7 +9,9 @@ class JojoEconomy(commands.Cog):
     default_guild_settings = {
         "PAYDAY_TIME": 100,
         "REGISTER_CREDITS": 100,
-        "PAYDAY_CREDITS": 120
+        "PAYDAY_CREDITS": 120,
+        "STEAL_COOLDOWN": 120,
+        "WORK_COOLDOWN": 60
     }
     default_global_settings = default_guild_settings
     default_member_settings = {"next_payday": 0}
@@ -43,15 +45,19 @@ class JojoEconomy(commands.Cog):
                 await self.config.member_from_ids(guild_id, user_id).clear()
 
     @commands.command()
-    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.cooldown(1, 60, commands.BucketType.user)
     async def work(self, ctx):
+        """Work for some credits"""
         payday_amount = self.config.PAYDAY_CREDITS
         name = await bank.get_currency_name(ctx.guild)
         await bank.set_balance(ctx.author, payday_amount)
         await ctx.send("You got {0} {1}".format(payday_amount, name))
 
     @commands.command()
+    @commands.cooldown(1, 120, commands.BucketType.user)
     async def steal(self, ctx, user: discord.Member):
+        """**Attempt to steal from a member**
+        Be warned! This comes at a risk!"""
         name = await bank.get_currency_name(ctx.guild)
         flip = random.choice([True, False])
         if flip is True:
