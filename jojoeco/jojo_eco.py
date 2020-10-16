@@ -48,10 +48,9 @@ class JojoEconomy(commands.Cog):
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def work(self, ctx):
         """Work for some credits"""
-        payday_amount = int(self.config.PAYDAY_CREDITS)
         name = await bank.get_currency_name(ctx.guild)
-        await bank.set_balance(ctx.author, payday_amount)
-        await ctx.send("You got {0} {1}".format(payday_amount, name))
+        await bank.deposit_credits(ctx.author, await self.config.PAYDAY_CREDITS)
+        await ctx.send("You got {0} {1}".format(await self.config.PAYDAY_CREDITS, name))
 
     @commands.command()
     @commands.cooldown(1, 120, commands.BucketType.user)
