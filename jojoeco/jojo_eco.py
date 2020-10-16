@@ -52,22 +52,19 @@ class JojoEconomy(commands.Cog):
 
     @commands.command()
     async def steal(self, ctx, user: discord.Member):
-        if user:
-            name = await bank.get_currency_name(ctx.guild)
-            flip = random.choice([True, False])
-            if flip is True:
-                user_credits = await bank.get_balance(user)
-                steal_amount = random.randint(100, user_credits)
-                new_user_credits = user_credits - steal_amount
-                await bank.set_balance(ctx.author, steal_amount)
-                await bank.set_balance(user, new_user_credits)
-
-                await ctx.send("You stole {0} {1} from {2.display_name}!".format(steal_amount, name, user))
-            else:
-                author_amount = await bank.get_balance(ctx.author)
-                give_amount = random.randint(100, author_amount)
-                new_author_amount = author_amount - give_amount
-                await bank.set_balance(ctx.author, new_author_amount)
-                await bank.set_balance(user, give_amount)
-
-                await ctx.send("You were caught trying to steal from {0.mention}! You gave them {1} {2} as a fine".format(user, give_amount, name))
+        name = await bank.get_currency_name(ctx.guild)
+        flip = random.choice([True, False])
+        if flip is True:
+            user_credits = await bank.get_balance(user)
+            steal_amount = random.randint(100, user_credits)
+            new_user_credits = user_credits - steal_amount
+            await bank.set_balance(ctx.author, steal_amount)
+            await bank.set_balance(user, new_user_credits)
+            await ctx.send("You stole {0} {1} from {2.display_name}!".format(steal_amount, name, user))
+        else:
+            author_amount = await bank.get_balance(ctx.author)
+            give_amount = random.randint(100, author_amount)
+            new_author_amount = author_amount - give_amount
+            await bank.set_balance(ctx.author, new_author_amount)
+            await bank.set_balance(user, give_amount)
+            await ctx.send("You were caught trying to steal from {0.mention}! You gave them {1} {2} as a fine".format(user, give_amount, name))
