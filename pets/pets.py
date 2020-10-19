@@ -1,7 +1,9 @@
 from redbot.core import commands, Config, bank
 from redbot.core import checks
+from redbot.core.utils import AsyncIter
 import discord
 import traceback as tb
+from typing import Literal
 
 
 class Pets(commands.Cog):
@@ -28,6 +30,21 @@ class Pets(commands.Cog):
             x.append(y)
         return "\n".join(x)
 
+    async def red_delete_data_for_user(
+        self,
+        *,
+        user: Literal["discord_deleted_user", "owner", "owner", "user", "user_strict"],
+        id: int
+    ):
+        if user != "discord_deleted_user":
+            return
+        await self.config.user_from_id(id).clear()
+
+        all_members = await self.config.all_members
+        async for guild_id, guild_data in AsyncIter(all_members.items(), steps=500):
+            if id in guild_data:
+                await self.config.member_from_ids(guild_id, id).clear()
+
     async def update_balance(self, user: discord.Member, amount: int):
         old_bal = await bank.get_balance(user)
         new_bal = old_bal - amount
@@ -40,7 +57,6 @@ class Pets(commands.Cog):
             await self.config.clear_all()
             await ctx.send("Cleared the data")
         except:
-
             await ctx.send("Could not clear the data")
 
     @commands.command(name="buypet")
