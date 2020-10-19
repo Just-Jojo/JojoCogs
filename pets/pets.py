@@ -24,11 +24,18 @@ class Pets(commands.Cog):
         )
 
     def readable_dict(self, dictionary: dict):
+        """Transform a dict into human readable data"""
         x = []
         for key, item in dictionary.items():
             y = "{0}: {1}".format(key, item)
             x.append(y)
         return "\n".join(x)
+
+    async def update_balance(self, user: discord.Member, amount: int):
+        """Update a user's balance with the bank module"""
+        old_bal = await bank.get_balance(user)
+        new_bal = old_bal - amount
+        await bank.set_balance(user, new_bal)
 
     async def red_delete_data_for_user(
         self,
@@ -45,22 +52,22 @@ class Pets(commands.Cog):
             if id in guild_data:
                 await self.config.member_from_ids(guild_id, id).clear()
 
-    async def update_balance(self, user: discord.Member, amount: int):
-        old_bal = await bank.get_balance(user)
-        new_bal = old_bal - amount
-        await bank.set_balance(user, new_bal)
-
     @commands.command(name="petsclear")
     @commands.is_owner()
-    async def clear_pets(self, ctx):
-        try:
-            await self.config.clear_all()
-            await ctx.send("Cleared the data")
-        except:
-            await ctx.send("Could not clear the data")
+    async def clear_pets(self, ctx, confirm: bool = False):
+        """Clear all of the pets in a guild"""
+        if confirm is True:
+            try:
+                await self.config.clear_all()
+                await ctx.send("Cleared the data")
+            except:
+                await ctx.send("Could not clear the data")
+        else:
+            await ctx.send("You need to confirm that you want to erase the data. Please use `[p]petsclear True` to erase the data")
 
     @commands.command(name="buypet")
     async def buy_pet(self, ctx, pet_type: str, *, pet_name: str):
+        """Purchase a pet"""
         try:
             cost = await self.config.get_raw(pet_type)
         except KeyError:
@@ -78,6 +85,7 @@ class Pets(commands.Cog):
 
     @commands.command()
     async def pets(self, ctx):
+        """List the pets that you own"""
         try:
             pet_list = await self.config.user(ctx.author).get_raw("pets")
         except:
@@ -91,16 +99,18 @@ class Pets(commands.Cog):
 
     @commands.command()
     async def hunger(self, ctx, pet_name: str):
+        """Check the hunger of a pet"""
         try:
             pet = await self.config.user(ctx.author).pets.get_raw(pet_name)
         except KeyError:
             await ctx.send("You don't own that pet!")
             return
         hunger = pet.get("hunger")
-        await ctx.send("Your pet has {}/100 hunger".format(hunger))
+        await ctx.send("Your pet has {0}/100 hunger".format(hunger))
 
     @commands.command()
     async def feed(self, ctx, pet_name: str, food: int):
+        """Feed on of your pets"""
         try:
             pet = await self.config.user(ctx.author).pets.get_raw(pet_name)
         except KeyError:
@@ -113,10 +123,11 @@ class Pets(commands.Cog):
         await self.config.user(ctx.author).pets.set_raw(
             pet_name, "hunger", value=new_hunger
         )
-        await ctx.send("Your pet is now at {}/100 hunger!".format(new_hunger))
+        await ctx.send("Your pet is now at {0}/100 hunger!".format(new_hunger))
 
     @commands.command(name="petlist", aliases=["plist"])
     async def pet_list(self, ctx):
+        """Lists all of the pets in your guild"""
         try:
             pet_list = await self.config.get_raw()
         except:
