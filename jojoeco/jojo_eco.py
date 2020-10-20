@@ -42,7 +42,7 @@ class JojoEconomy(commands.Cog):
     async def work(self, ctx):
         """Work for some credits"""
         name = await bank.get_currency_name(ctx.guild)
-        await bank.deposit_credits(ctx.author, self.config.PAYDAY_CREDITS)
+        await bank.deposit_credits(ctx.author, int(self.config.PAYDAY_CREDITS))
         await ctx.send("You got {0} {1}".format(int(self.config.PAYDAY_CREDITS), name))
 
     @commands.command()
