@@ -45,7 +45,7 @@ class ToDo(commands.Cog):
     @todo.command(aliases=["del", ])
     async def remove(self, ctx, number: int = None):
         if number is None:
-            todo_list = self.readable_dict(await self.config.user(ctx.guild).todo.get_raw(), True)
+            todo_list = self.readable_dict(await self.config.user(ctx.author).todo.get_raw(), True)
             return await ctx.send(todo_list)
         await self.config.user(ctx.author).todo.clear_raw(number)
 
