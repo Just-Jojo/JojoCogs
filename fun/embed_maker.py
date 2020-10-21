@@ -8,9 +8,8 @@ class Embed:
         self.bot = bot
 
     def embed_make(self, ctx, title="", description="", image: str = None, thumbnail: str = None,
-                   footer_url: str = None, footer: str = None, color: discord.Color = None
-                   ) -> discord.Embed:
-        if isinstance(ctx.message.channel, discord.abc.GuildChannel) and color is not None:
+                   footer_url: str = None, footer: str = None) -> discord.Embed:
+        if isinstance(ctx.message.channel, discord.abc.GuildChannel): # and color is not None:
             color = ctx.message.author.Color
         data = discord.Embed(title=title, color=color)
         if description is not None:
