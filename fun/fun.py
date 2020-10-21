@@ -14,7 +14,8 @@ class Fun(commands.Cog):
         )
         self.config.register_user(items={})
 
-    def readable_dict(self, dictionary: dict):
+    def readable_dict(self, dictionary: dict) -> str:
+        """Convert a dictionary into something a regular person could read"""
         x = []
         for key, item in dictionary.items():
             y = "{0}: {1}".format(key, item)
@@ -44,20 +45,24 @@ class Fun(commands.Cog):
     @store.command(name="buy")
     async def _buy(self, ctx, item: str):
         """Purchase an item from the store"""
-        try:
-            cost = await self.config.guild(ctx.guild).get_raw(item)
-        except KeyError:
-            await ctx.send("I could not find that item!")
-            return
+        if item:
+            try:
+                cost = await self.config.guild(ctx.guild).get_raw(item)
+            except KeyError:
+                await ctx.send("I could not find that item!")
+                return
 
-        if await bank.can_spend(ctx.author, cost):
-            cur_name, old_bal = await self.bank_utils(ctx, ctx.author)
-            new_bal = old_bal - cost
-            await self.config.user(ctx.author).items.set_raw(item, value=cost)
-            await ctx.send("You bought a {0} for {1} {2}!".format(item, cost, cur_name))
-            await bank.set_balance(ctx.author, new_bal)
+            if await bank.can_spend(ctx.author, cost):
+                cur_name, old_bal = await self.bank_utils(ctx, ctx.author)
+                new_bal = old_bal - cost
+                await self.config.user(ctx.author).items.set_raw(item, value=cost)
+                await ctx.send("You bought a {0} for {1} {2}!".format(item, cost, cur_name))
+                await bank.set_balance(ctx.author, new_bal)
+            else:
+                await ctx.send("You can't buy {0}! You don't have enough {1} to buy it!".format(item, cur_name))
         else:
-            await ctx.send("You can't buy {0}! You don't have enough {1} to buy it!".format(item, cur_name))
+            item_list = self.readable_dict(await self.config.guild(ctx.guild).get_raw())
+            await ctx.send("Here are the items you can purchase in this guild: {0}".format(item_list))
 
     @commands.command(name="storeclear")
     @checks.is_owner()
@@ -96,7 +101,7 @@ class Fun(commands.Cog):
             raise bank.AbortPurchase
         try:
             await ctx.guild.kick(user)
-            case = await modlog.create_case(
+            _ = await modlog.create_case(
                 ctx.bot, ctx.guild, ctx.message.created_at, action_type="kick",
                 user=user, moderator=ctx.author, reason="{0.display_name} has redeemed a kick command and used it on {1}!".format(
                     ctx.author, user)
