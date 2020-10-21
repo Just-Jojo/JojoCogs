@@ -9,6 +9,7 @@ class Embed:
 
     def embed_make(self, ctx, title="", description="", image: str = None, thumbnail: str = None,
                    footer_url: str = None, footer: str = None) -> discord.Embed:
+        JOJOBOTURL = "https://cdn.discordapp.com/avatars/730061145490325644/e19579cefc7ff5695a0a2878c31c4588.png?size=1024"
         if isinstance(ctx.message.channel, discord.abc.GuildChannel):
             color = ctx.message.author.color
         data = discord.Embed(title=title, color=color)
@@ -34,6 +35,6 @@ class Embed:
         if footer is None:
             footer = "{0} embed maker".format(ctx.bot)
         if footer_url is None:
-            footer_url = ctx.bot.avatar_url
+            footer_url = JOJOBOTURL
         data.set_footer(text=footer, icon_url=footer_url)
         return data
