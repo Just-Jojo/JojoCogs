@@ -1,6 +1,7 @@
 from redbot.core import commands, bank, Config, modlog
 from redbot.core import checks
 import discord
+from .embed_maker import Embed
 
 
 class Fun(commands.Cog):
@@ -13,6 +14,7 @@ class Fun(commands.Cog):
             doughnut=9
         )
         self.config.register_user(items={})
+        self.embed = Embed(self)
 
     def readable_dict(self, dictionary: dict) -> str:
         """Convert a dictionary into something a regular person could read"""
@@ -61,8 +63,12 @@ class Fun(commands.Cog):
             else:
                 await ctx.send("You can't buy {0}! You don't have enough {1} to buy it!".format(item, cur_name))
         else:
-            item_list = self.readable_dict(await self.config.guild(ctx.guild).get_raw())
-            await ctx.send("Here are the items you can purchase in this guild: {0}".format(item_list))
+            item_list = await self.config.guild(ctx.guild).get_raw()
+            item_list_embed = self.embed.embed_make(ctx, title="{0}'s Store".format(
+                ctx.guild.name), description="Item listing", footer_url="Store | Ye Ole Store")
+            for key, item in item_list:
+                item_list_embed.add_field(name=key, inline=False, value=item)
+            await ctx.send(embed=item_list_embed)
 
     @commands.command(name="storeclear")
     @checks.is_owner()
