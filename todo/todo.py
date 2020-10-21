@@ -20,12 +20,11 @@ class ToDo(commands.Cog):
         )
 
     @commands.group()
-    @checks.admin()
+    @checks.guildowner()
     async def todoset(self, ctx):
         """The base settings command for the ToDo cog"""
 
     @todoset.command()
-    @checks.admin()
     async def dm(self, ctx, toggle: bool = True):
         """Toggles the dm setting
         will default to True if not specified"""
@@ -44,21 +43,28 @@ class ToDo(commands.Cog):
 
     @todo.command(aliases=["del", ])
     async def remove(self, ctx, number: int = None):
+        toogle = await self.check_dm(ctx)
         if number is None:
             todo_list = self.readable_dict(await self.config.user(ctx.author).todo.get_raw(), True)
-            return await ctx.send("Here are all of the ToDo reminders you have: {0}\nTo remove one, please type `[p]todo remove|del <number>`".format(todo_list))
+            msg = "Here are all of the ToDo reminders you have: {0}\nTo remove one, please type `[p]todo remove|del <number>`".format(
+                todo_list)
+            if toogle is True:
+                return await ctx.author.send(msg)
+            return await ctx.send(msg)
         await self.config.user(ctx.author).todo.clear_raw(number)
-        await ctx.send("Sucessfully removed that ToDo reminder.")
+        msg = "Sucessfully removed that ToDo reminder."
+        if toogle is True:
+            return await ctx.author.send(msg)
+        await ctx.send(msg)
 
     @todo.command(name="list")
     async def _list(self, ctx):
-        todo_list = await self.config.user(ctx.author).todo.get_raw()
+        todo_list = self.readable_dict(await self.config.user(ctx.author).todo.get_raw())
         toggle = await self.config.guild(ctx.guild).get_raw("DM")
-        readable_todo = self.readable_dict(todo_list)
         if toggle is True:
-            await self.whisper(ctx, user=ctx.author, msg=readable_todo)
+            await ctx.author.send(todo_list)
         else:
-            await ctx.send(readable_todo)
+            await ctx.send(todo_list)
 
     def readable_dict(self, dictionary: dict, numbered: bool = False):
         num = 0
@@ -72,8 +78,6 @@ class ToDo(commands.Cog):
             readable.append(string_version)
         return "\n".join(readable)
 
-    async def whisper(self, ctx, user: discord.Member, msg: str = ""):
-        try:
-            await user.send(msg)
-        except discord.Forbidden:
-            return await ctx.send("I cannot dm that user.")
+    async def check_dm(self, ctx) -> bool:
+        toogle = self.config.guild(ctx.guild).get_raw("DM")
+        return toogle
