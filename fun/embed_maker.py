@@ -9,8 +9,9 @@ class Embed:
 
     def embed_make(self, ctx, title="", description="", image: str = None, thumbnail: str = None,
                    footer_url: str = None, footer: str = None) -> discord.Embed:
-        if isinstance(ctx.message.channel, discord.abc.GuildChannel): # and color is not None:
-            color = ctx.message.author.Color
+        # and color is not None:
+        if isinstance(ctx.message.channel, discord.abc.GuildChannel):
+            color = ctx.message.author.color
         data = discord.Embed(title=title, color=color)
         if description is not None:
             if len(description) <= 1500:
