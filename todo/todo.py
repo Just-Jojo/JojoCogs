@@ -50,7 +50,7 @@ class ToDo(commands.Cog):
 
     @todo.command(name="list")
     async def _list(self, ctx):
-        todo_list = await self.config.user(ctx.author).ToDo.get_raw()
+        todo_list = await self.config.user(ctx.author).todo.get_raw()
         if await self.config.guild(ctx.guild()).DM is True:
             await self.whisper(ctx, user=ctx.author, msg=todo_list)
         else:
