@@ -66,7 +66,7 @@ class Fun(commands.Cog):
             item_list = await self.config.guild(ctx.guild).get_raw()
             item_list_embed = self.embed.embed_make(ctx, title="{0}'s Store".format(
                 ctx.guild.name), description="Item listing", footer_url="Store | Ye Ole Store")
-            for key, item in item_list:
+            for key, item in item_list.items():
                 item_list_embed.add_field(name=key, inline=False, value=item)
             await ctx.send(embed=item_list_embed)
 
