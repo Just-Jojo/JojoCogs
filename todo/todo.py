@@ -27,12 +27,12 @@ class ToDo(commands.Cog):
             return await ctx.send("I cannot dm that user.")
 
     @commands.group()
-    @checks.admin_or_permissions(manage_server=True)
+    @checks.admin()
     async def todoset(self, ctx):
         """The base settings command for the ToDo cog"""
 
     @todoset.command()
-    @checks.admin_or_permissions(manage_server=True)
+    @checks.admin()
     async def dm(self, ctx, toggle: bool = True):
         """Toggles the dm setting
         will default to True if not specified"""
