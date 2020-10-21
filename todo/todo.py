@@ -19,12 +19,6 @@ class ToDo(commands.Cog):
             }
         )
 
-    async def whisper(self, ctx, user: discord.Member, msg: str = ""):
-        try:
-            await user.send(msg)
-        except discord.Forbidden:
-            return await ctx.send("I cannot dm that user.")
-
     @commands.group()
     @checks.admin()
     async def todoset(self, ctx):
@@ -52,7 +46,21 @@ class ToDo(commands.Cog):
     async def _list(self, ctx):
         todo_list = await self.config.user(ctx.author).todo.get_raw()
         toggle = await self.config.guild(ctx.guild).get_raw("DM")
+        readable_todo = self.readable_dict(todo_list)
         if toggle is True:
-            await self.whisper(ctx, user=ctx.author, msg=todo_list)
+            await self.whisper(ctx, user=ctx.author, msg=readable_todo)
         else:
-            await ctx.send(todo_list)
+            await ctx.send(readable_todo)
+
+    def readable_dict(self, dictionary: dict):
+        readable = []
+        for key, item in dictionary.items():
+            string_version = "{0}: {1}".format(key, item)
+            readable.append(string_version)
+        return "\n".join(readable)
+
+    async def whisper(self, ctx, user: discord.Member, msg: str = ""):
+        try:
+            await user.send(msg)
+        except discord.Forbidden:
+            return await ctx.send("I cannot dm that user.")
