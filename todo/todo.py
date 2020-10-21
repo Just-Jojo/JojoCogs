@@ -46,8 +46,9 @@ class ToDo(commands.Cog):
     async def remove(self, ctx, number: int = None):
         if number is None:
             todo_list = self.readable_dict(await self.config.user(ctx.author).todo.get_raw(), True)
-            return await ctx.send(todo_list)
+            return await ctx.send("Here are all of the ToDo reminders you have: {0}\nTo remove one, please type `[p]todo remove|del <number>`".format(todo_list))
         await self.config.user(ctx.author).todo.clear_raw(number)
+        await ctx.send("Sucessfully removed that ToDo reminder.")
 
     @todo.command(name="list")
     async def _list(self, ctx):
