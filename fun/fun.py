@@ -43,9 +43,9 @@ class Fun(commands.Cog):
         """Store commmands"""
 
     @store.command(name="buy")
-    async def _buy(self, ctx, item: str):
+    async def _buy(self, ctx, item: str = None):
         """Purchase an item from the store"""
-        if item:
+        if item is not None:
             try:
                 cost = await self.config.guild(ctx.guild).get_raw(item)
             except KeyError:
