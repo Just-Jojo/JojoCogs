@@ -4,15 +4,14 @@ import discord
 
 class ToDo(commands.Cog):
     """A simple todo list for discord"""
-    _default_global_settings = {
-        "DM": True
-    }
 
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(
             self, 19924714009, force_registration=True)
-        self.config.register_guild(**self._default_global_settings)
+        self.config.register_guild(
+            DM=True
+        )
         self.config.register_user(
             todo={
                 "ToDo": "Create a ToDo reminder"
