@@ -91,6 +91,9 @@ class Fun(commands.Cog):
     async def kick_fun(self, ctx, user: discord.Member = None):
         if user is None:
             raise bank.AbortPurchase
+        if user is ctx.author:
+            await ctx.send("I cannot let you do that. Self-harm is bad :pensive:")
+            raise bank.AbortPurchase
         try:
             await ctx.guild.kick(user)
             case = await modlog.create_case(
