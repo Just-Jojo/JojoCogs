@@ -7,18 +7,17 @@ class ToDo(commands.Cog):
     _default_global_settings = {
         "DM": True
     }
-    _default_member = {
-        "ToDo": []
-    }
-    default_user = _default_member
 
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(
             self, 19924714009, force_registration=True)
         self.config.register_guild(**self._default_global_settings)
-        self.config.register_member(**self._default_member)
-        self.config.register_user(**self.default_user)
+        self.config.register_user(
+            todo={
+                "ToDo": "Create a ToDo reminder"
+            }
+        )
 
     async def whisper(self, ctx, user: discord.Member, msg: str = ""):
         try:
@@ -46,7 +45,7 @@ class ToDo(commands.Cog):
     @todo.command()
     async def add(self, ctx, title, *, description):
         """Add a ToDo to your list"""
-        await self.config.user(ctx.author).ToDo.set_raw(title, value=description)
+        await self.config.user(ctx.author).todo.set_raw(title, value=description)
         await ctx.send("Added `{0}` to your ToDo list under the title `{1}`.".format(description, title))
 
     @todo.command(name="list")
