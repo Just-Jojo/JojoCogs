@@ -51,7 +51,8 @@ class ToDo(commands.Cog):
     @todo.command(name="list")
     async def _list(self, ctx):
         todo_list = await self.config.user(ctx.author).todo.get_raw()
-        if await self.config.guild(ctx.guild).DM is True:
+        toggle = await self.config.guild(ctx.guild).DM.get_raw()
+        if toggle is True:
             await self.whisper(ctx, user=ctx.author, msg=todo_list)
         else:
             await ctx.send(todo_list)
