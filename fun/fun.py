@@ -165,6 +165,14 @@ class Fun(commands.Cog):
         await self.config.guild(ctx.guild).roles.set_raw(role, value=cost)
         await ctx.send("That role can now be bought for {}".format(cost))
 
+    @role.comamnd(aliases=["del", ])
+    async def remove(self, ctx, *, role):
+        try:
+            await self.config.guild(ctx.guild).roles.clear_raw(role)
+            await ctx.send("Removed that role from the store")
+        except KeyError:
+            await ctx.send("I couldn't find that role")
+
     @role.command()
     async def buy(self, ctx, *, role: discord.Role):
         """Buy a role with credits"""
