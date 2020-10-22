@@ -49,10 +49,24 @@ class Fun(commands.Cog):
 
     @store.command()
     @commands.admin()
-    async def add(self, ctx, cost: int = 50, item: str = None):
+    async def add(self, ctx, *, item: str = None, cost: int = 50):
+        """Add an item to the store"""
         if item is None:
             return await ctx.send("Please name the item you would like to add")
         await self.config.guild(ctx.guild).set_raw(item, value=cost)
+        await ctx.send("{0} can now be bought with {1} credits".format(item, cost))
+
+    @store.command(name="remove", aliases=["del", ])
+    @commands.admin()
+    async def _remove(self, ctx, *, item: str = None):
+        """Remove an item from the store"""
+        if item is None:
+            return await ctx.send("You need to input an item for me to remove!")
+        try:
+            await self.config.guild(ctx.guild).items.clear_raw(item)
+            await ctx.send("I removed {} from the store".format(item))
+        except:
+            await ctx.send("I could not remove that item!")
 
     @store.command(name="buy")
     async def _buy(self, ctx, item: str = None):
