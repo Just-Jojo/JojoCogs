@@ -189,3 +189,8 @@ class Fun(commands.Cog):
                 await ctx.send("You have sucessfully bought that role!")
             except discord.Forbidden:
                 await ctx.send("I could not attach that role!")
+
+    @role.command(name="list")
+    async def rlist(self, ctx):
+        roles = await self.config.guild(ctx.guild).roles.get_raw()
+        await ctx.send(roles)
