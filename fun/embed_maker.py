@@ -33,7 +33,7 @@ class Embed:
             else:
                 pass
         if footer is None:
-            footer = "{0} embed maker".format(ctx.bot)
+            footer = "Jojo's embed maker"
         if footer_url is None:
             footer_url = JOJOBOTURL
         data.set_footer(text=footer, icon_url=footer_url)
