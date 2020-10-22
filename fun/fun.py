@@ -107,13 +107,12 @@ class Fun(commands.Cog):
         await self.config.clear()
         await ctx.send("Cleared the store")
 
-    @commands.command(name="useitem")
+    @commands.command()
     async def use(self, ctx, item: str):
         try:
             check_item = await self.config.user(ctx.author).items.get_raw(item)
             if check_item > 0:
                 check_item -= 1
-                # await self.config.user(ctx.author).items.clear_raw(item)
                 await self.config.user(ctx.author).items.set_raw(item, value=check_item)
                 await ctx.send("You used a {0}!\nYou have {1} remaining!".format(item, check_item))
             else:
@@ -129,7 +128,6 @@ class Fun(commands.Cog):
                 ctx, title="{0.display_name}'s Items".format(ctx.author), description=self.readable_dict(items_)
             )
             await ctx.send(embed=embed)
-            # await ctx.send("You have\n{0}".format(self.readable_dict(items_)))
         else:
             await ctx.send("You do not have any items!\nYou can buy some using `[p]store buy`")
 
