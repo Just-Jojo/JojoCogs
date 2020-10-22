@@ -193,10 +193,14 @@ class Fun(commands.Cog):
     @role.command(name="list")
     async def rlist(self, ctx):
         roles = await self.config.guild(ctx.guild).roles.get_raw()
-        data = self.embed.create(
-            ctx, title="{0}'s buyable roles".format(ctx.guild),
-            footer="Buyable roles!"
-        )
-        for key, item in roles.items():
-            data.add_field(name=key, value=item, inline=False)
-        await ctx.send(embed=data)
+        if roles:
+            data = self.embed.create(
+                ctx, title="{0}'s buyable roles".format(ctx.guild),
+                footer="Buyable roles!"
+            )
+            for key, item in roles.items():
+                data.add_field(
+                    name=key, value="Cost: {}".format(item), inline=False)
+            await ctx.send(embed=data)
+        else:
+            await ctx.send("This guild doesn't have any roles!\nTo add some buyable roles, please ask an admin to create one using `[p]role add`")
