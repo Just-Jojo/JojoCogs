@@ -107,16 +107,18 @@ class Fun(commands.Cog):
         await self.config.clear()
         await ctx.send("Cleared the store")
 
-    @commands.command(name="useitem", aliases=["use", "item"])
-    async def use_item(self, ctx, item: str):
+    @commands.command(name="useitem")
+    async def use(self, ctx, item: str):
         try:
             check_item = await self.config.user(ctx.author).items.get_raw(item)
-            if check_item:
-                await self.config.user(ctx.author).items.clear_raw(item)
-                await ctx.send("You used a {}!".format(item))
+            if check_item > 0:
+                check_item -= 1
+                # await self.config.user(ctx.author).items.clear_raw(item)
+                await self.config.user(ctx.author).items.set_raw(check_item)
+                await ctx.send("You used a {0}!\nYou have {1} remaining!".format(item, check_item))
             else:
                 await ctx.send("You do not have that item!")
-        except:
+        except KeyError:
             await ctx.send("You could not use that item!")
 
     @commands.command()
