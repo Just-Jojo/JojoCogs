@@ -68,8 +68,9 @@ class Fun(commands.Cog):
                     item_lists = await self.config.user(ctx.author).items.get_raw(item)
                 except KeyError:
                     item_lists = 0
+                item_lists += 1
                 cur_name, old_bal = await self.bank_utils(ctx, ctx.author)
-                await self.config.user(ctx.author).items.set_raw(item, value=item_lists + 1)
+                await self.config.user(ctx.author).items.set_raw(item, value=item_lists)
 
                 await ctx.send("You bought a {0} for {1} {2}!\nYou have {3} {1}!".format(item, cost, cur_name, item_lists))
                 await bank.set_balance(ctx.author, old_bal - cost)
