@@ -1,5 +1,4 @@
 from redbot.core import commands, bank, Config, modlog
-from redbot.core import checks
 import discord
 from .embed_maker import Embed
 
@@ -44,11 +43,12 @@ class Fun(commands.Cog):
         return name
 
     @commands.group()
+    @commands.guild_only()
     async def store(self, ctx):
         """Store commmands"""
 
     @store.command()
-    @checks.admin()
+    @commands.admin()
     async def add(self, ctx, cost: int = 50, item: str = None):
         if item is None:
             return await ctx.send("Please name the item you would like to add")
@@ -92,17 +92,8 @@ class Fun(commands.Cog):
                 item_list_embed.add_field(name=key, inline=False, value=item)
             await ctx.send(embed=item_list_embed)
 
-    @commands.command()
-    @commands.is_owner()
-    async def check(self, ctx, item: str = "coffee"):
-        try:
-            _item = await self.config.user(ctx.author).items.get_raw(item)
-            await ctx.send(_item)
-        except KeyError:
-            await ctx.send("That item doesn't exist for you.")
-
     @commands.command(name="storeclear")
-    @checks.is_owner()
+    @commands.is_owner()
     async def clear_store(self, ctx):
         """Clear out the store of items"""
         await self.config.clear()
@@ -153,21 +144,23 @@ class Fun(commands.Cog):
             raise bank.AbortPurchase
 
     @commands.group()
+    @commands.guild_only()
     async def role(self, ctx):
         """Base role command
 
         This allows you to buy certain roles for credits"""
 
     @role.command(name="add")
-    @checks.admin()
+    @commands.admin()
     async def _add(self, ctx, role: discord.Role, cost: int = 3000):
         """Add a purchasable role"""
         await self.config.guild(ctx.guild).roles.set_raw(role, value=cost)
         await ctx.send("That role can now be bought for {}".format(cost))
 
     @role.command(aliases=["del", ])
-    @checks.admin()
+    @commands.admin()
     async def remove(self, ctx, *, role):
+        """Remove a buyable role"""
         try:
             await self.config.guild(ctx.guild).roles.clear_raw(role)
             await ctx.send("Removed that role from the store")
@@ -192,6 +185,7 @@ class Fun(commands.Cog):
 
     @role.command(name="list")
     async def rlist(self, ctx):
+        """List all of the role that are purchasable in a guild"""
         roles = await self.config.guild(ctx.guild).roles.get_raw()
         if roles:
             data = self.embed.create(
