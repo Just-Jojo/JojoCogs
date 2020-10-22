@@ -166,7 +166,7 @@ class Fun(commands.Cog):
         await ctx.send("That role can now be bought for {}".format(cost))
 
     @role.command()
-    async def buy(self, ctx, *, role):
+    async def buy(self, ctx, *, role: discord.Role):
         """Buy a role with credits"""
         try:
             role_cost = await self.config.guild(ctx.guild).roles.get_raw(role)
