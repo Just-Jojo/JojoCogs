@@ -13,7 +13,8 @@ class Fun(commands.Cog):
                 "coffee": 10,
                 "scone": 15,
                 "tea": 10
-            }
+            },
+            roles={}
         )
         self.config.register_user(items={})
         self.embed = Embed(self)
@@ -150,3 +151,32 @@ class Fun(commands.Cog):
         except discord.Forbidden:
             await ctx.send("I could not kick that member!")
             raise bank.AbortPurchase
+
+    @commands.group()
+    async def role(self, ctx):
+        """Base role command
+
+        This allows you to buy certain roles for credits"""
+
+    @role.command(name="add")
+    @checks.admin()
+    async def _add(self, ctx, role: discord.Role, cost: int = 3000):
+        """Add a purchasable role"""
+        await self.config.guild(ctx.guild).roles.set_raw(role, value=cost)
+        await ctx.send("That role can now be bought for {}".format(cost))
+
+    @role.command()
+    async def buy(self, ctx, role):
+        """Buy a role with credits"""
+        try:
+            role_cost = await self.config.guild(ctx.guild).roles.get_raw(role)
+        except KeyError:
+            return await ctx.send("I could not find that role!")
+
+        if await bank.can_spend(ctx.author, role_cost):
+            try:
+                await ctx.author.add_roles(role)
+                await bank.withdraw_credits(ctx.author, role_cost)
+                await ctx.send("You have sucessfully bought that role!")
+            except discord.Forbidden:
+                await ctx.send("I could not attach that role!")
