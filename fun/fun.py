@@ -71,8 +71,14 @@ class Fun(commands.Cog):
                 item_lists += 1
                 cur_name, old_bal = await self.bank_utils(ctx, ctx.author)
                 await self.config.user(ctx.author).items.set_raw(item, value=item_lists)
+                if item_lists != 1:
+                    msg = "You bought a {0} for {1} {2}!\nYou have {3} {0}s!".format(
+                        item, cost, cur_name, item_lists)
+                else:
+                    msg = "You bought a {0} for {1} {2}!\nYou have 1 {0}!".format(
+                        item, cost, cur_name)
 
-                await ctx.send("You bought a {0} for {1} {2}!\nYou have {3} {0}!".format(item, cost, cur_name, item_lists))
+                await ctx.send(msg)
                 await bank.set_balance(ctx.author, old_bal - cost)
             else:
                 await ctx.send("You can't buy {0}! You don't have enough {1} to buy it!".format(item, cur_name))
