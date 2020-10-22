@@ -192,5 +192,5 @@ class Fun(commands.Cog):
 
     @role.command(name="list")
     async def rlist(self, ctx):
-        roles = await self.config.guild(ctx.guild).roles.get_raw()
+        roles = self.readable_dict(await self.config.guild(ctx.guild).roles.get_raw())
         await ctx.send(roles)
