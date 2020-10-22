@@ -9,9 +9,11 @@ class Fun(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 13814755994)
         self.config.register_guild(
-            coffee=10,
-            scone=15,
-            doughnut=9
+            items={
+                "coffee": 10,
+                "scone": 15,
+                "tea": 10
+            }
         )
         self.config.register_user(items={})
         self.embed = Embed(self)
@@ -44,12 +46,19 @@ class Fun(commands.Cog):
     async def store(self, ctx):
         """Store commmands"""
 
+    @store.command()
+    @checks.admin()
+    async def add(self, ctx, cost: int = 50, item: str = None):
+        if item is None:
+            return await ctx.send("Please name the item you would like to add")
+        await self.config.guild(ctx.guild).set_raw(item, value=cost)
+
     @store.command(name="buy")
     async def _buy(self, ctx, item: str = None):
         """Purchase an item from the store"""
         if item is not None:
             try:
-                cost = await self.config.guild(ctx.guild).get_raw(item)
+                cost = await self.config.guild(ctx.guild).items.get_raw(item)
             except KeyError:
                 await ctx.send("I could not find that item!")
                 return
@@ -63,9 +72,10 @@ class Fun(commands.Cog):
             else:
                 await ctx.send("You can't buy {0}! You don't have enough {1} to buy it!".format(item, cur_name))
         else:
-            item_list = await self.config.guild(ctx.guild).get_raw()
+            item_list = await self.config.guild(ctx.guild).items.get_raw()
             item_list_embed = self.embed.embed_make(ctx, title="{0}'s Store".format(
                 ctx.guild.name), description="Item listing", footer="Store | Ye Ole Store")
+
             for key, item in item_list.items():
                 item_list_embed.add_field(name=key, inline=False, value=item)
             await ctx.send(embed=item_list_embed)
@@ -93,7 +103,11 @@ class Fun(commands.Cog):
     async def items(self, ctx):
         items_ = await self.config.user(ctx.author).items.get_raw()
         if items_:
-            await ctx.send("You have\n{0}".format(self.readable_dict(items_)))
+            embed = self.embed.embed_make(
+                ctx, title="{0.display_name}'s Items".format(ctx.author), description=self.readable_dict(items_)
+            )
+            await ctx.send(embed=embed)
+            # await ctx.send("You have\n{0}".format(self.readable_dict(items_)))
         else:
             await ctx.send("You do not have any items!\nYou can buy some using `[p]store buy`")
 
