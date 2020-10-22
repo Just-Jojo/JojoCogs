@@ -85,7 +85,7 @@ class Fun(commands.Cog):
                 await ctx.send("You can't buy {0}! You don't have enough {1} to buy it!".format(item, cur_name))
         else:
             item_list = await self.config.guild(ctx.guild).items.get_raw()
-            item_list_embed = self.embed.embed_make(ctx, title="{0}'s Store".format(
+            item_list_embed = self.embed.create(ctx, title="{0}'s Store".format(
                 ctx.guild.name), description="Item listing", footer="Store | Ye Ole Store")
 
             for key, item in item_list.items():
@@ -125,7 +125,7 @@ class Fun(commands.Cog):
     async def items(self, ctx):
         items_ = await self.config.user(ctx.author).items.get_raw()
         if items_:
-            embed = self.embed.embed_make(
+            embed = self.embed.create(
                 ctx, title="{0.display_name}'s Items".format(ctx.author), description=self.readable_dict(items_)
             )
             await ctx.send(embed=embed)
@@ -192,5 +192,11 @@ class Fun(commands.Cog):
 
     @role.command(name="list")
     async def rlist(self, ctx):
-        roles = self.readable_dict(await self.config.guild(ctx.guild).roles.get_raw())
-        await ctx.send(roles)
+        roles = await self.config.guild(ctx.guild).roles.get_raw()
+        data = self.embed.create(
+            ctx, title="{0}'s buyable roles".format(ctx.guild),
+            footer="Buyable roles!"
+        )
+        for key, item in roles.items():
+            data.add_field(name=key, value=item, inline=False)
+        await ctx.send(embed=data)

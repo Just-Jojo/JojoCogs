@@ -7,8 +7,8 @@ class Embed:
     def __init__(self, bot):
         self.bot = bot
 
-    def embed_make(self, ctx, title="", description="", image: str = None, thumbnail: str = None,
-                   footer_url: str = None, footer: str = None) -> discord.Embed:
+    def create(self, ctx, title="", description="", image: str = None, thumbnail: str = None,
+               footer_url: str = None, footer: str = None) -> discord.Embed:
         JOJOBOTURL = "https://cdn.discordapp.com/avatars/730061145490325644/e19579cefc7ff5695a0a2878c31c4588.png?size=1024"
         if isinstance(ctx.message.channel, discord.abc.GuildChannel):
             color = ctx.message.author.color
