@@ -166,6 +166,7 @@ class Fun(commands.Cog):
         await ctx.send("That role can now be bought for {}".format(cost))
 
     @role.command(aliases=["del", ])
+    @checks.admin()
     async def remove(self, ctx, *, role):
         try:
             await self.config.guild(ctx.guild).roles.clear_raw(role)
