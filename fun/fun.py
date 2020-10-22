@@ -165,7 +165,7 @@ class Fun(commands.Cog):
         await self.config.guild(ctx.guild).roles.set_raw(role, value=cost)
         await ctx.send("That role can now be bought for {}".format(cost))
 
-    @role.comamnd(aliases=["del", ])
+    @role.command(aliases=["del", ])
     async def remove(self, ctx, *, role):
         try:
             await self.config.guild(ctx.guild).roles.clear_raw(role)
