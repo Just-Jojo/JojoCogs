@@ -64,10 +64,14 @@ class Fun(commands.Cog):
                 return
 
             if await bank.can_spend(ctx.author, cost):
-                item_lists = await self.config.user(ctx.author).items.get_raw(item)
+                try:
+                    item_lists = await self.config.user(ctx.author).items.get_raw(item)
+                except KeyError:
+                    item_lists = 0
                 cur_name, old_bal = await self.bank_utils(ctx, ctx.author)
-                await self.config.user(ctx.author).items.set_raw(item, value=cost)
-                await ctx.send("You bought a {0} for {1} {2}!".format(item, cost, cur_name))
+                await self.config.user(ctx.author).items.set_raw(item, value=item_lists + 1)
+
+                await ctx.send("You bought a {0} for {1} {2}!\nYou have {3} {1}!".format(item, cost, cur_name, item_lists))
                 await bank.set_balance(ctx.author, old_bal - cost)
             else:
                 await ctx.send("You can't buy {0}! You don't have enough {1} to buy it!".format(item, cur_name))
@@ -83,8 +87,11 @@ class Fun(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def check(self, ctx, item: str = "coffee"):
-        _item = await self.config.user(ctx.author).items.get_raw(item)
-        await ctx.send(_item)
+        try:
+            _item = await self.config.user(ctx.author).items.get_raw(item)
+            await ctx.send(_item)
+        except KeyError:
+            await ctx.send("That item doesn't exist for you.")
 
     @commands.command(name="storeclear")
     @checks.is_owner()
