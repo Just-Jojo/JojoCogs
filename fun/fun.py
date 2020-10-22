@@ -114,7 +114,7 @@ class Fun(commands.Cog):
             if check_item > 0:
                 check_item -= 1
                 # await self.config.user(ctx.author).items.clear_raw(item)
-                await self.config.user(ctx.author).items.set_raw(check_item)
+                await self.config.user(ctx.author).items.set_raw(item, value=check_item)
                 await ctx.send("You used a {0}!\nYou have {1} remaining!".format(item, check_item))
             else:
                 await ctx.send("You do not have that item!")
