@@ -38,8 +38,8 @@ class Embed:
             else:
                 pass
         if footer is None:
-            footer = "{0.name}'s Embed Maker".format(self.bot.user)
+            footer = "{0.name}'s Embed Maker".format(ctx.bot.user)
         if footer_url is None:
-            footer_url = self.bot.user.avatar_url
+            footer_url = ctx.bot.user.avatar_url
         data.set_footer(text=footer, icon_url=footer_url)
         return data
