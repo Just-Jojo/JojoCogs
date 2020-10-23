@@ -76,7 +76,10 @@ class ToDo(commands.Cog):
         else:
             toggle = False
         if toggle is True:
-            return await ctx.author.send(todo_list)
+            try:
+                return await ctx.author.send(todo_list)
+            except discord.Forbidden:
+                return await ctx.send("I could not dm you the message!")
         await ctx.send(todo_list)
 
     def readable_dict(self, dictionary: dict, numbered: bool = False) -> str:
