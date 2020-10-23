@@ -9,9 +9,9 @@ class Fun(commands.Cog):
         self.config = Config.get_conf(self, 13814755994)
         self.config.register_guild(
             items={
-                "coffee": 10,
-                "scone": 15,
-                "tea": 10
+                "coffee": 100,
+                "scone": 150,
+                "tea": 100
             },
             roles={}
         )
@@ -26,16 +26,8 @@ class Fun(commands.Cog):
             x.append(y)
         return "\n".join(x)
 
-    async def bank_utils(self, ctx: commands.Context, user: discord.Member = None):
-        """Returns the name of the bank's currency and can optionally return the balance of a member
-
-        Args:
-            ctx (commands.Context): Needed for the guild to get the bank credit
-            user (Member, optional): Optional to get the balance of a user. Defaults to None.
-
-        Returns:
-            str, int (optional)
-        """
+    async def bank_utils(self, ctx: commands.Context, user: discord.Member = None) -> str:
+        """Returns the name of the bank's currency and can optionally return the balance of a member"""
         name = await bank.get_currency_name(ctx.guild)
         if user is not None:
             balance = await bank.get_balance(ctx.author)
