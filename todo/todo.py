@@ -20,6 +20,7 @@ class ToDo(commands.Cog):
         )
 
     @commands.group()
+    @commands.guild_only()
     @checks.guildowner()
     async def todoset(self, ctx):
         """The base settings command for the ToDo cog"""
@@ -43,7 +44,11 @@ class ToDo(commands.Cog):
 
     @todo.command(aliases=["del", ])
     async def remove(self, ctx, number: int = None):
-        toogle = await self.check_dm(ctx)
+        """Remove a ToDo reminder"""
+        if isinstance(ctx.channel, discord.abc.GuildChannel):
+            toogle = await self.check_dm(ctx)
+        else:
+            toogle = False
         if number is None:
             todo_list = self.readable_dict(await self.config.user(ctx.author).todo.get_raw(), True)
             msg = "Here are all of the ToDo reminders you have: {0}\nTo remove one, please type `[p]todo remove|del <number>`".format(
@@ -60,13 +65,15 @@ class ToDo(commands.Cog):
     @todo.command(name="list")
     async def _list(self, ctx):
         todo_list = self.readable_dict(await self.config.user(ctx.author).todo.get_raw())
-        toggle = await self.config.guild(ctx.guild).get_raw("DM")
-        if toggle is True:
-            await ctx.author.send(todo_list)
+        if isinstance(ctx.channel, discord.abc.GuildChannel):
+            toggle = await self.config.guild(ctx.guild).get_raw("DM")
         else:
-            await ctx.send(todo_list)
+            toggle = False
+        if toggle is True:
+            return await ctx.author.send(todo_list)
+        await ctx.send(todo_list)
 
-    def readable_dict(self, dictionary: dict, numbered: bool = False):
+    def readable_dict(self, dictionary: dict, numbered: bool = False) -> str:
         num = 0
         readable = []
         for key, item in dictionary.items():
