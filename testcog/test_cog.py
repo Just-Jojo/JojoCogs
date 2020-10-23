@@ -7,4 +7,4 @@ class TestCog(commands.Cog):
 
     @commands.command()
     async def _test(self, ctx):
-        await ctx.send("This works")
+        await ctx.send(ctx.bot.name)
