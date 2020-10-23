@@ -51,7 +51,7 @@ class ToDo(commands.Cog):
             toogle = False
         if number is None:
             todo_list = self.readable_dict(await self.config.user(ctx.author).todo.get_raw(), True)
-            msg = "Here are all of the ToDo reminders you have: {0}\nTo remove one, please type `[p]todo remove|del <number>`".format(
+            msg = "Here are all of the ToDo reminders you have: \n{0}\nTo remove one, please type `[p]todo remove|del <number>`".format(
                 todo_list)
             if toogle is True:
                 return await ctx.author.send(msg)
