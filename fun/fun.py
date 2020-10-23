@@ -68,7 +68,8 @@ class Fun(commands.Cog):
             data = self.embed.create(ctx, title="{0.name}'s Stock".format(
                 ctx.guild), footer="Ye Ole Store | Store")
             for key, item in items.items():
-                data.add_field(name=key, value=item, inline=False)
+                data.add_field(
+                    name=key, value="Cost: {0}".format(item), inline=False)
             await ctx.send(embed=data)
         else:
             await ctx.send("Your guild does not have any purchasable items!\nTo get some items, have an admin run `[p]store add <item> [cost]`")
