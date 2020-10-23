@@ -60,6 +60,19 @@ class Fun(commands.Cog):
         except:
             await ctx.send("I could not remove that item!")
 
+    @store.command(name="list")
+    async def _list(self, ctx):
+        """List all of the purchasable items in your guild's store"""
+        items = await self.config.guild(ctx.guild).items.get_raw()
+        if items:
+            data = self.embed.create(ctx, title="{0.name}'s Stock".format(
+                ctx.guild), footer="Ye Ole Store | Store")
+            for key, item in items.items():
+                data.add_field(name=key, value=item, inline=False)
+            await ctx.send(embed=data)
+        else:
+            await ctx.send("Your guild does not have any purchasable items!\nTo get some items, have an admin run `[p]store add <item> [cost]`")
+
     @store.command(name="buy")
     async def _buy(self, ctx, item: str = None):
         """Purchase an item from the store"""
