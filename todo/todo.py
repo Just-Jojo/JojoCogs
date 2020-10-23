@@ -54,12 +54,18 @@ class ToDo(commands.Cog):
             msg = "Here are all of the ToDo reminders you have: \n{0}\nTo remove one, please type `[p]todo remove|del <number>`".format(
                 todo_list)
             if toogle is True:
-                return await ctx.author.send(msg)
+                try:
+                    return await ctx.author.send(msg)
+                except discord.Forbidden:
+                    return await ctx.send("Could not send the message!")
             return await ctx.send(msg)
         await self.config.user(ctx.author).todo.clear_raw(number)
         msg = "Sucessfully removed that ToDo reminder."
         if toogle is True:
-            return await ctx.author.send(msg)
+            try:
+                return await ctx.author.send(msg)
+            except discord.Forbidden:
+                return await ctx.send("Could not send the message!")
         await ctx.send(msg)
 
     @todo.command(name="list")
