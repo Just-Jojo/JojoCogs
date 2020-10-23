@@ -3,6 +3,10 @@ from validator_collection import validators
 import requests
 
 
+class EmbedDescriptionError(Exception):
+    pass
+
+
 class Embed:
     def __init__(self, bot):
         self.bot = bot
@@ -16,6 +20,8 @@ class Embed:
         if description is not None:
             if len(description) <= 1500:
                 data.description = description
+            else:
+                raise EmbedDescriptionError
         data.set_author(name=ctx.author.display_name,
                         icon_url=ctx.author.avatar_url)
         if image is not None:
