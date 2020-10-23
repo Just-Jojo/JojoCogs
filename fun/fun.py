@@ -65,11 +65,13 @@ class Fun(commands.Cog):
         """List all of the purchasable items in your guild's store"""
         items = await self.config.guild(ctx.guild).items.get_raw()
         if items:
-            data = self.embed.create(ctx, title="{0.name}'s Stock".format(
-                ctx.guild), footer="Ye Ole Store | Store")
+            data = self.embed.create(
+                ctx,
+                title="{0.name}'s Stock".format(ctx.guild), footer="Ye Ole Store | Store",
+                description="Legend\nItem name, Cost"
+            )
             for key, item in items.items():
-                data.add_field(
-                    name=key, value="Cost: {0}".format(item), inline=False)
+                data.add_field(name=key, value=item, inline=False)
             await ctx.send(embed=data)
         else:
             await ctx.send("Your guild does not have any purchasable items!\nTo get some items, have an admin run `[p]store add <item> [cost]`")
