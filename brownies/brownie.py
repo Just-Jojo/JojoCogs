@@ -154,7 +154,7 @@ class Brownie(commands.Cog):
 
     async def check_cooldowns(self, ctx: commands.Context, user, action) -> bool:
         path = await self.config.guild(user.guild).get_raw("Config", action)
-        cd = await self.config.guild(user.guild).Players.get_raw(user, action)
+        cd = await self.config.guild(user.guild).Players.user.get_raw(action)
         if abs(int(cd) - int(time.perf_counter())) >= path:
             await self.config.guild(user.guild)
             return True
