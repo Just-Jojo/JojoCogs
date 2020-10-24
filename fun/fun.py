@@ -18,22 +18,6 @@ class Fun(commands.Cog):
         self.config.register_user(items={})
         self.embed = Embed(self)
 
-    def readable_dict(self, dictionary: dict) -> str:
-        """Convert a dictionary into something a regular person could read"""
-        x = []
-        for key, item in dictionary.items():
-            y = "{0}: {1}".format(key, item)
-            x.append(y)
-        return "\n".join(x)
-
-    async def bank_utils(self, ctx: commands.Context, user: discord.Member = None) -> str:
-        """Returns the name of the bank's currency and can optionally return the balance of a member"""
-        name = await bank.get_currency_name(ctx.guild)
-        if user is not None:
-            balance = await bank.get_balance(ctx.author)
-            return name, balance
-        return name
-
     @commands.group()
     @commands.guild_only()
     async def store(self, ctx):
@@ -220,3 +204,19 @@ class Fun(commands.Cog):
             await ctx.send(embed=data)
         else:
             await ctx.send("This guild doesn't have any roles!\nTo add some buyable roles, please ask an admin to create one using `[p]role add`")
+
+    def readable_dict(self, dictionary: dict) -> str:
+        """Convert a dictionary into something a regular person could read"""
+        x = []
+        for key, item in dictionary.items():
+            y = "{0}: {1}".format(key, item)
+            x.append(y)
+        return "\n".join(x)
+
+    async def bank_utils(self, ctx: commands.Context, user: discord.Member = None) -> str:
+        """Returns the name of the bank's currency and can optionally return the balance of a member"""
+        name = await bank.get_currency_name(ctx.guild)
+        if user is not None:
+            balance = await bank.get_balance(ctx.author)
+            return name, balance
+        return name
