@@ -18,6 +18,11 @@ class Fun(commands.Cog):
         self.config.register_user(items={})
         self.embed = Embed(self)
 
+    @commands.Cog.listener()
+    async def on_guild_role_delete(self, role):
+        if role in await self.config.guild(role.guild).roles.get_raw():
+            await self.config.guild(role.guild).roles.clear_raw(role)
+
     @commands.group()
     @commands.guild_only()
     async def store(self, ctx):
