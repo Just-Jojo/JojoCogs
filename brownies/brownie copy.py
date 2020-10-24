@@ -1,11 +1,16 @@
-
+# Standard Library
 import asyncio
 import os
 import random
 import time
 from operator import itemgetter
 
-
+# # Discord and Red
+# import discord
+# from .utils import checks
+# from __main__ import send_cmd_help
+# from .utils.dataIO import dataIO
+# from discord.ext import commands
 from redbot.core import commands, Config, checks
 import discord
 
@@ -154,6 +159,71 @@ class Brownie(commands.Cog):
             await asyncio.sleep(4)
             await ctx.send(msg)
 
+
+#     @commands.command()
+#     @commands.guild_only()
+#     async def steal(self, ctx, user: discord.Member = None):
+#         """Steal brownies from another user. 2h cooldown."""
+#         author = ctx.message.author
+#         server = author.server
+#         action = "Steal CD"
+#         settings = self.check_server_settings(author.server)
+#         self.account_check(settings, author)
+
+#         if user is None:
+#             user = self.random_user(settings, author, server)
+
+#         if user == "Fail":
+#             pass
+#         elif user.bot:
+#             return await ctx.send("Stealing failed because the picked target is a bot.\nYou "
+#                                   "can retry stealing again, your cooldown is not consumed.")
+
+#         if await self.check_cooldowns(author.id, action, settings):
+#             msg = self.steal_logic(settings, user, author)
+#             await ctx.send("{} is on the prowl to steal brownies.".format(author.name))
+#             await asyncio.sleep(4)
+#             await ctx.send(msg)
+#             await ctx.send('There are no brownies to eat.')
+#         elif brownies >= 0:
+#             brownies = brownies - 1
+#             settings['Players'][author.id]['brownies'] = brownies
+#             dataIO.save_json(self.file_path, self.system)
+#             if brownies > 1:
+#                 await ctx.send('Nom nom nom.\n{} has {} brownie points remaining.'.format(author.name, brownies))
+#             elif brownies == 1:
+#                 await ctx.send('Nom nom nom.\n{} has 1 brownie point remaining'.format(author.name))
+#             else:
+#                 await ctx.send('Nom nom nom.\n{} has no more brownie points'.format(author.name))
+        # if user.bot:
+        #     return await ctx.send("I do not accept brownies from strangers.")
+        # sender_brownies = settings["Players"][author.id]["brownies"]
+        # if 0 < brownies <= sender_brownies:
+        #     settings["Players"][author.id]["brownies"] -= brownies
+        #     settings["Players"][user.id]["brownies"] += brownies
+        #     dataIO.save_json(self.file_path, self.system)
+
+#     @commands.command()
+#     @commands.guild_only()
+#     async def nom(self, ctx):
+#         '''Eat a brownie'''
+#         author = ctx.message.author
+#         settings = self.check_server_settings(author.server)
+#         self.account_check(settings, author)
+#         brownies = settings['Players'][author.id]['brownies']
+#         if brownies == 0:
+
+#     @commands.command(no_pm=False, ignore_extra=False)
+#     async def brownies(self, ctx):
+#         """See how many brownie points you have."""
+#         author = ctx.message.author
+#         server = ctx.message.server
+#         settings = self.check_server_settings(server)
+#         self.account_check(settings, author)
+#         brownies = settings["Players"][author.id]["brownies"]
+#         await ctx.send('{} has **{}** brownie points.'.format(author.name, brownies))
+
+
     async def check_cooldowns(self, ctx: commands.Context, user, action) -> bool:
         path = await self.config.Config.get_raw(action)
         if abs(await self.config.guild(user.guild).Players.user.get_raw(action) - int(time.perf_counter())) >= path:
@@ -168,6 +238,22 @@ class Brownie(commands.Cog):
             remaining = self.time_formatting(seconds)
             await ctx.send("This action has a cooldown. You still have:\n{}".format(remaining))
             return False
+        # path = settings["Config"][action]
+        # if abs(settings["Players"][userid][action] - int(time.perf_counter())) >= path:
+        #     settings["Players"][userid][action] = int(time.perf_counter())
+        #     dataIO.save_json(self.file_path, self.system)
+        #     return True
+        # elif settings["Players"][userid][action] == 0:
+        #     settings["Players"][userid][action] = int(time.perf_counter())
+        #     dataIO.save_json(self.file_path, self.system)
+        #     return True
+        # else:
+        #     s = abs(settings["Players"][userid]
+        #             [action] - int(time.perf_counter()))
+        #     seconds = abs(s - path)
+        #     remaining = self.time_formatting(seconds)
+        #     # await ctx.send("This action has a cooldown. You still have:\n{}".format(remaining))
+        #     return False
 
     async def steal_logic(self, user, author):
         success_chance = random.randint(1, 100)
@@ -177,6 +263,7 @@ class Brownie(commands.Cog):
 
         if user not in await self.config.guild(user.guild).Players:
             return "I could not find that user"
+            # await self.account_check(user)
 
         brownies = await self.config.guild(author.guild).Players.user.get_raw("brownies")
         author_brownies = await self.config.guild(author.guild).Players.author.get_raw("brownies")
@@ -201,13 +288,42 @@ class Brownie(commands.Cog):
 
         return msg
 
+        # if user == "Fail":
+        #     msg = "I couldn't find anyone with brownie points."
+        #     return msg
+
+        # if user.id not in settings["Players"]:
+        #     self.account_check(settings, user)
+
+        # if settings["Players"][user.id]["brownies"] == 0:
+        #     msg = ('{} has no brownie points.'.format(user.name))
+        # else:
+        #     if success_chance <= 90:
+        #         brownie_jar = settings["Players"][user.id]["brownies"]
+        #         brownies_stolen = int(brownie_jar * 0.75)
+
+        #         if brownies_stolen == 0:
+        #             brownies_stolen = 1
+
+        #         stolen = random.randint(1, brownies_stolen)
+        #         # settings["Players"][user.id]["brownies"] -= stolen
+        #         # settings["Players"][author.id]["brownies"] += stolen
+        #         # dataIO.save_json(self.file_path, self.system)
+        #         msg = ("{} stole {} brownie points from {}!".format(
+        #             author.name, stolen, user.name))
+        #     else:
+        #         msg = "I could not find their brownie points."
+        # return msg
+
     async def random_user(self, author, server):
-        filter_users = [server.get_member(x) for x in await self.config.guild(server).Players
+        filter_users = [server.get_member(x) for x in await self.config.guild(server).Players  # settings["Players"]
                         if hasattr(server.get_member(x), "name")]
         legit_users = [x for x in filter_users if x.id !=
                        author.id and x is not x.bot]
 
+        # settings["Players"]
         users = [x for x in legit_users if await self.config.guild(server).Players.x.get_raw("brownies") > 0]
+        #  [x.id]["brownies"] > 0]
 
         if not users:
             user = "Fail"
@@ -215,14 +331,35 @@ class Brownie(commands.Cog):
             user = random.choice(users)
             if user == user.bot:
                 users.remove(user.bot)
-
+                # settings["Players"].pop(user.bot)
+                # dataIO.save_json(self.file_path, self.system)
                 await self.config.Players.clear_raw(user.bot)
                 user = random.choice(users)
-
+            # await self.account_check(user)
         return user
 
-    def time_formatting(self, seconds):
+    # async def account_check(self, userobj: discord.Member):
+    #     player_list = await self.config.guild(userobj.guild).get_raw("Players")
+    #     if userobj.id not in player_list:  # settings["Players"]:
+    #         await self.config.guild(userobj.guild).Players.userobj.(
+    #             "brownies",
+    #             value=0
+    #         )
+    #         await self.config.guild(userobj.guild).Players.userobj.set_raw(
+    #             "Steal CD",
+    #             value=0
+    #         )
+    #         await self.config.guild(userobj.guild).Players.userobj.set_raw(
+    #             "brownie CD",
+    #             value=0
+    #         )
+        # settings["Players"][userobj.id] = {"brownies": 0,
+        #                                    "Steal CD": 0,
+        #                                    "brownie CD": 0}
+        # dataIO.save_json(self.file_path, self.system)
 
+    def time_formatting(self, seconds):
+        # Calculate the time and input into a dict to plural the strings later.
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
         data = PluralDict({'hour': h, 'minute': m, 'second': s})
@@ -245,3 +382,43 @@ class Brownie(commands.Cog):
         elif m == 0 and h == 0 and s == 0:
             msg = "None"
         return msg
+
+    # async def check_server_settings(self, server):
+    #     if server.id not in self.config.:
+    #         await self.config.guild(server.id).set_raw("Config", value={"Steal CD": 0, "brownie CD": 0})
+    #         await self.config.guild(server.id).set_raw("Players", value={})
+    #     else:
+    #         return await self.config.guild(server.id)
+
+        # ["Servers"][server.id] = {"Players": {},
+        #  "Config": {"Steal CD": 5,
+        #             "brownie CD": 5}
+        #  }
+
+        # dataIO.save_json(self.file_path, self.system)
+        # print("Creating default heist settings for Server: {}".format(server.name))
+        # path = self.system["Servers"][server.id]
+        # return path
+        # path = self.system["Servers"][server.id]
+        # return path
+
+
+# def check_folders():
+#     if not os.path.exists("data/brownie"):
+#         print("Creating data/brownie folder...")
+#         os.makedirs("data/brownie")
+
+
+# def check_files():
+#     default = {"Servers": {}}
+
+#     f = "data/brownie/brownie.json"
+#     if not dataIO.is_valid_json(f):
+#         print("Creating default brownie.json...")
+#         dataIO.save_json(f, default)
+
+
+# def setup(bot):
+#     check_folders()
+#     check_files()
+#     bot.add_cog(Brownie(bot))
