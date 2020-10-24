@@ -1,10 +1,8 @@
-
 import asyncio
 import os
 import random
 import time
 from operator import itemgetter
-
 
 from redbot.core import commands, Config, checks
 import discord
@@ -155,7 +153,7 @@ class Brownie(commands.Cog):
             await ctx.send(msg)
 
     async def check_cooldowns(self, ctx: commands.Context, user, action) -> bool:
-        path = await self.config.Config.get_raw(action)
+        path = await self.config.guild(user.guild).Config.get_raw(action)
         if abs(await self.config.guild(user.guild).Players.user.get_raw(action) - int(time.perf_counter())) >= path:
             await self.config.guild(user.guild)
             return True
