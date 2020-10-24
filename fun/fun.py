@@ -21,7 +21,9 @@ class Fun(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role):
         print("Event invoked")
-        if role in await self.config.guild(role.guild).roles.get_raw():
+        roles_list = await self.config.guild(role.guild).roles.get_raw()
+        if role in roles_list:
+            print("If statement invoked")
             await self.config.guild(role.guild).roles.clear_raw(role)
         print("Event finished")
 
