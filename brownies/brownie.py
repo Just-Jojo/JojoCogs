@@ -83,7 +83,7 @@ class Brownie(commands.Cog):
         # if await self.check_cooldowns(ctx, author, action):
         weighted_sample = [1] * 152 + [x for x in range(49) if x > 1]
         brownies = random.choice(weighted_sample)
-        author_brownies = await self.config.guild(server).Players.get_raw(author, "brownies")
+        author_brownies = await self.config.guild(server).Players.get_raw(author)
         await self.config.guild(server).Players.set_raw(author, "brownies", value=author_brownies+brownies)
         if brownies > 1:
             await ctx.send("{} found {} brownies!".format(author.name, brownies))
@@ -97,11 +97,11 @@ class Brownie(commands.Cog):
         author = ctx.author
         if ctx.author.id == user.id:
             return await ctx.send("You can't give yourself brownie points.")
-        sender_brownies = await self.config.guild(ctx.guild).Players.author.get_raw("brownies")
-        user_brownies = await self.config.guild(ctx.guild).Players.user.get_raw("brownies")
+        sender_brownies = await self.config.guild(ctx.guild).Players.get_raw(author)
+        user_brownies = await self.config.guild(ctx.guild).Players.get_raw(user)
         if 0 < brownies <= sender_brownies:
-            await self.config.guild(ctx.guild).Players.author.set_raw("brownies", value=sender_brownies - brownies)
-            await self.config.guild(ctx.guild).Players.user.set_raw("brownies", value=user_brownies + brownies)
+            await self.config.guild(ctx.guild).Players.set_raw(author, value=sender_brownies - brownies)
+            await self.config.guild(ctx.guild).Players.set_raw(user, value=user_brownies + brownies)
             msg = "{0} gave {1} brownies to {2}".format(
                 author.name, brownies, user.name
             )
@@ -114,10 +114,11 @@ class Brownie(commands.Cog):
     async def nom(self, ctx):
         """Eat a brownie"""
         author = ctx.author
-        user_brownies = await self.config.guild(ctx.guild).Players.author.get_raw("brownies")
+        user_brownies = await self.config.guild(ctx.guild).Players.get_raw(author)
         if user_brownies == 0:
             return await ctx.send("There are no brownies to eat/")
         user_brownies -= 1
+        await self.config.guild(ctx.guild).Players.set_raw(author, value=user_brownies)
         if user_brownies > 1:
             msg = "Nom nom nom.\n{0.name} has {1} brownie points remaining".format(
                 author, user_brownies)
@@ -134,7 +135,7 @@ class Brownie(commands.Cog):
     async def brownies(self, ctx):
         """Check how many brownie points you have"""
         author = ctx.author
-        brownies = await self.config.guild(ctx.guild).Players.author.get_raw("brownies")
+        brownies = await self.config.guild(ctx.guild).Players.get_raw(author)
         await ctx.send("{0.name} has **{1}** brownie points".format(author.name, brownies))
 
     @commands.command()
@@ -188,23 +189,23 @@ class Brownie(commands.Cog):
         if user not in await self.config.guild(user.guild).Players:
             return "I could not find that user"
 
-        brownies = await self.config.guild(author.guild).Players.user.get_raw("brownies")
-        author_brownies = await self.config.guild(author.guild).Players.author.get_raw("brownies")
+        brownies = await self.config.guild(author.guild).Players.get_raw(user)
+        author_brownies = await self.config.guild(author.guild).Players.get_raw(author)
 
         if brownies == 0:
             msg = ('{} has no brownie points.'.format(user.name))
         else:
             if success_chance <= 90:
-                brownie_jar = await self.config.guild(author.guild).Players.user.get_raw("brownies")
+                brownie_jar = await self.config.guild(author.guild).Players.get_raw(user)
                 brownies_stolen = int(brownie_jar * 0.75)
 
                 if brownies_stolen == 0:
                     brownies_stolen = 1
 
                 stolen = random.randint(1, brownies_stolen)
-                await self.config.guild(author.guild).Players.user.set_raw("brownies", value=brownies - brownies_stolen)
-                await self.config.guild(author.guild).Players.user.set_raw("brownies", value=author_brownies + brownies_stolen)
-                msg = ("{} stole {} brownie points from {}!".format(
+                await self.config.guild(author.guild).Players.set_raw(user, value=brownies - brownies_stolen)
+                await self.config.guild(author.guild).Players.set_raw(author, value=author_brownies + brownies_stolen)
+                msg = ("{0} stole {1} brownie points from {2}!".format(
                     author.name, stolen, user.name))
             else:
                 msg = "I could not find their brownie points"
