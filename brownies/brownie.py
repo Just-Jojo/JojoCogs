@@ -40,6 +40,12 @@ class Brownie(commands.Cog):
         self.config = Config.get_conf(self, 1224421848909)
         self.config.register_guild(**self.default_guild_settings)
 
+    @commands.command()
+    @commands.is_owner()
+    async def checkplayers(self, ctx):
+        players = await self.config.guild(ctx.guild).Players.get_raw()
+        await ctx.send(players)
+
     @commands.group()
     @commands.guild_only()
     async def setbrownie(self, ctx):
