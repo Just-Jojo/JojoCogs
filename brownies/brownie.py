@@ -87,7 +87,7 @@ class Brownie(commands.Cog):
         if brownies > 1:
             await ctx.send("{0} found {1} brownies!".format(author.name, brownies))
         else:
-            await ctx.send('{} found 1 brownie!'.format(author.name))
+            await ctx.send('{0} found 1 brownie!'.format(author.name))
 
     @commands.command(aliases=['giveb', ])
     @commands.guild_only()
