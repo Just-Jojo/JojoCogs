@@ -78,16 +78,16 @@ class Brownie(commands.Cog):
         """Obtain a random number of brownies. 12h cooldown"""
         author = ctx.author
         server = ctx.guild
-        action = "brownie CD"
-        if await self.check_cooldowns(ctx, author, action):
-            weighted_sample = [1] * 152 + [x for x in range(49) if x > 1]
-            brownies = random.choice(weighted_sample)
-            author_brownies = await self.config.guild(server).Players.author.get_raw("brownies")
-            await self.config.guild(server).Players.author.set_raw("brownies", value=author_brownies+brownies)
-            if brownies > 1:
-                await ctx.send("{} found {} brownies!".format(author.name, brownies))
-            else:
-                await ctx.send('{} found 1 brownie!'.format(author.name))
+        # action = "brownie CD"
+        # if await self.check_cooldowns(ctx, author, action):
+        weighted_sample = [1] * 152 + [x for x in range(49) if x > 1]
+        brownies = random.choice(weighted_sample)
+        author_brownies = await self.config.guild(server).Players.author.get_raw("brownies")
+        await self.config.guild(server).Players.author.set_raw("brownies", value=author_brownies+brownies)
+        if brownies > 1:
+            await ctx.send("{} found {} brownies!".format(author.name, brownies))
+        else:
+            await ctx.send('{} found 1 brownie!'.format(author.name))
 
     @commands.command(aliases=['giveb', ])
     @commands.guild_only()
@@ -142,7 +142,7 @@ class Brownie(commands.Cog):
         """Steal brownies from another user"""
         author = ctx.author
         guild = ctx.guild
-        action = "Steal CD"
+        #  action = "Steal CD"
 
         if user is None:
             user = await self.random_user(author, guild)
@@ -152,47 +152,30 @@ class Brownie(commands.Cog):
             return await ctx.send(
                 "Stealing failed because the picked target is a bot.\nYou can retry stealing again, your cooldown is not consumed."
             )
-        if await self.check_cooldowns(ctx, author, action):
-            msg = self.steal_logic(user, author)
-            await ctx.send("{} is on the prowl to steal brownies.".format(author.name))
-            await asyncio.sleep(4)
-            await ctx.send(msg)
+        # if await self.check_cooldowns(ctx, author, action):            msg = self.steal_logic(user, author)
+        await ctx.send("{} is on the prowl to steal brownies.".format(author.name))
+        await asyncio.sleep(4)
+        await ctx.send(msg)
 
-    # async def check_cooldowns(self, ctx: commands.Context, user, action) -> bool:
-    #     path = await self.config.guild(user.guild).get_raw("Config", action)
-    #     cd = await self.config.guild(user.guild).Players.user.get_raw(action)
-    #     if abs(int(cd) - int(time.perf_counter())) >= path:
-    #         await self.config.guild(user.guild)
+    # async def check_cooldowns(self, ctx: commands.Context, user: discord.Member, action: str) -> bool:
+    #     guild_cooldown = await self.config.guild(ctx.guild).get_raw("Config", action)
+    #     cooldown = await self.config.guild(ctx.guild).Players.get_raw(user, action)
+    #     if abs(cooldown - int(time.perf_counter())) >= guild_cooldown:
+    #         cooldown = int(time.perf_counter)
+    #         await self.config.guild(ctx.guild).Players.set_raw(user, action, value=cooldown)
     #         return True
-    #     elif await self.config.guild(user.guild).Players.user.get_raw(action) == 0:
-    #         await self.config.guild(user.guild).Players.user.set_raw(action, value=int(time.perf_counter()))
+    #     elif cooldown == 0:
+    #         cooldown = int(time.perf_counter)
+    #         await self.config.guild(ctx.guild).Players.set_raw(user, action, value=cooldown)
     #         return True
     #     else:
-    #         s = abs(await self.config.Players.user.action - int(time.perf_counter()))
-    #         seconds = abs(s - path)
+    #         s = abs(
+    #             cooldown - int(time.perf_counter)
+    #         )
+    #         seconds = abs(s - guild_cooldown)
     #         remaining = self.time_formatting(seconds)
     #         await ctx.send("This action has a cooldown. You still have:\n{}".format(remaining))
     #         return False
-
-    async def check_cooldowns(self, ctx: commands.Context, user: discord.Member, action: str) -> bool:
-        guild_cooldown = await self.config.guild(ctx.guild).get_raw("Config", action)
-        cooldown = await self.config.guild(ctx.guild).Players.get_raw(user, action)
-        if abs(cooldown - int(time.perf_counter())) >= guild_cooldown:
-            cooldown = int(time.perf_counter)
-            await self.config.guild(ctx.guild).Players.set_raw(user, action, value=cooldown)
-            return True
-        elif cooldown == 0:
-            cooldown = int(time.perf_counter)
-            await self.config.guild(ctx.guild).Players.set_raw(user, action, value=cooldown)
-            return True
-        else:
-            s = abs(
-                cooldown - int(time.perf_counter)
-            )
-            seconds = abs(s - guild_cooldown)
-            remaining = self.time_formatting(seconds)
-            await ctx.send("This action has a cooldown. You still have:\n{}".format(remaining))
-            return False
 
     async def steal_logic(self, user, author):
         success_chance = random.randint(1, 100)
