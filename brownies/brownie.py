@@ -152,18 +152,38 @@ class Brownie(commands.Cog):
             await asyncio.sleep(4)
             await ctx.send(msg)
 
-    async def check_cooldowns(self, ctx: commands.Context, user, action) -> bool:
-        path = await self.config.guild(user.guild).get_raw("Config", action)
-        cd = await self.config.guild(user.guild).Players.user.get_raw(action)
-        if abs(int(cd) - int(time.perf_counter())) >= path:
-            await self.config.guild(user.guild)
+    # async def check_cooldowns(self, ctx: commands.Context, user, action) -> bool:
+    #     path = await self.config.guild(user.guild).get_raw("Config", action)
+    #     cd = await self.config.guild(user.guild).Players.user.get_raw(action)
+    #     if abs(int(cd) - int(time.perf_counter())) >= path:
+    #         await self.config.guild(user.guild)
+    #         return True
+    #     elif await self.config.guild(user.guild).Players.user.get_raw(action) == 0:
+    #         await self.config.guild(user.guild).Players.user.set_raw(action, value=int(time.perf_counter()))
+    #         return True
+    #     else:
+    #         s = abs(await self.config.Players.user.action - int(time.perf_counter()))
+    #         seconds = abs(s - path)
+    #         remaining = self.time_formatting(seconds)
+    #         await ctx.send("This action has a cooldown. You still have:\n{}".format(remaining))
+    #         return False
+
+    async def check_cooldowns(self, ctx: commands.Context, user: discord.Member, action: str) -> bool:
+        guild_cooldown = await self.config.guild(ctx.guild).get_raw("Config", action)
+        cooldown = await self.config.guild(ctx.guild).Players.get_raw(user, action)
+        if abs(cooldown - int(time.perf_counter())) >= guild_cooldown:
+            cooldown = int(time.perf_counter)
+            await self.config.guild(ctx.guild).Players.set_raw(user, action, value=cooldown)
             return True
-        elif await self.config.guild(user.guild).Players.user.get_raw(action) == 0:
-            await self.config.guild(user.guild).Players.user.set_raw(action, value=int(time.perf_counter()))
+        elif cooldown == 0:
+            cooldown = int(time.perf_counter)
+            await self.config.guild(ctx.guild).Players.set_raw(user, action, value=cooldown)
             return True
         else:
-            s = abs(await self.config.Players.user.action - int(time.perf_counter()))
-            seconds = abs(s - path)
+            s = abs(
+                cooldown - int(time.perf_counter)
+            )
+            seconds = abs(s - guild_cooldown)
             remaining = self.time_formatting(seconds)
             await ctx.send("This action has a cooldown. You still have:\n{}".format(remaining))
             return False
