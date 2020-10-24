@@ -82,8 +82,8 @@ class Brownie(commands.Cog):
         # if await self.check_cooldowns(ctx, author, action):
         weighted_sample = [1] * 152 + [x for x in range(49) if x > 1]
         brownies = random.choice(weighted_sample)
-        author_brownies = await self.config.guild(server).Players.author.get_raw("brownies")
-        await self.config.guild(server).Players.author.set_raw("brownies", value=author_brownies+brownies)
+        author_brownies = await self.config.guild(server).Players.get_raw(author, "brownies")
+        await self.config.guild(server).Players.set_raw(author, "brownies", value=author_brownies+brownies)
         if brownies > 1:
             await ctx.send("{} found {} brownies!".format(author.name, brownies))
         else:
