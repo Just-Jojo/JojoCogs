@@ -167,7 +167,7 @@ class Fun(commands.Cog):
 
     @role.command(name="add")
     @commands.admin()
-    async def _add(self, ctx, role: discord.Role, cost: int = 3000):
+    async def _add(self, ctx, *, role: discord.Role, cost: int = 3000):
         """Add a purchasable role"""
         await self.config.guild(ctx.guild).roles.set_raw(role, value=cost)
         await ctx.send("That role can now be bought for {}".format(cost))
