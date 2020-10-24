@@ -26,11 +26,18 @@ class ToDo(commands.Cog):
         """The base settings command for the ToDo cog"""
 
     @todoset.command()
-    async def dm(self, ctx, toggle: bool = True):
+    async def dm(self, ctx, toggle: bool = None):
         """Toggles the dm setting
         will default to True if not specified"""
-        await self.config.guild(ctx.guild).DM.set_raw(value=toggle)
-        await ctx.send("Set the dm status to `{}`".format(toggle))
+        if toggle is None:
+            return await ctx.send("I can't set it to `None`!")
+        old = await self.check_dm(ctx)
+        if toggle == old:
+            msg = "That is the same setting!\nSilly goose"
+        else:
+            await self.config.guild(ctx.guild).set_raw("DM", value=toggle)
+            msg = "Set the DM status to `{}`\n\n`True meaning I will dm the user, False meaning I will send it to the server`"
+        await ctx.send(msg)
 
     @commands.group()
     async def todo(self, ctx):
@@ -72,7 +79,7 @@ class ToDo(commands.Cog):
     async def _list(self, ctx):
         todo_list = self.readable_dict(await self.config.user(ctx.author).todo.get_raw())
         if isinstance(ctx.channel, discord.abc.GuildChannel):
-            toggle = await self.config.guild(ctx.guild).get_raw("DM")
+            toggle = await self.check_dm(ctx)
         else:
             toggle = False
         if toggle is True:
