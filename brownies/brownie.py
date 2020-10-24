@@ -45,7 +45,7 @@ class Brownie(commands.Cog):
     async def checkplayers(self, ctx):
         cd = await self.config.guild(ctx.guild).Config.get_raw()
         players = await self.config.guild(ctx.guild).Players.get_raw()
-        await ctx.send(cd, players)
+        await ctx.send("{0} {1}".format(cd, players))
 
     @commands.group()
     @commands.guild_only()
