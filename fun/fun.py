@@ -27,6 +27,11 @@ class Fun(commands.Cog):
             await self.config.guild(role.guild).roles.clear_raw(role)
         print("Event finished")
 
+    @commands.command()
+    @commands.is_owner()
+    async def check(self, ctx):
+        await ctx.send(await self.config.guild(ctx.guild).roles.get_raw())
+
     @commands.group()
     @commands.guild_only()
     async def store(self, ctx):
@@ -170,7 +175,8 @@ class Fun(commands.Cog):
     async def _add(self, ctx, *, role: discord.Role, cost: int = 3000):
         """Add a purchasable role"""
         await self.config.guild(ctx.guild).roles.set_raw(role, value=cost)
-        await ctx.send("That role can now be bought for {}".format(cost))
+        name = await bank.get_currency_name(ctx.guild)
+        await ctx.send("{0} can now be bought for {1} {2}".format(role, cost, name))
 
     @role.command(aliases=["del", ])
     @commands.admin()
@@ -178,7 +184,7 @@ class Fun(commands.Cog):
         """Remove a buyable role"""
         try:
             await self.config.guild(ctx.guild).roles.clear_raw(role)
-            await ctx.send("Removed that role from the store")
+            await ctx.send("Removed {} from the store".format(role))
         except KeyError:
             await ctx.send("I couldn't find that role")
 
