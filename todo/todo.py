@@ -36,7 +36,7 @@ class ToDo(commands.Cog):
             msg = "That is the same setting!\nSilly goose"
         else:
             await self.config.guild(ctx.guild).set_raw("DM", value=toggle)
-            msg = "Set the DM status to `{}`\n\n`True meaning I will dm the user, False meaning I will send it to the server`"
+            msg = "Set the DM status to `{}`\n\n`True meaning I will dm the user, False meaning I will send it to the server`".format(toggle)
         await ctx.send(msg)
 
     @commands.group()
