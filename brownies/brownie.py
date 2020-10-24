@@ -152,7 +152,8 @@ class Brownie(commands.Cog):
             return await ctx.send(
                 "Stealing failed because the picked target is a bot.\nYou can retry stealing again, your cooldown is not consumed."
             )
-        # if await self.check_cooldowns(ctx, author, action):            msg = self.steal_logic(user, author)
+        # if await self.check_cooldowns(ctx, author, action):
+        msg = self.steal_logic(user, author)
         await ctx.send("{} is on the prowl to steal brownies.".format(author.name))
         await asyncio.sleep(4)
         await ctx.send(msg)
