@@ -23,9 +23,11 @@ class Fun(commands.Cog):
         print("Event invoked")
         roles_list = await self.config.guild(role.guild).roles.get_raw()
         print(roles_list.keys(), role)
-        if role in roles_list.keys():
-            print("If statement invoked")
-            await self.config.guild(role.guild).roles.clear_raw(role)
+        for roles in roles_list.keys():
+            if role == roles:
+                print("If statement invoked")
+                await self.config.guild(role.guild).roles.clear_raw(role)
+                break
         print("Event finished")
 
     @commands.command()
