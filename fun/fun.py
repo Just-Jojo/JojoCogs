@@ -19,12 +19,13 @@ class Fun(commands.Cog):
         self.embed = Embed(self)
 
     @commands.Cog.listener()
-    async def on_guild_role_delete(self, role):
+    async def on_guild_role_delete(self, role: discord.Role):
         print("Event invoked")
         roles_list = await self.config.guild(role.guild).roles.get_raw()
         print(roles_list.keys(), role)
         for roles in roles_list.keys():
-            if role == roles:
+            print(role)
+            if role.name == roles:
                 print("If statement invoked")
                 await self.config.guild(role.guild).roles.clear_raw(role)
                 break
