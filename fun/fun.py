@@ -20,16 +20,9 @@ class Fun(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role: discord.Role):
-        print("Event invoked")
         roles_list = await self.config.guild(role.guild).roles.get_raw()
-        print(roles_list.keys(), role)
-        for roles in roles_list.keys():
-            print(role)
-            if role.name == roles:
-                print("If statement invoked")
-                await self.config.guild(role.guild).roles.clear_raw(role)
-                break
-        print("Event finished")
+        if role.name in roles_list.keys():
+            await self.config.guild(role.guild).roles.clear_raw(role)
 
     @commands.command()
     @commands.is_owner()
