@@ -54,6 +54,7 @@ class Brownie(commands.Cog):
         if confirm is True:
             await self.config.clear_all_guilds()
             msg = "Deleted all the data."
+            self.config.register_guild(**self.default_guild_settings)
         else:
             msg = "This command is dangerous as it can and will delete data\nIf you do not want the data deleted do not run this command."
         await ctx.send(msg)
