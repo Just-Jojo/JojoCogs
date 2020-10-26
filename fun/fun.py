@@ -106,13 +106,6 @@ class Fun(commands.Cog):
                 item_list_embed.add_field(name=key, inline=False, value=item)
             await ctx.send(embed=item_list_embed)
 
-    @commands.command(name="storeclear")
-    @commands.is_owner()
-    async def clear_store(self, ctx):
-        """Clear out the store of items"""
-        await self.config.clear()
-        await ctx.send("Cleared the store")
-
     @commands.command()
     async def use(self, ctx, item: str):
         """Use an item
@@ -136,6 +129,7 @@ class Fun(commands.Cog):
 
     @commands.command()
     async def items(self, ctx):
+        """List all of your items in a clean embed"""
         items_ = await self.config.user(ctx.author).items.get_raw()
         if items_:
             embed = self.embed.create(
