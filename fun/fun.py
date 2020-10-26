@@ -35,8 +35,8 @@ class Fun(commands.Cog):
         """Store commmands"""
 
     @store.command()
-    @commands.admin()
-    async def add(self, ctx, *, item: str = None, cost: int = 50):
+    @commands.admin_or_permissions(manage_guild=True)
+    async def add(self, ctx, *, item: str = None, cost: int = 250):
         """Add an item to the store"""
         if item is None:
             return await ctx.send("Please name the item you would like to add")

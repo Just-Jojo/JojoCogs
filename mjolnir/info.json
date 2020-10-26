@@ -1,0 +1,13 @@
+{
+    "author": [
+        "Jojo#7791"
+    ],
+    "min_bot_version": "3.4.0",
+    "min_python_version": [
+        3,
+        7,
+        0
+    ],
+    "install_msg": "Thankie for installing this cog! **WARNING** this cog may contain the following:\n⚪ A very addicting command\n⚪ Peanuts",
+    "description": "This cog is inspired by a command I saw on a Marvel server that I wanted to impliment into a Red cog"
+}
