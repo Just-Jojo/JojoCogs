@@ -81,13 +81,13 @@ class Fun(commands.Cog):
                 await ctx.send("I could not find that item!")
                 return
 
+            cur_name, old_bal = await self.bank_utils(ctx, ctx.author)
             if await bank.can_spend(ctx.author, cost):
                 try:
                     item_lists = await self.config.user(ctx.author).items.get_raw(item)
                 except KeyError:
                     item_lists = 0
                 item_lists += 1
-                cur_name, old_bal = await self.bank_utils(ctx, ctx.author)
                 await self.config.user(ctx.author).items.set_raw(item, value=item_lists)
                 if item_lists != 1:
                     msg = "You bought a {0} for {1} {2}!\nYou have {3} {0}s!".format(
