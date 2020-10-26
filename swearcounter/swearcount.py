@@ -19,7 +19,7 @@ class SwearCount(commands.Cog):
         if message.author.bot:
             return
         if not message.content[0] in await self.bot.get_prefix(message):
-            counts = ["fuck", "shit", "frik", "fudge"]
+            counts = ["fuck", "shit", "frik", "fudge", "frick"]
             if message.content.lower() in counts:
                 await message.channel.send("{} you swore! That's a point for you!".format(message.author.mention))
                 old = await self.config.user(message.author).swearcount.get_raw()
