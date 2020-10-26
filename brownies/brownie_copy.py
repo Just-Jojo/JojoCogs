@@ -38,7 +38,7 @@ class Brownie(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(
-            self, 1224421848909, force_registration=True
+            self, 237886801284, force_registration=True
         )
         self.config.register_guild(**self.default_guild_settings)
 
