@@ -22,8 +22,8 @@ class SwearCount(commands.Cog):
             counts = ["fuck", "shit", "frik", "fudge", "frick"]
             if message.content.lower() in counts:
                 await message.channel.send("{} you swore! That's a point for you!".format(message.author.mention))
-                old = await self.config.user(message.author).swearcount.get_raw()
-                await self.config.user(message.author).swearcount.set_raw(old + 1)
+                old = await self.config.user(message.author).get_raw("swearcount")
+                await self.config.user(message.author).set_raw("swearcount", value=old + 1)
 
     @commands.command()
     async def swearcount(self, ctx):
