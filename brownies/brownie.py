@@ -78,17 +78,16 @@ class Brownie(commands.Cog):
     @commands.command()
     async def brownie(self, ctx):
         """Obtain a random number of brownies. 12h cooldown"""
-        author = ctx.author
         # action = "brownie CD"
         # if await self.check_cooldowns(ctx, author, action):
         weighted_sample = [1] * 152 + [x for x in range(49) if x > 1]
         brownies = random.choice(weighted_sample)
-        author_brownies = await self.config.guild(ctx.guild).Players.get_raw(author)
-        await self.config.guild(ctx.guild).Players.set_raw(author, value=author_brownies+brownies)
+        author_brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author)
+        await self.config.guild(ctx.guild).Players.set_raw(ctx.author, value=author_brownies+brownies)
         if brownies > 1:
-            await ctx.send("{0} found {1} brownies!".format(author.name, brownies))
+            await ctx.send("{0} found {1} brownies!".format(ctx.author.name, brownies))
         else:
-            await ctx.send('{0} found 1 brownie!'.format(author.name))
+            await ctx.send('{} found 1 brownie!'.format(ctx.author.name))
 
     @commands.command(aliases=['giveb', ])
     @commands.guild_only()
@@ -103,7 +102,7 @@ class Brownie(commands.Cog):
             await self.config.guild(ctx.guild).Players.set_raw(author, value=sender_brownies - brownies)
             await self.config.guild(ctx.guild).Players.set_raw(user, value=user_brownies + brownies)
             msg = "{0} gave {1} brownies to {2}".format(
-                author.name, brownies, user.name
+                ctx.author.name, brownies, user.name
             )
         else:
             msg = "You don't have enough brownies points"
@@ -121,13 +120,16 @@ class Brownie(commands.Cog):
         await self.config.guild(ctx.guild).Players.set_raw(author, value=user_brownies)
         if user_brownies > 1:
             msg = "Nom nom nom.\n{0.name} has {1} brownie points remaining".format(
-                author, user_brownies)
+                ctx.author, user_brownies
+            )
         elif user_brownies == 1:
             msg = "Nom nom nom.\n{0.name} has 1 brownie point remaining".format(
-                author)
+                ctx.author
+            )
         else:
             msg = "Nom nom nom.\n{0.name} has no more brownie points.".format(
-                author)
+                ctx.author
+            )
         await ctx.send(msg)
 
     @commands.command()
@@ -155,7 +157,7 @@ class Brownie(commands.Cog):
             )
         # if await self.check_cooldowns(ctx, author, action):
         msg = self.steal_logic(user, author)
-        await ctx.send("{} is on the prowl to steal brownies.".format(author.name))
+        await ctx.send("{} is on the prowl to steal brownies.".format(ctx.author.name))
         await asyncio.sleep(4)
         await ctx.send(msg)
 
