@@ -27,5 +27,5 @@ class SwearCount(commands.Cog):
 
     @commands.command()
     async def swearcount(self, ctx):
-        leaderboard = await self.config.all_members()
+        leaderboard = await self.config.get_raw()
         await ctx.send(leaderboard)
