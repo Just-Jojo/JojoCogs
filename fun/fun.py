@@ -24,11 +24,6 @@ class Fun(commands.Cog):
         if role.name in roles_list.keys():
             await self.config.guild(role.guild).roles.clear_raw(role)
 
-    @commands.command()
-    @commands.is_owner()
-    async def check(self, ctx):
-        await ctx.send(await self.config.guild(ctx.guild).roles.get_raw())
-
     @commands.group()
     @commands.guild_only()
     async def store(self, ctx):
@@ -36,10 +31,12 @@ class Fun(commands.Cog):
 
     @store.command()
     @commands.admin_or_permissions(manage_guild=True)
-    async def add(self, ctx, *, item: str = None, cost: int = 250):
+    async def add(self, ctx, *, item: str = None, cost: int = None):
         """Add an item to the store"""
         if item is None:
             return await ctx.send("Please name the item you would like to add")
+        if cost is None:
+            cost = 250
         await self.config.guild(ctx.guild).set_raw(item, value=cost)
         await ctx.send("{0} can now be bought with {1} credits".format(item, cost))
 
