@@ -24,5 +24,3 @@ class SwearCount(commands.Cog):
                 await message.channel.send("{} you swore! That's a point for you!".format(message.author.mention))
                 old = await self.config.user(message.author).swearcount.get_raw()
                 await self.config.user(message.author).swearcount.set_raw(old + 1)
-        else:
-            await self.bot.process_commands(message)
