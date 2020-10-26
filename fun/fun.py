@@ -143,6 +143,8 @@ class Fun(commands.Cog):
     @commands.command(name="paidkick")
     @bank.cost(5000)
     async def kick_fun(self, ctx, user: discord.Member = None):
+        """Ever been mad at a member but never could get them kicked?
+        well now you don't have to wait for a mod!"""
         if user is None:
             raise bank.AbortPurchase
         if user is ctx.author:
