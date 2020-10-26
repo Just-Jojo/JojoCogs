@@ -1,4 +1,5 @@
 from redbot.core import commands
+import discord
 import random
 
 
@@ -7,6 +8,7 @@ class Mjolnir(commands.Cog):
         self.bot = bot
 
     @commands.command()
+    @commands.cooldown(1, 1800, commands.BucketType.user)
     async def trylift(self, ctx):
         trylift_error = [
             "You tried your best but still lost. Fear not! There is still hope!",
