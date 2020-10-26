@@ -134,9 +134,8 @@ class Brownie(commands.Cog):
     @commands.guild_only()
     async def brownies(self, ctx):
         """Check how many brownie points you have"""
-        author = ctx.author
-        brownies = await self.config.guild(ctx.guild).Players.get_raw(author)
-        await ctx.send("{0.name} has **{1}** brownie points".format(author.name, brownies))
+        brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author)
+        await ctx.send("{0.name} has **{1}** brownie points".format(ctx.author.name, brownies))
 
     @commands.command()
     @commands.guild_only()
