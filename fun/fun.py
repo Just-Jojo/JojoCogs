@@ -115,6 +115,9 @@ class Fun(commands.Cog):
 
     @commands.command()
     async def use(self, ctx, item: str):
+        """Use an item
+        This only works if you have the item in your inventory
+        """
         try:
             check_item = await self.config.user(ctx.author).items.get_raw(item)
             if check_item > 0:
@@ -124,15 +127,21 @@ class Fun(commands.Cog):
             else:
                 await ctx.send("You do not have that item!")
         except KeyError:
-            await ctx.send("You could not use that item!")
+            items_ = await self.config.user(ctx.author).items.get_raw()
+            embed = self.embed.create(
+                ctx, title="{0.display_name}'s Items".format(ctx.author))
+            for key, item in items_.items():
+                embed.add_field(name=key, value=item, inline=False)
+            await ctx.send(embed=embed)
 
     @commands.command()
     async def items(self, ctx):
         items_ = await self.config.user(ctx.author).items.get_raw()
         if items_:
             embed = self.embed.create(
-                ctx, title="{0.display_name}'s Items".format(ctx.author), description=self.readable_dict(items_)
-            )
+                ctx, title="{0.display_name}'s Items".format(ctx.author))
+            for key, item in items_.items():
+                embed.add_field(name=key, value=item, inline=False)
             await ctx.send(embed=embed)
         else:
             await ctx.send("You do not have any items!\nYou can buy some using `[p]store buy`")
