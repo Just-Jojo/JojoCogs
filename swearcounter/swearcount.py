@@ -24,3 +24,8 @@ class SwearCount(commands.Cog):
                 await message.channel.send("{} you swore! That's a point for you!".format(message.author.mention))
                 old = await self.config.user(message.author).swearcount.get_raw()
                 await self.config.user(message.author).swearcount.set_raw(old + 1)
+
+    @commands.command()
+    async def swearcount(self, ctx):
+        leaderboard = await self.config.all_members()
+        await ctx.send(leaderboard)
