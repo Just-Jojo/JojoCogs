@@ -89,6 +89,13 @@ class Brownie(commands.Cog):
         else:
             await ctx.send('{} found 1 brownie!'.format(ctx.author.name))
 
+    @commands.command()
+    @commands.guild_only()
+    async def brownies(self, ctx):
+        """Check how many brownie points you have"""
+        brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author)
+        await ctx.send("{0} has **{1}** brownie points".format(ctx.author.name, brownies))
+
     @commands.command(aliases=['giveb', ])
     @commands.guild_only()
     async def givebrownie(self, ctx, user: discord.Member, brownies: int):
@@ -131,13 +138,6 @@ class Brownie(commands.Cog):
                 ctx.author
             )
         await ctx.send(msg)
-
-    @commands.command()
-    @commands.guild_only()
-    async def brownies(self, ctx):
-        """Check how many brownie points you have"""
-        brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author)
-        await ctx.send("{0.name} has **{1}** brownie points".format(ctx.author.name, brownies))
 
     @commands.command()
     @commands.guild_only()
