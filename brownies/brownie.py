@@ -48,6 +48,16 @@ class Brownie(commands.Cog):
         players = await self.config.get_raw()
         await ctx.send(players)
 
+    @commands.command(name="clb")
+    @commands.is_owner()
+    async def clear_brownies(self, ctx, confirm: bool = False):
+        if confirm is True:
+            await self.config.clear_all_guilds()
+            msg = "Deleted all the data."
+        else:
+            msg = "This command is dangerous as it can and will delete data\nIf you do not want the data deleted do not run this command."
+        await ctx.send(msg)
+
     @commands.group()
     @commands.guild_only()
     async def setbrownie(self, ctx):
