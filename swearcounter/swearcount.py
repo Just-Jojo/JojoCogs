@@ -7,6 +7,9 @@ class SwearCount(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(
             self, 2839686154, force_registration=True)
+        self.config.register_global(
+            blocked=[]
+        )
         self.config.register_user(
             swearcount=0
         )
@@ -29,3 +32,22 @@ class SwearCount(commands.Cog):
     async def swearcount(self, ctx):
         leaderboard = await self.config.user(ctx.author).get_raw("swearcount")
         await ctx.send(leaderboard)
+
+    @commands.command()
+    @commands.mod_or_permissions(manage_guild=True)
+    async def stop(self, ctx):
+        guild = ctx.guild
+        if guild in await self.config.blocked.get_raw():
+            return await ctx.send("Your guild is already in the blocklist!")
+        await self.config.blocked.set_raw(value=guild)
+        await ctx.send("Your guild has now been put in the block list")
+
+    @commands.command()
+    @commands.mod_or_permissions(manage_guild=True)
+    async def start(self, ctx):
+        guild = ctx.guild
+        blocked = await self.config.blocked.get_raw()
+        if guild not in blocked:
+            return await ctx.send("Your guild is not in the blocklist")
+        await self.config.blocked.clear_raw(guild)
+        await ctx.send("Removed your guild from the blocklist!")
