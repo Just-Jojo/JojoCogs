@@ -76,17 +76,17 @@ class Collectables(commands.Cog):
             await bank.withdraw_credits(ctx.author, cost)
 
     @commands.command()
-    async def collectables(self, ctx, user: discord.Member = None):
+    async def collectables(self, ctx, user: discord.Member = commands.Context.author):
         """Displays a users collectables."""
-        if user is None:
-            user = ctx.author
         try:
-            coll_list = await self.config.user(user).get_raw("collectables")
-        except:
-            await ctx.send("{0.display_name} does not have any collectables".format(user))
-            return
-        coll_list_clean = self.readable_dict(coll_list)
-        await ctx.send("{0.display_name}'s collectables:\n{1}".format(user, coll_list_clean))
+            collectable_list = await self.config.user(user).get_raw("collectables")
+        except Exception:
+            return await ctx.send("{} doesn't have any collectables!".format(user.display_name))
+        data = Embed.create(
+            self, ctx, title="{}'s collectables".format(user.display_name))
+        for key, item in collectable_list.items():
+            data.add_field(name=key, value=item, inline=False)
+        await ctx.send(embed=data)
 
     @commands.command(name='99', help='Responds with a random quote from Brooklyn 99')
     async def nine_nine(self, ctx):
