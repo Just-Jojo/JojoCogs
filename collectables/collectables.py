@@ -76,8 +76,10 @@ class Collectables(commands.Cog):
             await bank.withdraw_credits(ctx.author, cost)
 
     @commands.command()
-    async def collectables(self, ctx, user: discord.Member = commands.Context.author):
+    async def collectables(self, ctx, user: discord.Member = None):
         """Displays a users collectables."""
+        if user is None:
+            user = ctx.author
         try:
             collectable_list = await self.config.user(user).get_raw("collectables")
         except Exception:
