@@ -23,7 +23,7 @@ class SwearCount(commands.Cog):
         if message.author.bot:
             return
         print(blocked)
-        if str(message.guild.id) in blocked:
+        if str(message.guild.id) in str(blocked):
             return
         if not message.content[0] in await self.bot.get_prefix(message):
             counts = ["fuck", "shit", "frik", "fudge", "frick"]
