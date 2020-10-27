@@ -7,9 +7,6 @@ class SwearCount(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(
             self, 55550120145, force_registration=True)
-        self.config.register_global(
-            blocked=[]
-        )
         self.config.register_user(
             swearcount=0
         )
