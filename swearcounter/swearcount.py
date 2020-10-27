@@ -20,12 +20,15 @@ class SwearCount(commands.Cog):
             return
         if message.guild.id != 696461072101539961:
             return
-        if not message.content[0] in await self.bot.get_prefix(message):
-            counts = ["fuck", "shit", "frik", "fudge", "frick"]
-            if message.content.lower() in counts:
-                await message.channel.send("{} you swore! That's a point for you!".format(message.author.mention))
-                old = await self.config.user(message.author).get_raw("swearcount")
-                await self.config.user(message.author).set_raw("swearcount", value=old + 1)
+        try:
+            if not message.content[0] in await self.bot.get_prefix(message):
+                counts = ["fuck", "shit", "frik", "fudge", "frick"]
+                if message.content.lower() in counts:
+                    await message.channel.send("{} you swore! That's a point for you!".format(message.author.mention))
+                    old = await self.config.user(message.author).get_raw("swearcount")
+                    await self.config.user(message.author).set_raw("swearcount", value=old + 1)
+        except IndexError:
+            pass
 
     @commands.command()
     async def swearcount(self, ctx):
