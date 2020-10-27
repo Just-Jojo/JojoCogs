@@ -64,7 +64,7 @@ class Collectables(commands.Cog):
         data = Embed.create(
             self, ctx, title="{}'s Collectables".format(ctx.guild.name)
         )
-        for key, item in coll:
+        for key, item in coll.items():
             data.add_field(name=key, value=item, inline=False)
         await ctx.send(embed=data)
 
