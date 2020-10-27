@@ -20,7 +20,7 @@ class Collectables(commands.Cog):
             collectables={}
         )
 
-    def readable_dict(self, dictionary: dict):
+    def readable_dict(self, dictionary: dict):  # Remove at a future date
         x = []
         for key, item in dictionary.items():
             y = "{0}: {1}".format(key, item)
@@ -56,9 +56,17 @@ class Collectables(commands.Cog):
 
     @collectable.command(name="list")
     async def collectable_list(self, ctx):
-        collectable_listing = await self.config.guild(ctx.guild).get_raw()
-        collectable_list_readable = self.readable_dict(collectable_listing)
-        await ctx.send(collectable_list_readable)
+        """List all of the collectables in your guild"""
+        try:
+            coll = await self.config.guild(ctx.guild).get_raw()
+        except Exception:
+            return await ctx.send("Your guild does not have any collectables!\nHave an admin run `{}collectable create <collectable> [cost]` to start collecting!".format(ctx.clean_prefix))
+        data = Embed.create(
+            self, ctx, title="{}'s Collectables".format(ctx.guild.name)
+        )
+        for key, item in coll:
+            data.add_field(name=key, value=item, inline=False)
+        await ctx.send(embed=data)
 
     @collectable.command()
     async def buy(self, ctx, collectable: str):
