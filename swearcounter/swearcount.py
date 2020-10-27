@@ -36,7 +36,7 @@ class SwearCount(commands.Cog):
     @commands.command()
     @commands.mod_or_permissions(manage_guild=True)
     async def stop(self, ctx):
-        guild = ctx.guild
+        guild = ctx.guild.id
         if guild in await self.config.get_raw("blocked"):
             return await ctx.send("Your guild is already in the blocklist!")
         await self.config.set_raw("blocked", value=guild)
@@ -45,7 +45,7 @@ class SwearCount(commands.Cog):
     @commands.command()
     @commands.mod_or_permissions(manage_guild=True)
     async def start(self, ctx):
-        guild = ctx.guild
+        guild = ctx.guild.id
         blocked = await self.config.get_raw("blocked")
         if guild not in blocked:
             return await ctx.send("Your guild is not in the blocklist")
