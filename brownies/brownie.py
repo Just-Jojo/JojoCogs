@@ -181,7 +181,7 @@ class Brownie(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
-    async def steal(self, ctx, user: discord.Member = None):
+    async def steal(self, ctx, *, user: discord.Member = None):
         """Steal brownies from another user"""
         author = ctx.author
         guild = ctx.guild
