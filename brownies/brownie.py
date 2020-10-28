@@ -231,10 +231,6 @@ class Brownie(commands.Cog):
         if user == "Fail":
             msg = "I couldn't find anyone with brownie points"
             return msg
-        players = await self.config.guild(user.guild).Players.get_raw()
-        print(players)
-        if user.id not in players:
-            return "I could not find that user"
 
         await self.account_check(user, author)
         brownies = await self.config.guild(author.guild).Players.get_raw(user.id, "brownies")
