@@ -60,7 +60,7 @@ class Brownie(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def delete(self, ctx):
-        await self.config.guild(ctx.guild).Players.clear_raw()
+        await self.config.clear_all_guilds()
         await ctx.send("Cleared the brownie cache for this guild")
 
     @commands.group()
