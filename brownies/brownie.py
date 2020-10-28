@@ -94,7 +94,7 @@ class Brownie(commands.Cog):
             weighted_sample = [1] * 152 + [x for x in range(49) if x > 1]
             brownies = random.choice(weighted_sample)
 
-            author_brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author)
+            author_brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author, "brownies")
             await self.config.guild(ctx.guild).Players.set_raw(ctx.author, "brownies", value=author_brownies+brownies)
             if brownies > 1:
                 await ctx.send("{0} found {1} brownies!".format(ctx.author.name, brownies))
@@ -125,8 +125,6 @@ class Brownie(commands.Cog):
         user_brownies = await self.config.guild(ctx.guild).Players.get_raw(user, "brownies")
 
         if 0 < brownies <= sender_brownies:
-            # await self.config.guild(ctx.guild).Players.set_raw(author, value=sender_brownies - brownies)
-            # await self.config.guild(ctx.guild).Players.set_raw(user, value=user_brownies + brownies)
             await self.config.guild(ctx.guild).Players.set_raw(author, "brownies", value=sender_brownies - brownies)
             await self.config.guild(ctx.guild).Players.set_raw(user, "brownies", value=user_brownies + brownies)
             msg = "{0} gave {1} brownies to {2}".format(
