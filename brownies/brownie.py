@@ -203,11 +203,11 @@ class Brownie(commands.Cog):
         cooldown = await self.config.guild(ctx.guild).Players.get_raw(user.id, action)
         if abs(cooldown - int(time.perf_counter())) >= guild_cooldown:
             cooldown = int(time.perf_counter())
-            await self.config.guild(ctx.guild).Players.set_raw(user, action, value=cooldown)
+            await self.config.guild(ctx.guild).Players.set_raw(user.id, action, value=cooldown)
             return True
         elif cooldown == 0:
             cooldown = int(time.perf_counter)
-            await self.config.guild(ctx.guild).Players.set_raw(user, action, value=cooldown)
+            await self.config.guild(ctx.guild).Players.set_raw(user.id, action, value=cooldown)
             return True
         else:
             s = abs(
