@@ -105,7 +105,7 @@ class Brownie(commands.Cog):
     @commands.command()
     async def brownie(self, ctx):
         """Obtain a random number of brownies. 12h cooldown"""
-        await self.account_check(ctx.author, ctx.guild)
+        await self.account_check(ctx.author, guild=ctx.guild)
 
         action = "brownie CD"
         toogle = await self.check_cooldowns(ctx, ctx.author, action)
@@ -139,7 +139,7 @@ class Brownie(commands.Cog):
         author = ctx.author
         if ctx.author.id == user.id:
             return await ctx.send("You can't give yourself brownie points.")
-        await self.account_check(ctx.author, user, ctx.guild)
+        await self.account_check(ctx.author, user, guild=ctx.guild)
         sender_brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author.id, "brownies")
         user_brownies = await self.config.guild(ctx.guild).Players.get_raw(user.id, "brownies")
 
@@ -158,7 +158,7 @@ class Brownie(commands.Cog):
     async def nom(self, ctx):
         """Eat a brownie"""
         author = ctx.author
-        await self.account_check(ctx.author, ctx.guild)
+        await self.account_check(ctx.author, guild=ctx.guild)
         user_brownies = await self.config.guild(ctx.guild).Players.get_raw(author.id, "brownies")
         if user_brownies == 0:
             return await ctx.send("There are no brownies to eat")
@@ -232,7 +232,7 @@ class Brownie(commands.Cog):
             msg = "I couldn't find anyone with brownie points"
             return msg
 
-        await self.account_check(user, author, author.guild)
+        await self.account_check(user, author, guild=author.guild)
         brownies = await self.config.guild(author.guild).Players.get_raw(user.id, "brownies")
         author_brownies = await self.config.guild(author.guild).Players.get_raw(author.id, "brownies")
 
@@ -265,7 +265,7 @@ class Brownie(commands.Cog):
             x for x in filter_users if x.id != author.id and x is not x.bot
         ]
 
-        await self.account_check(legit_users, server)
+        await self.account_check(legit_users, guild=server)
         users = [x for x in legit_users if await self.config.guild(server).Players.get_raw(x.id, "brownies") > 0]
 
         if not users:
