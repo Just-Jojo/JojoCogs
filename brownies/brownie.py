@@ -53,21 +53,9 @@ class Brownie(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def register(self, ctx):
-        for guild in self.bot.guilds:
-            await self.config.guild(guild).set_raw(value=self.default_guild_settings)
-        await ctx.send("Done")
-
-    @commands.command(name="clb")
-    @commands.is_owner()
-    async def clear_brownies(self, ctx, confirm: bool = False):
-        if confirm is True:
-            await self.config.clear_all_guilds()
-            msg = "Deleted all the data."
-            self.config.register_guild(**self.default_guild_settings)
-        else:
-            msg = "This command is dangerous as it can and will delete data\nIf you do not want the data deleted do not run this command."
-        await ctx.send(msg)
+    async def delete(self, ctx):
+        await self.config.guild(ctx.guild).Players.clear_raw()
+        await ctx.send("Cleared the brownie cache for this guild")
 
     @commands.group()
     @commands.guild_only()
