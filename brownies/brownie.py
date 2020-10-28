@@ -3,8 +3,10 @@ import os
 import random
 import time
 from operator import itemgetter
+from typing import Literal
 
 from redbot.core import commands, Config, checks
+from redbot.core.utils import AsyncIter
 import discord
 
 
@@ -42,20 +44,20 @@ class Brownie(commands.Cog):
         )
         self.config.register_guild(**self.default_guild_settings)
 
-    @commands.command()
-    @commands.is_owner()
-    async def checkplayers(self, ctx):
-        # players = await self.config.get_raw("Players")
-        action = await self.config.guild(ctx.guild).Config.get_raw("Steal CD")
-        msg = "{0} {1}".format(action, type(action))
-        await ctx.send(msg)
-        # await ctx.send(players)
+    async def red_delete_data_for_user(
+        self,
+        *,
+        user: Literal["discord_deleted_user", "owner", "owner", "user", "user_strict"],
+        id: int
+    ):
+        if user != "discord_deleted_user":
+            return
+        await self.config.user_from_id(id).clear()
 
-    @commands.command()
-    async def register(self, ctx):
-        for guild in self.bot.guilds:
-            await self.config.guild(guild).set_raw(value=self.default_guild_settings)
-        await ctx.send("Done")
+        all_members = await self.config.all_members
+        async for guild_id, guild_data in AsyncIter(all_members.items(), steps=500):
+            if id in guild_data:
+                await self.config.member_from_ids(guild_id, id).clear()
 
     @commands.command()
     @commands.is_owner()
@@ -181,7 +183,7 @@ class Brownie(commands.Cog):
             return await ctx.send(
                 "Stealing failed because the picked target is a bot.\nYou can retry stealing again, your cooldown is not consumed."
             )
-        msg = self.steal_logic(user, author)
+        msg = await self.steal_logic(user, author)
         await ctx.send("{} is on the prowl to steal brownies.".format(ctx.author.name))
         await asyncio.sleep(4)
         await ctx.send(msg)
