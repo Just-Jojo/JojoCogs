@@ -90,7 +90,8 @@ class Brownie(commands.Cog):
         await self.account_check(ctx.author)
 
         action = "brownie CD"
-        if await self.check_cooldowns(ctx, ctx.author, action):
+        toogle = await self.check_cooldowns(ctx, ctx.author, action)
+        if toogle is True:
             weighted_sample = [1] * 152 + [x for x in range(49) if x > 1]
             brownies = random.choice(weighted_sample)
 
