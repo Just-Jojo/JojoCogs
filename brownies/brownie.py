@@ -258,7 +258,7 @@ class Brownie(commands.Cog):
         return msg
 
     async def random_user(self, author, server: discord.Guild) -> discord.Member:
-        legit_users = [x.id for x in server.members]
+        legit_users = [x for x in server.members]
         user = random.choice(legit_users)
         if user == user.bot:
             legit_users.remove(user.bot)
