@@ -187,6 +187,7 @@ class Brownie(commands.Cog):
         guild = ctx.guild
         action = "Steal CD"
 
+        await self.account_check(author, guild)
         if await self.check_cooldowns(ctx, author, action) is True:
             if user is None:
                 user = await self.random_user(author, guild)
