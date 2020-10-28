@@ -67,6 +67,7 @@ class Brownie(commands.Cog):
         for guild in self.bot.guilds:
             await self.config.guild(guild).set_raw(value=self.default_guild_settings)
         await ctx.send("Reregistered the guilds")
+        await self.config.guild(ctx.guild).Players.get_raw()
 
     @commands.group()
     @commands.guild_only()
@@ -226,7 +227,7 @@ class Brownie(commands.Cog):
             return msg
         players = await self.config.guild(user.guild).Players.get_raw()
         print(players)
-        if user.id not in players.keys():
+        if user.id not in players:
             return "I could not find that user"
 
         await self.account_check(user, author)
