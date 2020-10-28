@@ -204,7 +204,7 @@ class Brownie(commands.Cog):
     async def account_check(self, *users: discord.Member) -> None:
         for user in users:
             try:
-                await self.config.guild(user.guild).Player.get_raw(user)
+                await self.config.guild(user.guild).Players.get_raw(user)
             except KeyError:
                 default_user = {"Steal CD": 5, "brownie CD": 5, "brownies": 0}
                 await self.config.guild(user.guild).Players.set_raw(user, value=default_user)
