@@ -30,8 +30,8 @@ class Brownie(commands.Cog):
     default_guild_settings = {
         "Players": {},
         "Config": {
-            "Steal CD": 5,
-            "brownie CD": 5
+            "Steal CD": 300,
+            "brownie CD": 300
         }
     }
 
@@ -52,6 +52,12 @@ class Brownie(commands.Cog):
         # await ctx.send(players)
 
     @commands.command()
+    async def register(self, ctx):
+        for guild in self.bot.guilds:
+            await self.config.guild(guild).set_raw(value=self.default_guild_settings)
+        await ctx.send("Done")
+
+    @commands.command()
     @commands.is_owner()
     async def delete(self, ctx):
         await self.config.guild(ctx.guild).Players.clear_raw()
@@ -67,7 +73,7 @@ class Brownie(commands.Cog):
     async def _stealcd_heist(self, ctx, cooldown: int):
         """Set the cooldown for stealing brownies"""
         if cooldown >= 0:
-            await self.config.guild(ctx.guild).Config.set_raw("Steal CD", value=cooldown)
+            await self.config.guild(ctx.guild).Config.set_raw("Steal CD", value=cooldown*60)
             msg = "Cooldown for steal set to {0}".format(cooldown)
         else:
             msg = "Cooldown needs to be higher than 0."
@@ -78,7 +84,7 @@ class Brownie(commands.Cog):
     async def _browniecd_heist(self, ctx, cooldown: int):
         """Set the cooldown for brownie command"""
         if cooldown >= 0:
-            await self.config.guild(ctx.guild).Config.set_raw("brownie CD", value=cooldown)
+            await self.config.guild(ctx.guild).Config.set_raw("brownie CD", value=cooldown*60)
             msg = "Cooldown for brownie set to {0}".format(cooldown)
         else:
             msg = "Cooldown needs to be higher than 0."
