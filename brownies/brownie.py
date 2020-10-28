@@ -178,7 +178,6 @@ class Brownie(commands.Cog):
         """Steal brownies from another user"""
         author = ctx.author
         guild = ctx.guild
-        #  action = "Steal CD"
 
         if user is None:
             user = await self.random_user(author, guild)
@@ -188,7 +187,6 @@ class Brownie(commands.Cog):
             return await ctx.send(
                 "Stealing failed because the picked target is a bot.\nYou can retry stealing again, your cooldown is not consumed."
             )
-        # if await self.check_cooldowns(ctx, author, action):
         msg = self.steal_logic(user, author)
         await ctx.send("{} is on the prowl to steal brownies.".format(ctx.author.name))
         await asyncio.sleep(4)
@@ -247,7 +245,7 @@ class Brownie(commands.Cog):
         return msg
 
     async def random_user(self, author, server):
-        filter_users = [server.get_member(x) for x in await self.config.guild(server).Players
+        filter_users = [server.get_member(x) for x in await self.config.guild(server).get_raw("Players")
                         if hasattr(server.get_member(x), "name")]
         legit_users = [x for x in filter_users if x.id !=
                        author.id and x is not x.bot]
