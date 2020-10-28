@@ -62,8 +62,9 @@ class Brownie(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def delete(self, ctx):
-        await self.config.clear_all_guilds()
-        await ctx.send("Cleared the brownie cache for this guild")
+        for guild in self.bot.guilds:
+            await self.config.guild(guild).clear_raw()
+        await ctx.send("Cleared the brownie cache")
         for guild in self.bot.guilds:
             await self.config.guild(guild).set_raw(value=self.default_guild_settings)
         await ctx.send("Reregistered the guilds")
