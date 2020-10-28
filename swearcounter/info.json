@@ -8,5 +8,6 @@
         7,
         0
     ],
-    "install_msg": "Thank you for installing the swear counter cog. This cog is designed around a minigame on my server. If you'd like to see said rules check out this cog's README"
+    "install_msg": "Thank you for installing the swear counter cog. This cog is designed around a minigame on my server. If you'd like to see said rules check out this cog's README",
+    "hidden": true
 }
