@@ -1,4 +1,4 @@
-from .brownie_copy import Brownie
+from .brownie import Brownie
 
 
 def setup(bot):
