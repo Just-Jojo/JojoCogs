@@ -100,7 +100,10 @@ class Brownie(commands.Cog):
         # if await self.check_cooldowns(ctx, author, action):
         weighted_sample = [1] * 152 + [x for x in range(49) if x > 1]
         brownies = random.choice(weighted_sample)
-        author_brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author)
+        try:
+            author_brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author)
+        except KeyError:
+            author_brownies = 0
         await self.config.guild(ctx.guild).Players.set_raw(ctx.author, value=author_brownies+brownies)
         if brownies > 1:
             await ctx.send("{0} found {1} brownies!".format(ctx.author.name, brownies))
@@ -111,8 +114,13 @@ class Brownie(commands.Cog):
     @commands.guild_only()
     async def brownies(self, ctx):
         """Check how many brownie points you have"""
-        brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author)
-        await ctx.send("{0} has **{1}** brownie points".format(ctx.author.name, brownies))
+        try:
+            brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author)
+            msg = "{0} has **{1}** brownie points".format(
+                ctx.author.name, brownies)
+        except KeyError:
+            msg = "{} has no brownies points".format(ctx.author.name)
+        await ctx.send(msg)
 
     @commands.command(aliases=['giveb', ])
     @commands.guild_only()
