@@ -59,22 +59,6 @@ class Brownie(commands.Cog):
             if id in guild_data:
                 await self.config.member_from_ids(guild_id, id).clear()
 
-    @commands.command()
-    @commands.is_owner()
-    async def delete(self, ctx):
-        for guild in self.bot.guilds:
-            await self.config.guild(guild).clear_raw()
-        await ctx.send("Cleared the brownie cache")
-        for guild in self.bot.guilds:
-            await self.config.guild(guild).set_raw(value=self.default_guild_settings)
-        await ctx.send("Reregistered the guilds")
-
-    @commands.command()
-    @commands.is_owner()
-    async def printx(self, ctx):
-        x = await self.config.guild(ctx.guild).Players.get_raw()
-        print(x)
-
     @commands.group()
     @commands.guild_only()
     async def setbrownie(self, ctx):
