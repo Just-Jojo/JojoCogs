@@ -68,6 +68,10 @@ class Brownie(commands.Cog):
         for guild in self.bot.guilds:
             await self.config.guild(guild).set_raw(value=self.default_guild_settings)
         await ctx.send("Reregistered the guilds")
+
+    @commands.command()
+    @commands.is_owner()
+    async def printx(self, ctx):
         x = await self.config.guild(ctx.guild).Players.get_raw()
         print(x)
 
