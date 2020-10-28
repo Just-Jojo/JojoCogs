@@ -185,19 +185,21 @@ class Brownie(commands.Cog):
         """Steal brownies from another user"""
         author = ctx.author
         guild = ctx.guild
+        action = "Steal CD"
 
-        if user is None:
-            user = await self.random_user(author, guild)
-        if user == "Fail":
-            return await ctx.send("I could not find anyone with brownie points.")
-        elif user.bot:
-            return await ctx.send(
-                "Stealing failed because the picked target is a bot.\nYou can retry stealing again, your cooldown is not consumed."
-            )
-        msg = await self.steal_logic(user, author)
-        await ctx.send("{} is on the prowl to steal brownies.".format(ctx.author.name))
-        await asyncio.sleep(4)
-        await ctx.send(msg)
+        if await self.check_cooldowns(ctx, author, action) is True:
+            if user is None:
+                user = await self.random_user(author, guild)
+            if user == "Fail":
+                return await ctx.send("I could not find anyone with brownie points.")
+            elif user.bot:
+                return await ctx.send(
+                    "Stealing failed because the picked target is a bot.\nYou can retry stealing again, your cooldown is not consumed."
+                )
+            msg = await self.steal_logic(user, author)
+            await ctx.send("{} is on the prowl to steal brownies.".format(ctx.author.name))
+            await asyncio.sleep(4)
+            await ctx.send(msg)
 
     async def check_cooldowns(self, ctx: commands.Context, user: discord.Member, action: str) -> bool:
         guild_cooldown = await self.config.guild(ctx.guild).Config.get_raw(action)
