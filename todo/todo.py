@@ -36,7 +36,8 @@ class ToDo(commands.Cog):
             msg = "That is the same setting!\nSilly goose"
         else:
             await self.config.guild(ctx.guild).set_raw("DM", value=toggle)
-            msg = "Set the DM status to `{}`\n\n`True meaning I will dm the user, False meaning I will send it to the server`".format(toggle)
+            msg = "Set the DM status to `{}`\n\n`True meaning I will dm the user, False meaning I will send it to the server`".format(
+                toggle)
         await ctx.send(msg)
 
     @commands.group()
@@ -52,12 +53,13 @@ class ToDo(commands.Cog):
     @todo.command(aliases=["del", ])
     async def remove(self, ctx, number: int = None):
         """Remove a ToDo reminder"""
+        todos: list = await self.config.user(ctx.author).todo.get_raw()
         if isinstance(ctx.channel, discord.abc.GuildChannel):
             toogle = await self.check_dm(ctx)
         else:
             toogle = False
         if number is None:
-            todo_list = self.readable_dict(await self.config.user(ctx.author).todo.get_raw(), True)
+            todo_list = self.readable_dict(todos, True)
             msg = "Here are all of the ToDo reminders you have: \n{0}\nTo remove one, please type `[p]todo remove|del <number>`".format(
                 todo_list)
             if toogle is True:
@@ -66,7 +68,7 @@ class ToDo(commands.Cog):
                 except discord.Forbidden:
                     return await ctx.send("Could not send the message!")
             return await ctx.send(msg)
-        await self.config.user(ctx.author).todo.clear_raw(number)
+        await self.config.user(ctx.author).todo.clear_raw(todos[number])
         msg = "Sucessfully removed that ToDo reminder."
         if toogle is True:
             try:
