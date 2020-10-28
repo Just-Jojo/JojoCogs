@@ -139,7 +139,7 @@ class Brownie(commands.Cog):
         author = ctx.author
         if ctx.author.id == user.id:
             return await ctx.send("You can't give yourself brownie points.")
-        await self.account_check(ctx.author, user, guild=ctx.guild)
+        await self.account_check(ctx.author, ctx.guild)
         await self.account_check(user, guild=ctx.guild)
         sender_brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author.id, "brownies")
         user_brownies = await self.config.guild(ctx.guild).Players.get_raw(user.id, "brownies")
@@ -219,7 +219,7 @@ class Brownie(commands.Cog):
             await ctx.send("This action has a cooldown. You still have:\n{}".format(remaining))
             return False
 
-    async def account_check(self, users: discord.Member, guild: discord.Guild) -> None:
+    async def account_check(self, user: discord.Member, guild: discord.Guild) -> None:
         try:
             await self.config.guild(guild).Players.get_raw(user.id)
         except KeyError:
@@ -265,17 +265,13 @@ class Brownie(commands.Cog):
         legit_users = [
             x for x in filter_users if x.id != author.id and x is not x.bot
         ]
+        user = random.choice(legit_users)
+        if user == user.bot:
+            legit_users.remove(user.bot)
 
-        if not users:
-            user = "Fail"
-        else:
+            await self.config.guild(server).Players.clear_raw(user)
             user = random.choice(legit_users)
-            if user == user.bot:
-                users.remove(user.bot)
-
-                await self.config.guild(server).Players.clear_raw(user)
-                user = random.choice(users)
-            await self.account_check(user, user.guild)
+        await self.account_check(user, user.guild)
 
         return user
 
