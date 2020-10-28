@@ -149,11 +149,11 @@ class Brownie(commands.Cog):
         """Eat a brownie"""
         author = ctx.author
         await self.account_check(ctx.author)
-        user_brownies = await self.config.guild(ctx.guild).Players.get_raw(author)
+        user_brownies = await self.config.guild(ctx.guild).Players.get_raw(author, "brownies")
         if user_brownies == 0:
             return await ctx.send("There are no brownies to eat")
         user_brownies -= 1
-        await self.config.guild(ctx.guild).Players.set_raw(author, value=user_brownies)
+        await self.config.guild(ctx.guild).Players.set_raw(author, "brownies", value=user_brownies)
         if user_brownies > 1:
             msg = "Nom nom nom.\n{0.name} has {1} brownie points remaining".format(
                 ctx.author, user_brownies
