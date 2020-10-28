@@ -261,9 +261,13 @@ class Brownie(commands.Cog):
         return msg
 
     async def random_user(self, author, server):
-        filter_users = [server.get_member(x) for x in await self.config.guild(server).get_raw("Players") if hasattr(server.get_member(x), "name")]
-        legit_users = [x for x in filter_users if x.id !=
-                       author.id and x is not x.bot]
+        players = await self.config.guild(server).Players.get_raw()
+        filter_users = [
+            server.get_member(x) for x in players.keys() if hasattr(server.get_member(x), "name")
+        ]
+        legit_users = [
+            x for x in filter_users if x.id != author.id and x is not x.bot
+        ]
 
         users = [x for x in legit_users if await self.config.guild(server).Players.get_raw(x.id, "brownies") > 0]
 
@@ -274,7 +278,7 @@ class Brownie(commands.Cog):
             if user == user.bot:
                 users.remove(user.bot)
 
-                await self.config.Players.clear_raw(user.bot)
+                await self.config.guild(server).Players.clear_raw(user)
                 user = random.choice(users)
 
         return user
