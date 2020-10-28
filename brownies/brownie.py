@@ -240,15 +240,15 @@ class Brownie(commands.Cog):
             msg = ('{} has no brownie points.'.format(user.name))
         else:
             if success_chance <= 90:
-                brownie_jar = await self.config.guild(author.guild).Players.get_raw(user.id)
+                brownie_jar = await self.config.guild(author.guild).Players.get_raw(user.id, "brownies")
                 brownies_stolen = int(brownie_jar * 0.75)
 
                 if brownies_stolen == 0:
                     brownies_stolen = 1
 
                 stolen = random.randint(1, brownies_stolen)
-                await self.config.guild(author.guild).Players.set_raw(user.id, value=brownies - brownies_stolen)
-                await self.config.guild(author.guild).Players.set_raw(author.id, value=author_brownies + brownies_stolen)
+                await self.config.guild(author.guild).Players.set_raw(user.id, "brownies", value=brownies - brownies_stolen)
+                await self.config.guild(author.guild).Players.set_raw(author.id, "brownies", value=author_brownies + brownies_stolen)
                 msg = ("{0} stole {1} brownie points from {2}!".format(
                     author.name, stolen, user.name))
             else:
