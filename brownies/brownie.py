@@ -125,7 +125,7 @@ class Brownie(commands.Cog):
     async def brownies(self, ctx):
         """Check how many brownie points you have"""
         try:
-            brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author, "brownies")
+            brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author.id, "brownies")
             msg = "{0} has **{1}** brownie points".format(
                 ctx.author.name, brownies)
         except KeyError:
