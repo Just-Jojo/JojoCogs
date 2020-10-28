@@ -265,7 +265,7 @@ class Brownie(commands.Cog):
             x for x in filter_users if x.id != author.id and x is not x.bot
         ]
 
-        await self.account_check(users)
+        await self.account_check(legit_users)
         users = [x for x in legit_users if await self.config.guild(server).Players.get_raw(x.id, "brownies") > 0]
 
         if not users:
