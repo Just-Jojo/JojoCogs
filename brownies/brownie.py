@@ -223,7 +223,7 @@ class Brownie(commands.Cog):
             return msg
         players = await self.config.guild(user.guild).get_raw("Players")
         print(players)
-        if user not in players:
+        if user not in players.keys():
             return "I could not find that user"
 
         await self.account_check(user, author)
