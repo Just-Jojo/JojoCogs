@@ -140,6 +140,7 @@ class Brownie(commands.Cog):
         if ctx.author.id == user.id:
             return await ctx.send("You can't give yourself brownie points.")
         await self.account_check(ctx.author, user, guild=ctx.guild)
+        await self.account_check(user, guild=ctx.guild)
         sender_brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author.id, "brownies")
         user_brownies = await self.config.guild(ctx.guild).Players.get_raw(user.id, "brownies")
 
@@ -218,13 +219,12 @@ class Brownie(commands.Cog):
             await ctx.send("This action has a cooldown. You still have:\n{}".format(remaining))
             return False
 
-    async def account_check(self, *users: discord.Member, guild: discord.Guild) -> None:
-        for user in users:
-            try:
-                await self.config.guild(guild).Players.get_raw(user.id)
-            except KeyError:
-                default_user = {"Steal CD": 5, "brownie CD": 5, "brownies": 0}
-                await self.config.guild(guild).Players.set_raw(user.id, value=default_user)
+    async def account_check(self, users: discord.Member, guild: discord.Guild) -> None:
+        try:
+            await self.config.guild(guild).Players.get_raw(user.id)
+        except KeyError:
+            default_user = {"Steal CD": 5, "brownie CD": 5, "brownies": 0}
+            await self.config.guild(guild).Players.set_raw(user.id, value=default_user)
 
     async def steal_logic(self, user: discord.Member, author) -> str:
         success_chance = random.randint(1, 100)
@@ -232,7 +232,8 @@ class Brownie(commands.Cog):
             msg = "I couldn't find anyone with brownie points"
             return msg
 
-        await self.account_check(user, author, guild=author.guild)
+        await self.account_check(user, guild=author.guild)
+        await self.account_check(author, author.guild)
         brownies = await self.config.guild(author.guild).Players.get_raw(user.id, "brownies")
         author_brownies = await self.config.guild(author.guild).Players.get_raw(author.id, "brownies")
 
@@ -265,18 +266,16 @@ class Brownie(commands.Cog):
             x for x in filter_users if x.id != author.id and x is not x.bot
         ]
 
-        await self.account_check(legit_users, guild=server)
-        users = [x for x in legit_users if await self.config.guild(server).Players.get_raw(x.id, "brownies") > 0]
-
         if not users:
             user = "Fail"
         else:
-            user = random.choice(users)
+            user = random.choice(legit_users)
             if user == user.bot:
                 users.remove(user.bot)
 
                 await self.config.guild(server).Players.clear_raw(user)
                 user = random.choice(users)
+            await self.account_check(user, user.guild)
 
         return user
 
