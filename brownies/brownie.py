@@ -171,16 +171,16 @@ class Brownie(commands.Cog):
         guild = ctx.guild
         action = "Steal CD"
 
+        if user is None:
+            user = await self.random_user(author, guild)
+        if user == "Fail":
+            return await ctx.send("I could not find anyone with brownie points.")
+        elif user.bot:
+            return await ctx.send(
+                "Stealing failed because the picked target is a bot.\nYou can retry stealing again, your cooldown is not consumed."
+            )
         await self.account_check(author, guild)
         if await self.check_cooldowns(ctx, author, action) is True:
-            if user is None:
-                user = await self.random_user(author, guild)
-            if user == "Fail":
-                return await ctx.send("I could not find anyone with brownie points.")
-            elif user.bot:
-                return await ctx.send(
-                    "Stealing failed because the picked target is a bot.\nYou can retry stealing again, your cooldown is not consumed."
-                )
             msg = await self.steal_logic(user, author)
             await ctx.send("{} is on the prowl to steal brownies.".format(ctx.author.name))
             await asyncio.sleep(4)
