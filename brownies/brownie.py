@@ -69,9 +69,9 @@ class Brownie(commands.Cog):
     @checks.admin()
     async def _stealcd_heist(self, ctx, seconds: int):
         """Set the cooldown for stealing brownies"""
-        if cooldown >= 0:
-            await self.config.guild(ctx.guild).Config.set_raw("Steal CD", value=cooldown)
-            msg = "Cooldown for steal set to {0} seconds".format(cooldown)
+        if seconds >= 0:
+            await self.config.guild(ctx.guild).Config.set_raw("Steal CD", value=seconds)
+            msg = "Cooldown for steal set to {0} seconds".format(seconds)
         else:
             msg = "Cooldown needs to be higher than 0."
         await ctx.send(msg)
