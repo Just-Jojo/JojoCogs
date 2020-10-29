@@ -48,11 +48,6 @@ class Collectables(commands.Cog):
         """Commands working with the Collectable cog!"""
 
     @collectable.command()
-    @commands.is_owner()
-    async def raw(self, ctx):
-        await ctx.send(await self.config.guild(ctx.guild).get_raw())
-
-    @collectable.command()
     @commands.admin_or_permissions(manage_guild=True)
     async def add(self, ctx, user: discord.Member = None, *, collectable: str = None):
         """Add a collectable to someone's collection"""
