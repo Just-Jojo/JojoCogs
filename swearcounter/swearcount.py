@@ -30,6 +30,9 @@ class SwearCount(commands.Cog):
                         await self.config.user(message.author).set_raw("swearcount", value=old + 1)
                         counting = await self.config.user(message.author).get_raw("swearcount")
                         if counting >= 10:
+                            for role in message.author.roles:
+                                if role.id == 771515693921206363:
+                                    break
                             await message.author.add_roles(771515693921206363)
         except IndexError:
             pass
