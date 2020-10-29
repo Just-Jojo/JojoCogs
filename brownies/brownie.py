@@ -69,11 +69,8 @@ class Brownie(commands.Cog):
     @checks.admin()
     async def _stealcd_heist(self, ctx, cooldown: TimedeltaConverter):
         """Set the cooldown for stealing brownies"""
-        if cooldown >= 0:
-            await self.config.guild(ctx.guild).Config.set_raw("Steal CD", value=cooldown)
-            msg = "Cooldown for steal set to {0}".format(cooldown)
-        else:
-            msg = "Cooldown needs to be higher than 0."
+        await self.config.guild(ctx.guild).Config.set_raw("Steal CD", value=cooldown)
+        msg = "Cooldown for steal set to {0}".format(cooldown)
         await ctx.send(msg)
 
     @setbrownie.command(name="browniecd")
