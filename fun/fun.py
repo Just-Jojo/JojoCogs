@@ -219,13 +219,16 @@ class Fun(commands.Cog):
         else:
             await ctx.send("This guild doesn't have any roles!\nTo add some buyable roles, please ask an admin to create one using `[p]role add`")
 
-    def readable_dict(self, dictionary: dict) -> str:
+    def readable_dict(self, dictionary: dict, numbered: bool = False) -> str:
         """Convert a dictionary into something a regular person could read"""
-        x = []
-        for key, item in dictionary.items():
-            y = "{0}: {1}".format(key, item)
-            x.append(y)
-        return "\n".join(x)
+        readable = []
+        for num, (key, item) in enumerate(dictionary.items()):
+            if numbered is True:
+                string_version = "{0}. {1}: {2}".format(num, key, item)
+            else:
+                string_version = "{0}: {1}".format(key, item)
+            readable.append(string_version)
+        return "\n".join(readable)
 
     async def bank_utils(self, ctx: commands.Context, user: discord.Member = None) -> str:
         """Returns the name of the bank's currency and can optionally return the balance of a member"""

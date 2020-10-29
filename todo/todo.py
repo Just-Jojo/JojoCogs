@@ -92,12 +92,10 @@ class ToDo(commands.Cog):
         await ctx.send(todo_list)
 
     def readable_dict(self, dictionary: dict, numbered: bool = False) -> str:
-        num = 0
         readable = []
-        for key, item in dictionary.items():
+        for num, (key, item) in enumerate(dictionary.items()):
             if numbered is True:
                 string_version = "{0}. {1}: {2}".format(num, key, item)
-                num += 1
             else:
                 string_version = "{0}: {1}".format(key, item)
             readable.append(string_version)
