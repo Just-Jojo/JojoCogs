@@ -86,6 +86,7 @@ class Collectables(commands.Cog):
 
     @collectable.command()
     async def buy(self, ctx, collectable: str):
+        """Buys a collectable"""
         try:
             cost = await self.config.guild(ctx.guild).get_raw(collectable)
         except KeyError:
@@ -114,8 +115,11 @@ class Collectables(commands.Cog):
             data.add_field(name=key, value=item, inline=False)
         await ctx.send(embed=data)
 
-    @commands.command(name='99', help='Responds with a random quote from Brooklyn 99')
+    @commands.command(name='99')
     async def nine_nine(self, ctx):
+        """Responds with a random quote from Brooklyn 99
+
+        **Side note: this was in the original cog (before it was a red cog) by Otriux, the brains behind this cog's logic so I left it in here**"""
         brooklyn_99_quotes = [
             'I\'m the human form of the 💯 emoji.',
             'Bingpot!',
