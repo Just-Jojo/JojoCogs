@@ -28,6 +28,9 @@ class SwearCount(commands.Cog):
                         await message.channel.send("{} you swore! That's a point for you!".format(message.author.mention))
                         old = await self.config.user(message.author).get_raw("swearcount")
                         await self.config.user(message.author).set_raw("swearcount", value=old + 1)
+                        counting = await self.config.user(message.author).get_raw("swearcount")
+                        if counting >= 10:
+                            await message.author.add_roles(771515693921206363)
         except IndexError:
             pass
 
