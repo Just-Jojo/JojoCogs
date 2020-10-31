@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 import discord
 from redbot.core.utils import mod
 from redbot.core import commands, Config, modlog
@@ -46,5 +46,14 @@ class JojoMod(commands.Cog):
             )
         else:
             case_type = "kick"
-            await modlog.create_case(self.bot, ctx.guild, datetime.now, case_type, member, ctx.author, reason, until=None, channel=None)
+            await modlog.create_case(
+                self.bot,
+                ctx.guild,
+                ctx.message.created_at.replace(tzinfo=timezone.utc),
+                case_type,
+                member,
+                ctx.author,
+                reason,
+                until=None,
+                channel=None)
             await ctx.send("Done. That felt pretty good. Let's go get some ice cream now")
