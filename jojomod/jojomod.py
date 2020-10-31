@@ -34,7 +34,7 @@ class JojoMod(commands.Cog):
         audit = mod.get_audit_reason(ctx.author, reason)
 
         try:
-            await ctx.guild.kick(member, audit)
+            await ctx.guild.kick(member, reason=audit)
             log.info("{}({}) was kicked by {}({})".format(
                 member, member.id, ctx.author, ctx.author.id))
         except discord.Forbidden:
