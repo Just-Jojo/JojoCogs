@@ -30,7 +30,7 @@ class JojoMod(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_permissions(kick_members=True)
     @commands.admin_or_permissions(kick_members=True)
-    async def kick(self, ctx: commands.Context, member: discord.Member, *, reason: str):
+    async def kick(self, ctx: commands.Context, member: discord.Member, *, reason: str = None):
         """Basic kick command
         """
 
