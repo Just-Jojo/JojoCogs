@@ -25,15 +25,14 @@ class SwearCount(commands.Cog):
                 counts = ["fuck", "shit", "frik", "fudge", "frick"]
                 for count in counts:
                     if count in message.content.lower():
-                        await message.channel.send("{} you swore! That's a point for you!".format(message.author.mention))
                         old = await self.config.user(message.author).get_raw("swearcount")
                         await self.config.user(message.author).set_raw("swearcount", value=old + 1)
                         counting = await self.config.user(message.author).get_raw("swearcount")
                         if counting >= 10:
-                            for role in message.author.roles:
-                                if role.id == 771515693921206363:
-                                    break
-                            await message.author.add_roles(771515693921206363)
+                            swear_role = message.guild.get_role(771515693921206363)
+                            if not swear_role in message.author.roles:
+                                await message.author.add_roles(swear_role)
+                        await message.channel.send("{} you swore! That's a point for you!".format(message.author.mention))
         except IndexError:
             pass
 
