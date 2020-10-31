@@ -1,0 +1,19 @@
+{
+    "author": [
+        "Jojo#7791"
+    ],
+    "min_bot_version": "3.4.0",
+    "min_python_version": [
+        3,
+        7,
+        0
+    ],
+    "description": "This is a very sassy mod cog. This cog is just for my pleasing and isn't supposed to really be used by anyone else... but you can use if if you want.",
+    "install_msg": "Thankie for installing my mod cog. **Warning**: this cog conflicts with the Mod cog in Red thus needing it to be unloaded. Warning 2: This cog is very sassy (I must not have had my coffee when writing it 😅) so just watch out",
+    "hidden": false,
+    "tags": [
+        "Mod"
+    ],
+    "type": "COG",
+    "end_user_data_statement": "This cog doesn't store any data :)"
+}
