@@ -35,9 +35,7 @@ class Mjolnir(commands.Cog):
     async def liftedboard(self, ctx):
         """Get the leaderboard for the people who have lifted Thor's hammer"""
         lb = await self.config.all_users()
-        sorted_lb = sorted(lb)
-        x = []
-        for key in sorted_lb:
-            x.append("{}. {}".format(key, lb[key]))
-        printable = "\n".join(x)
-        await ctx.send(printable)
+        list_leadered = []
+        for item in sorted(lb.items(), key=lambda p: p[1]):
+            list_leadered.append("**{0}**: {1}".format(*item))
+        await ctx.send("\n".join(list_leadered))
