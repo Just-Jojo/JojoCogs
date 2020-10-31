@@ -29,7 +29,7 @@ class JojoMod(commands.Cog):
 
         if member == ctx.author:
             return await ctx.send("Listen, I can't kick you. Stop bothering me! >:|")
-        elif ctx.guild.me.top_role <= member.top_role or member == ctx.guild.guild_owner:
+        elif ctx.guild.me.top_role <= member.top_role or member == ctx.guild.owner:
             return await ctx.send("Due to hierarchy things I can't kick 'em\nGo bother someone else now")
         audit = mod.get_audit_reason(ctx.author, reason)
 
