@@ -38,4 +38,7 @@ class Mjolnir(commands.Cog):
         list_leadered = []
         for item in sorted(lb.items(), key=lambda p: p[1]):
             list_leadered.append("**{0}**: {1}".format(*item))
-        await ctx.send("\n".join(list_leadered))
+        try:
+            await ctx.send("\n".join(list_leadered))
+        except discord.HTTPException:
+            await ctx.send("No one has lifted the hammer yet!\nWill you be the first? Try with `{}trylift` today!".format(ctx.clean_prefix))
