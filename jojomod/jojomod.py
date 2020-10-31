@@ -15,6 +15,10 @@ class JojoMod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @staticmethod
+    async def reinvite_logic(ctx: commands.Context) -> str:
+        pass
+
     @commands.command()
     @commands.guild_only()
     @commands.bot_has_permissions(kick_members=True)
@@ -25,7 +29,7 @@ class JojoMod(commands.Cog):
 
         if member == ctx.author:
             return await ctx.send("Listen, I can't kick you. Stop bothering me! >:|")
-        elif ctx.guild.me.top_role <= member.top_role or member == ctx.guild_owner:
+        elif ctx.guild.me.top_role <= member.top_role or member == ctx.guild.guild_owner:
             return await ctx.send("Due to hierarchy things I can't kick 'em\nGo bother someone else now")
         audit = mod.get_audit_reason(ctx.author, reason)
 
