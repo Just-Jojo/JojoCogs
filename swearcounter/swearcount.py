@@ -53,7 +53,7 @@ class SwearCount(commands.Cog):
             return
         original = await self.config.all_users()
         users = sorted(original.items(), key=lambda x: x[0], reverse=True)
-        log.info(users)
+        log.info(users[0])
         actual_users = []
         for user in users:
             name = ctx.guild.get_member(user[0]).display_name
