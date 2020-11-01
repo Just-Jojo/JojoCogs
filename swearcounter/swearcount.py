@@ -55,15 +55,9 @@ class SwearCount(commands.Cog):
         sort = sorted(leaderboard.items(), key=lambda x: x[1]["swearcount"])
         leadered = []
         for user in sort:
-            try:
-                name = ctx.gulid.get_member(user[0]).display_name
-            except AttributeError:
-                user_id = ""
-                if await ctx.bot.is_owner(ctx.author):
-                    user_id = f"({str(user[0])})"
-                name = f"{user[1]['name']} {user_id}"
-            counts = user[1]["swearcount"]
-            leadered.append("**{}** {}".format(name, counts))
+            name = ctx.guild.get_member(user[1][1])
+            count = user[1]["swearcount"]
+            leadered.append("**{}** {}".format(name, count))
         clean = "\n".join(leadered)
         log.info(clean)
         await ctx.send(clean)
