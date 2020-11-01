@@ -48,7 +48,6 @@ class SwearCount(commands.Cog):
         await ctx.send(leaderboard)
 
     @swearcount.command(name="board")
-    @commands.is_owner()
     async def lb(self, ctx):
         if ctx.guild.id != 696461072101539961:
             return
@@ -60,4 +59,4 @@ class SwearCount(commands.Cog):
             amount = user[1]["swearcount"]
             actual_users.append("**{}**: {}".format(name, amount))
         sending = "\n".join(actual_users)
-        await ctx.send("**Swear count leaderboard**\nHow to read: User, swear score\n{}\n\n*note: Score is based on the times this user has sworn".format(sending))
+        await ctx.send("**Swear count leaderboard**\nHow to read: `User, swear score`\n\n{}\n\n*note: Score is based on the times this user has sworn".format(sending))
