@@ -60,7 +60,7 @@ class ToDo(commands.Cog):
         if reminder is None:
             todos = await self.get_todos(ctx, ctx.author)
             if toogle is False:
-                await ctx.send(todos)
+                return await ctx.send(todos)
             else:
                 try:
                     return await ctx.author.send(todos)
