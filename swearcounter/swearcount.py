@@ -53,5 +53,17 @@ class SwearCount(commands.Cog):
             return
         leaderboard = await self.config.all_users()
         sort = sorted(leaderboard.items(), key=lambda x: x[1]["swearcount"])
-        log.info(sort)
-        await ctx.send(sort)
+        leadered = []
+        for user in sort:
+            try:
+                name = ctx.gulid.get_member(user[0]).display_name
+            except AttributeError:
+                user_id = ""
+                if await ctx.bot.is_owner(ctx.author):
+                    user_id = f"({str(acc[0])})"
+                name = f"{acc[1]['name']} {user_id}"
+            counts = user[1]["swearcount"]
+            leadered.append("**{}** {}".format(name, counts))
+        clean = "\n".join(leadered)
+        log.info(clean)
+        await ctx.send(clean)
