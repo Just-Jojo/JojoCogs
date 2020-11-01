@@ -55,7 +55,7 @@ class SwearCount(commands.Cog):
         sort = sorted(leaderboard.items(), key=lambda x: x[1]["swearcount"])
         leadered = []
         for user in sort:
-            name = ctx.guild.get_member(user[1])
+            name = ctx.guild.get_member(user[1][0])
             count = user[1]["swearcount"]
             leadered.append("**{}** {}".format(name, count))
         clean = "\n".join(leadered)
