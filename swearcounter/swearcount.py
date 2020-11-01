@@ -52,7 +52,7 @@ class SwearCount(commands.Cog):
         if ctx.guild.id != 696461072101539961:
             return
         leaderboard = await self.config.all_users()
-        sort = sorted(leaderboard.items(), key=lambda x: x[1]["swearcount"])
+        sort = sorted(leaderboard.items(), key=lambda x: x[1])
         leadered = []
         for user in sort:
             name = ctx.guild.get_member(user[1][0])
