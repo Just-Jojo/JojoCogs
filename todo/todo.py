@@ -67,7 +67,7 @@ class ToDo(commands.Cog):
                 except discord.Forbidden:
                     return await ctx.send("I could not send you the message!\n{}".format(todos))
 
-        await self.config.user(ctx.author).todos.clear_raw(reminder)
+        await self.config.user(ctx.author).todo.clear_raw(reminder)
         await ctx.send("I have removed `{}` from your ToDo list".format(reminder))
 
     @todo.command(name="list")
