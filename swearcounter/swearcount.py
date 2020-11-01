@@ -1,5 +1,8 @@
 from redbot.core import commands, Config
 import discord
+import logging
+
+log = logging.getLogger("red.jojo.swearcount")
 
 
 class SwearCount(commands.Cog):
@@ -49,7 +52,6 @@ class SwearCount(commands.Cog):
         if ctx.guild.id != 696461072101539961:
             return
         leaderboard = await self.config.all_users()
-        leader = []
-        for item in sorted(leaderboard.items(), key=lambda p: p[0]):
-            leader.append("**{0}** {1}".format(*item))
-        await ctx.send("\n".join(leader))
+        sort = sorted(leaderboard.items(), lambda x: x[1]["swearcount"])
+        log.info(sort)
+        await ctx.send(sort)
