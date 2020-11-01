@@ -73,7 +73,7 @@ class ToDo(commands.Cog):
             return await ctx.send(msg)
         delete = todos[number]
         log.info(delete)
-        await self.config.user(ctx.author).todo.clear_raw(delete)
+        # await self.config.user(ctx.author).todo.clear_raw(delete)
         msg = "Sucessfully removed that ToDo reminder."
         if toogle is True:
             try:
