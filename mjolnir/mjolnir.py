@@ -1,6 +1,9 @@
 from redbot.core import commands, Config
 import discord
 import random
+import logging
+
+log = logging.getLogger('red.jojo.mjolnir')
 
 
 class Mjolnir(commands.Cog):
@@ -27,6 +30,8 @@ class Mjolnir(commands.Cog):
             old = await self.config.user(ctx.author).get_raw('times_lifted')
             msg = "The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin"
             await self.config.user(ctx.author).set_raw("times_lifted", value=old + 1)
+            log.info("{}({}) has lifted mjolnir".format(
+                ctx.author.name, ctx.author.id))
         else:
             msg = random.choice(trylift_error)
         await ctx.send(msg)
