@@ -59,7 +59,7 @@ class ToDo(commands.Cog):
         toogle = False if isinstance(ctx.channel, discord.DMChannel) else await self.check_dm(ctx)
         if reminder is None:
             todos = await self.get_todos(ctx, ctx.author)
-            if toogle is True:
+            if toogle is False:
                 await ctx.send(todos)
             else:
                 try:
