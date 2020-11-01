@@ -60,8 +60,8 @@ class SwearCount(commands.Cog):
             except AttributeError:
                 user_id = ""
                 if await ctx.bot.is_owner(ctx.author):
-                    user_id = f"({str(acc[0])})"
-                name = f"{acc[1]['name']} {user_id}"
+                    user_id = f"({str(user[0])})"
+                name = f"{user[1]['name']} {user_id}"
             counts = user[1]["swearcount"]
             leadered.append("**{}** {}".format(name, counts))
         clean = "\n".join(leadered)
