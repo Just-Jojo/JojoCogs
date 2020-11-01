@@ -48,6 +48,7 @@ class SwearCount(commands.Cog):
         await ctx.send(leaderboard)
 
     @swearcount.command(name="board")
+    @commands.is_owner()
     async def lb(self, ctx):
         if ctx.guild.id != 696461072101539961:
             return
