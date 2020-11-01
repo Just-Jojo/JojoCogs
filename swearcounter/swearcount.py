@@ -50,6 +50,6 @@ class SwearCount(commands.Cog):
             return
         leaderboard = await self.config.all_users()
         leader = []
-        for item in sorted(leaderboard.items(), key=lambda p: p[1]):
+        for item in sorted(leaderboard.items(), key=lambda p: p[0]):
             leader.append("**{0}** {1}".format(*item))
         await ctx.send("\n".join(leader))
