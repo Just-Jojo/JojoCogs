@@ -37,7 +37,7 @@ class SwearCount(commands.Cog):
         except IndexError:
             pass
 
-    @commands.group(name="swear", invoke_without_command=True)
+    @commands.group(aliases=["swear", ], invoke_without_command=True)
     async def swearcount(self, ctx):
         if ctx.guild.id != 696461072101539961:
             return
