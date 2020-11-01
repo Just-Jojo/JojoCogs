@@ -58,6 +58,6 @@ class SwearCount(commands.Cog):
         for user in users:
             name = ctx.guild.get_member(user[0]).display_name
             amount = user[1]["swearcount"]
-            actual_users.append(name, amount)
+            actual_users.append("**{}**: {}".format(name, amount))
         sending = "\n".join(actual_users)
         await ctx.send("**Swear count leaderboard**\nHow to read: User, swear score\n{}\n\n*note: Score is based on the times this user has sworn".format(sending))
