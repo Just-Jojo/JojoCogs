@@ -54,16 +54,16 @@ class ToDo(commands.Cog):
         await ctx.send("Added `{0}` to your ToDo list under the title `{1}`.".format(description, title))
 
     @todo.command(aliases=["del", ])
-    async def remove(self, ctx, number: int = None):
+    async def remove(self, ctx, *, reminder: str = None):
         """Remove a ToDo reminder"""
         todos = await self.config.user(ctx.author).todo.get_raw()
         if isinstance(ctx.channel, discord.abc.GuildChannel):
             toogle = await self.check_dm(ctx)
         else:
             toogle = False
-        if number is None:
+        if reminder is None:
             todo_list = self.readable_dict(todos, True)
-            msg = "Here are all of the ToDo reminders you have: \n{0}\nTo remove one, please type `[p]todo remove|del <number>`".format(
+            msg = "Here are all of the ToDo reminders you have: \n{0}\nTo remove one, please type `[p]todo remove|del <reminder>`".format(
                 todo_list)
             if toogle is True:
                 try:
@@ -72,8 +72,7 @@ class ToDo(commands.Cog):
                     return await ctx.send("Could not send the message!")
             return await ctx.send(msg)
         log.info(todos)
-        result = list(todos.keys()).index(number)
-        await self.config.user(ctx.author).todo.clear_raw(result)
+        await self.config.user(ctx.author).todo.clear_raw(reminder)
         msg = "Sucessfully removed that ToDo reminder."
         if toogle is True:
             try:
