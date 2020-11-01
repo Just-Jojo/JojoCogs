@@ -1,5 +1,8 @@
 from redbot.core import commands, checks, Config
 import discord
+import logging
+
+log = logging.getLogger("red.jojo.todo")
 
 
 class ToDo(commands.Cog):
@@ -68,7 +71,9 @@ class ToDo(commands.Cog):
                 except discord.Forbidden:
                     return await ctx.send("Could not send the message!")
             return await ctx.send(msg)
-        await self.config.user(ctx.author).todo.clear_raw(todos[number])
+        delete = todos[number]
+        log.info(delete)
+        await self.config.user(ctx.author).todo.clear_raw(delete)
         msg = "Sucessfully removed that ToDo reminder."
         if toogle is True:
             try:
