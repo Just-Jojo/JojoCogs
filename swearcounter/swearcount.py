@@ -29,16 +29,27 @@ class SwearCount(commands.Cog):
                         await self.config.user(message.author).set_raw("swearcount", value=old + 1)
                         counting = await self.config.user(message.author).get_raw("swearcount")
                         if counting >= 10:
-                            swear_role = message.guild.get_role(771515693921206363)
+                            swear_role = message.guild.get_role(
+                                771515693921206363)
                             if not swear_role in message.author.roles:
                                 await message.author.add_roles(swear_role)
                         await message.channel.send("{} you swore! That's a point for you!".format(message.author.mention))
         except IndexError:
             pass
 
-    @commands.command()
+    @commands.group(name="swear", invoke_without_command=True)
     async def swearcount(self, ctx):
         if ctx.guild.id != 696461072101539961:
             return
         leaderboard = await self.config.user(ctx.author).get_raw("swearcount")
         await ctx.send(leaderboard)
+
+    @swearcount.command(name="board")
+    async def lb(self, ctx):
+        if ctx.guild.id != 696461072101539961:
+            return
+        leaderboard = await self.config.all_users()
+        leader = []
+        for item in sorted(leaderboard.items(), key=lambda p: p[1]):
+            leader.append("**{0}** {1}".format(*item))
+        await ctx.send("\n".join(leader))
