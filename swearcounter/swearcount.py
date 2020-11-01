@@ -52,13 +52,12 @@ class SwearCount(commands.Cog):
     async def lb(self, ctx):
         if ctx.guild.id != 696461072101539961:
             return
-        leaderboard = await self.config.all_users()
-        sort = sorted(leaderboard.items(), key=lambda x: x[1])
-        leadered = []
-        for user in sort:
-            name = ctx.guild.get_member(user[1][0])
-            count = user[1]["swearcount"]
-            leadered.append("**{}** {}".format(name, count))
-        clean = "\n".join(leadered)
-        log.info(clean)
-        await ctx.send(clean)
+        original = await self.config.all_users()
+        users = sorted(original.items(), key=lambda x: x[0], reverse=True)
+        actual_users = []
+        for user in users:
+            name = ctx.guild.get_member(user[0]).display_name
+            amount = user[1]["swearcount"]
+            actual_users.append(name, amount)
+        sending = "\n".join(actual_users)
+        await ctx.send("**Swear count leaderboard**\nHow to read: User, swear score\n{}\n\n*note: Score is based on the times this user has sworn".format(sending))
