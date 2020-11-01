@@ -56,30 +56,19 @@ class ToDo(commands.Cog):
     @todo.command(aliases=["del", ])
     async def remove(self, ctx, *, reminder: str = None):
         """Remove a ToDo reminder"""
-        todos = await self.config.user(ctx.author).todo.get_raw()
-        if isinstance(ctx.channel, discord.abc.GuildChannel):
-            toogle = await self.check_dm(ctx)
-        else:
-            toogle = False
+        toogle = False if isinstance(ctx.channel, discord.DMChannel) else await self.check_dm(ctx)
         if reminder is None:
-            todo_list = self.readable_dict(todos, True)
-            msg = "Here are all of the ToDo reminders you have: \n{0}\nTo remove one, please type `[p]todo remove|del <reminder>`".format(
-                todo_list)
+            todos = await self.get_todos(ctx, ctx.author)
             if toogle is True:
+                await ctx.send(todos)
+            else:
                 try:
-                    return await ctx.author.send(msg)
+                    return await ctx.author.send(todos)
                 except discord.Forbidden:
-                    return await ctx.send("Could not send the message!")
-            return await ctx.send(msg)
-        log.info(todos)
-        await self.config.user(ctx.author).todo.clear_raw(reminder)
-        msg = "Sucessfully removed that ToDo reminder."
-        if toogle is True:
-            try:
-                return await ctx.author.send(msg)
-            except discord.Forbidden:
-                return await ctx.send("Could not send the message!")
-        await ctx.send(msg)
+                    return await ctx.send("I could not send you the message!\n{}".format(todos))
+
+        await self.config.user(ctx.author).todos.clear_raw(reminder)
+        await ctx.send("I have removed `{}` from your ToDo list".format(reminder))
 
     @todo.command(name="list")
     async def _list(self, ctx):
@@ -108,3 +97,7 @@ class ToDo(commands.Cog):
     async def check_dm(self, ctx) -> bool:
         toogle: bool = await self.config.guild(ctx.guild).get_raw("DM")
         return toogle
+
+    async def get_todos(self, ctx: commands.Context, author: discord.Member) -> str:
+        todos = await self.config.user(author).todo.get_raw()
+        return self.readable_dict(todos, True)
