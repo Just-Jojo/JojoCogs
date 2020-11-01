@@ -56,7 +56,7 @@ class ToDo(commands.Cog):
     @todo.command(aliases=["del", ])
     async def remove(self, ctx, number: int = None):
         """Remove a ToDo reminder"""
-        todos: list = await self.config.user(ctx.author).todo.get_raw()
+        todos = await self.config.user(ctx.author).todo.get_raw()
         if isinstance(ctx.channel, discord.abc.GuildChannel):
             toogle = await self.check_dm(ctx)
         else:
@@ -72,7 +72,8 @@ class ToDo(commands.Cog):
                     return await ctx.send("Could not send the message!")
             return await ctx.send(msg)
         log.info(todos)
-        # await self.config.user(ctx.author).todo.clear_raw(delete)
+        result = list(todos.keys()).index(number)
+        await self.config.user(ctx.author).todo.clear_raw(result)
         msg = "Sucessfully removed that ToDo reminder."
         if toogle is True:
             try:
