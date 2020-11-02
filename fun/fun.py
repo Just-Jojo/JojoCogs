@@ -228,7 +228,7 @@ class Fun(commands.Cog):
         for i in range(10):
             emb = Embed.create(self, ctx, title="{} embed".format(i))
             embeds.append(emb)
-        msg = await ctx.send(embeds[0])
+        msg = await ctx.send(embed=embeds[0])
         c = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
             "\N{CROSS MARK}": menus.close_menu}
         asyncio.create_task(menus.menu(ctx, embeds, c, message=msg))
