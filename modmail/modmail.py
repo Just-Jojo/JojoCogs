@@ -13,7 +13,7 @@ class ModMail(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(
             self, 12386760762, force_registration=True)
-        await self.config.register_global(**self.default_global)
+        self.config.register_global(**self.default_global)
 
     @commands.Cog.listener()
     async def on_message(self, message):
