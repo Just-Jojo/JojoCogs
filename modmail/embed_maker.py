@@ -36,9 +36,6 @@ class Embed:
                 data.set_thumbnail(url=thumbnail)
             else:
                 pass
-        if footer is None:
-            footer = "{0.name} modmail".format(self.bot.user)
-        if footer_url is None:
-            footer_url = self.bot.user.avatar_url
-        data.set_footer(text=footer, icon_url=footer_url)
+        data.set_footer(text="{0.name} modmail".format(
+            self.bot.user), icon_url=self.bot.user.avatar_url)
         return data
