@@ -39,11 +39,13 @@ class Mjolnir(commands.Cog):
     @commands.command()
     async def liftedboard(self, ctx):
         """Get the leaderboard for the people who have lifted Thor's hammer"""
-        lb = await self.config.all_users()
-        list_leadered = []
-        for item in sorted(lb.items(), key=lambda p: p[1]):
-            list_leadered.append("**{0}**: {1}".format(*item))
-        try:
-            await ctx.send("\n".join(list_leadered))
-        except discord.HTTPException:
-            await ctx.send("No one has lifted the hammer yet!\nWill you be the first? Try with `{}trylift` today!".format(ctx.clean_prefix))
+
+        board = await self.config.all_users()
+        users = sorted(board.keys(), key=lambda x: x[1]["times_lifted"])
+        sen = []
+        for user in users:
+            name = ctx.guild.get_member(user[0]).display_name
+            amount = user[1]["times_lifted"]
+            sen.append("**{}** {}".format(name, amount))
+        sending = "\n".join(sen)
+        await ctx.send(sending)
