@@ -2,7 +2,7 @@ from redbot.core import commands, Config
 import discord
 import random
 import logging
-from redbot.core.utils.menus import menu
+from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 log = logging.getLogger('red.jojo.mjolnir')
 

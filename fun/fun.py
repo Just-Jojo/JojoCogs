@@ -1,4 +1,5 @@
 from redbot.core import commands, bank, Config, modlog
+from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 import discord
 from .embed_maker import Embed
 
@@ -218,6 +219,15 @@ class Fun(commands.Cog):
             await ctx.send(embed=data)
         else:
             await ctx.send("This guild doesn't have any roles!\nTo add some buyable roles, please ask an admin to create one using `[p]role add`")
+
+    @commands.command()
+    @commands.is_owner()
+    async def testing(self, ctx):
+        embeds = []
+        for i in range(10):
+            emb = Embed.create(self, ctx, title="{} embed".format(i))
+            embeds.append(emb)
+        menu(ctx, embeds, DEFAULT_CONTROLS, None, 0, 40)
 
     def readable_dict(self, dictionary: dict, numbered: bool = False) -> str:
         """Convert a dictionary into something a regular person could read"""
