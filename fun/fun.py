@@ -216,7 +216,8 @@ class Fun(commands.Cog):
             )
             for key, item in roles.items():
                 data.add_field(
-                    name=key, value="Cost: {}".format(item), inline=False)
+                    name=key, value="Cost: {}".format(item), inline=False
+                )
             await ctx.send(embed=data)
         else:
             await ctx.send("This guild doesn't have any roles!\nTo add some buyable roles, please ask an admin to create one using `[p]role add`")
