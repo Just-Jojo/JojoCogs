@@ -34,8 +34,8 @@ class ModMail(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def modmail(self, ctx, toggle: discord.abc.GuildChannel):
+    async def modmail(self, ctx, toggle: discord.TextChannel):
         """Enable/disable the Mod mail"""
 
         await self.config.set_raw("Channel", value=toggle)
-        await ctx.send
+        await ctx.send("Channel changed to {}".format(toggle.mention))
