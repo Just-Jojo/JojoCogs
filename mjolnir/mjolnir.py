@@ -35,9 +35,16 @@ class Mjolnir(commands.Cog):
         if trylift_result == rate:
             old = await self.config.user(ctx.author).get_raw('times_lifted')
             msg = "The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin"
-            await self.config.user(ctx.author).set_raw("times_lifted", value=old + 1)
-            log.info("{}({}) has lifted mjolnir".format(
-                ctx.author.name, ctx.author.id))
+            if rate >= 100:
+                await self.config.user(ctx.author).set_raw("times_lifted", value=old + 1)
+                log.info("{}({}) has lifted mjolnir".format(
+                    ctx.author.name, ctx.author.id)
+                )
+            else:
+                log.info(
+                    "{} has lifted the hammer but because the drop rate was so low I will not be adding it to the leaderboard".format(
+                        ctx.author.name)
+                )
         else:
             msg = random.choice(trylift_error)
         await ctx.send(msg)
