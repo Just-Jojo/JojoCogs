@@ -27,7 +27,8 @@ class ModMail(commands.Cog):
             return
         channel = self.bot.get_channel(await self.config.get_raw("Channel"))
         if not message.content[0] in await self.bot.get_prefix(message) and channel is not None:
-            emb = Embed.create(self, message, title="Mod Mail 📬", description=message.content)
+            emb = Embed.create(self, message, title="Mod Mail 📬",
+                               description=message.content)
             await channel.send(embed=emb)
 
     @commands.command()
@@ -36,6 +37,16 @@ class ModMail(commands.Cog):
         """Enable/disable the Mod mail"""
 
         if toggle is None:
-            toggle = ctx.channel
+            await ctx.send("Would you like to disable the Mod Mail? (y/n)")
+            try:
+                msg = await self.bot.wait_for("message", check=lambda message: message.author == ctx.author, timeout=30)
+                if msg.content[0].lower() == "y":
+                    await self.config.set_raw("Channel", value=None)
+                    msg = "Successfully removed the Mod Mail channel!"
+                elif msg.content[0].lower() == "n":
+                    msg = "Aborted the removal of the Mod Mail channel"
+            except TimeoutError:
+                msg = "Canceled the removal of the Mod Mail channel"
+            await ctx.send(msg)
         await self.config.set_raw("Channel", value=toggle.id)
         await ctx.send("Channel changed to {}".format(toggle.mention))
