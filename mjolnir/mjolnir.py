@@ -35,7 +35,7 @@ class Mjolnir(commands.Cog):
         if trylift_result == rate:
             old = await self.config.user(ctx.author).get_raw('times_lifted')
             msg = "The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin"
-            if rate >= 100:
+            if rate >= 50:
                 await self.config.user(ctx.author).set_raw("times_lifted", value=old + 1)
                 log.info("{}({}) has lifted mjolnir".format(
                     ctx.author.name, ctx.author.id)
@@ -52,7 +52,10 @@ class Mjolnir(commands.Cog):
     @commands.command()
     @commands.mod_or_permissions(manage_guild=True)
     async def rates(self, ctx, number: int):
-        """Adjust the chance for lifting Mjolnir"""
+        """
+        Adjust the chance for lifting Mjolnir
+
+        *Note that if the chance for lifting it is below 50 anyone who lifts it will not be added to the leaderboard"""
 
         await self.config.guild(ctx.guild).set_raw("drop_rate", value=number)
         await ctx.send("The chance of lifting Mjolnir is now `{}`".format(number))
