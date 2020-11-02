@@ -52,7 +52,10 @@ class SwearCount(commands.Cog):
         if ctx.guild.id != 696461072101539961:
             return
         original = await self.config.all_users()
-        users = sorted(original.items(), key=lambda x: x[0], reverse=True)
+        users = sorted(
+            original.items(),
+            key=lambda x: x[1]['swearcount'], reverse=True
+        )
         log.info(users[0])
         actual_users = []
         for user in users:
