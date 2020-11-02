@@ -21,7 +21,7 @@ class ModMail(commands.Cog):
             return
         if message.author.bot:
             return
-        app = self.bot.application_info()
+        app = await self.bot.application_info()
         if message.author.id == app.owner.id:
             return
         channel = await self.config.get_raw("Channel")
