@@ -2,6 +2,7 @@ from redbot.core import commands, Config
 import discord
 import random
 import logging
+from redbot.core.utils.menus import menu
 
 log = logging.getLogger('red.jojo.mjolnir')
 
@@ -17,7 +18,7 @@ class Mjolnir(commands.Cog):
         self.config.register_user(**self.default_user)
 
     @commands.command()
-    @commands.cooldown(1, 1800, commands.BucketType.user)
+    @commands.cooldown(1, 300, commands.BucketType.user)
     async def trylift(self, ctx):
         trylift_error = [
             "You tried your best but still lost. Fear not! There is still hope!",
