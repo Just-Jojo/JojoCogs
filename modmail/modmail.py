@@ -47,6 +47,6 @@ class ModMail(commands.Cog):
                     msg = "Aborted the removal of the Mod Mail channel"
             except TimeoutError:
                 msg = "Canceled the removal of the Mod Mail channel"
-            await ctx.send(msg)
+            return await ctx.send(msg)
         await self.config.set_raw("Channel", value=toggle.id)
         await ctx.send("Channel changed to {}".format(toggle.mention))
