@@ -1,7 +1,8 @@
 from redbot.core import commands, bank, Config, modlog
-from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
+from redbot.core.utils import menus
 import discord
 from .embed_maker import Embed
+import asyncio
 
 
 class Fun(commands.Cog):
@@ -227,7 +228,11 @@ class Fun(commands.Cog):
         for i in range(10):
             emb = Embed.create(self, ctx, title="{} embed".format(i))
             embeds.append(emb)
-        menu(ctx, embeds, DEFAULT_CONTROLS, None, 0, 40)
+        msg = await ctx.send(embeds[0])
+        c = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
+            "\N{CROSS MARK}": menus.close_menu}
+        asyncio.create_task(menus.menu(ctx, embeds, c, message=msg))
+        menus.start_adding_reactions(msg, c.keys())
 
     def readable_dict(self, dictionary: dict, numbered: bool = False) -> str:
         """Convert a dictionary into something a regular person could read"""
