@@ -24,7 +24,7 @@ class ModMail(commands.Cog):
         app = await self.bot.application_info()
         if message.author.id == app.owner.id:
             return
-        channel = await self.config.get_raw("Channel")
+        channel = self.bot.get_channel(await self.config.get_raw("Channel"))
         if not message.content[0] in await self.bot.get_prefix(message) and channel is not None:
             emb = discord.Embed(
                 title="Mod Mail", description="From {}\n\n{}".format(
@@ -37,5 +37,5 @@ class ModMail(commands.Cog):
     async def modmail(self, ctx, toggle: discord.TextChannel):
         """Enable/disable the Mod mail"""
 
-        await self.config.set_raw("Channel", value=toggle)
+        await self.config.set_raw("Channel", value=toggle.id)
         await ctx.send("Channel changed to {}".format(toggle.mention))
