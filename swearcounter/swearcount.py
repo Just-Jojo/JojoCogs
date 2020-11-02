@@ -41,10 +41,12 @@ class SwearCount(commands.Cog):
             pass
 
     @commands.group(aliases=["swear", ], invoke_without_command=True)
-    async def swearcount(self, ctx):
+    async def swearcount(self, ctx, user: discord.Member = None):
         if ctx.guild.id != 696461072101539961:
             return
-        leaderboard = await self.config.user(ctx.author).get_raw("swearcount")
+        if user is None:
+            user = ctx.author
+        leaderboard = await self.config.user(user).get_raw("swearcount")
         await ctx.send(leaderboard)
 
     @swearcount.command(name="board")
@@ -56,7 +58,6 @@ class SwearCount(commands.Cog):
             original.items(),
             key=lambda x: x[1]['swearcount'], reverse=True
         )
-        log.info(users[0])
         actual_users = []
         for user in users:
             name = ctx.guild.get_member(user[0]).display_name
