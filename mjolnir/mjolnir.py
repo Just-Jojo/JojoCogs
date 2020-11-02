@@ -41,7 +41,9 @@ class Mjolnir(commands.Cog):
         """Get the leaderboard for the people who have lifted Thor's hammer"""
 
         board = await self.config.all_users()
-        users = sorted(board.keys(), key=lambda x: x[1]["times_lifted"])
+        users = sorted(
+            board.items(), key=lambda x: x[1]["times_lifted"], reverse=True
+        )
         sen = []
         for user in users:
             name = ctx.guild.get_member(user[0]).display_name
