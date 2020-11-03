@@ -137,11 +137,7 @@ class Fun(commands.Cog):
         """List all of your items in a clean embed"""
         items_ = await self.config.user(ctx.author).items.get_raw()
         if items_:
-            embed = self.embed.create(
-                ctx, title="{0.display_name}'s Items".format(ctx.author))
-            for key, item in items_.items():
-                embed.add_field(name=key, value=item, inline=False)
-            await ctx.send(embed=embed)
+            await self.page_logic(ctx, items_, 10)
         else:
             await ctx.send("You do not have any items!\nYou can buy some using `[p]store buy`")
 
