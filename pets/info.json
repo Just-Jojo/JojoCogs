@@ -9,5 +9,6 @@
         5
     ],
     "install_msg": "This cog is designed for having collectable pets (I kinda got this idea from the config documentation so thanks Red :D)\nIf you have any questions about this cog please contact Jojo on discord (Jojo#7791) or join the Matrix dev base: https://discord.gg/JmCFyq7",
-    "description": "This cog allows you to become an owner of virtual pets. This cog uses the Bank module so you might want to have the economy cog loaded"
+    "description": "This cog allows you to become an owner of virtual pets. This cog uses the Bank module so you might want to have the economy cog loaded",
+    "end_user_data_statement": "This cog doesn't store any data about anyone :D"
 }

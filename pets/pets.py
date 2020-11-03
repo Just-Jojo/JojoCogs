@@ -1,12 +1,22 @@
+from typing import Literal
+
 from redbot.core import commands, Config, bank
 from redbot.core import checks
-from redbot.core.utils import AsyncIter
+from redbot.core.utils import AsyncIter, menus
+import asyncio
+
 import discord
 import traceback as tb
-from typing import Literal
+from .embed_maker import Embed
+import random
 
 
 class Pets(commands.Cog):
+    async def red_delete_data_for_user(
+        self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int
+    ) -> None:
+        await self.config.user_from_id(user_id).clear()
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2958485)
@@ -23,47 +33,59 @@ class Pets(commands.Cog):
             pets={}
         )
 
-    def readable_dict(self, dictionary: dict):
-        """Transform a dict into human readable data"""
-        x = []
-        for key, item in dictionary.items():
-            y = "{0}: {1}".format(key, item)
-            x.append(y)
-        return "\n".join(x)
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if isinstance(message.channel, discord.DMChannel):
+            return
+        if message.author.bot:
+            return
+        if message.content[0] in self.bot.get_prefix(message):
+            return
+        pets = await self.config.user(message.author).get_raw("pets")
+        if len(pets.keys()) <= 0:
+            return
+        chosen = random.choice(list(pets.keys()))
+        old_health = await self.config.user(message.author).pets.get_raw(chosen, "hunger")
+        if old_health >= 100:
+            return await message.channel.send("{}, your pet has 100 hunger points! You need to feed them before they get removed!".format(message.author.name))
+        await self.config.user(message.author).pets.set_raw(chosen, "hunger", value=old_health + 2)
 
-    async def update_balance(self, user: discord.Member, amount: int):
+    async def update_balance(self, user: discord.Member, amount: int) -> None:
         """Update a user's balance with the bank module"""
         old_bal = await bank.get_balance(user)
         new_bal = old_bal - amount
         await bank.set_balance(user, new_bal)
 
-    async def red_delete_data_for_user(
-        self,
-        *,
-        user: Literal["discord_deleted_user", "owner", "owner", "user", "user_strict"],
-        id: int
-    ):
-        if user != "discord_deleted_user":
-            return
-        await self.config.user_from_id(id).clear()
+    async def page_logic(self, ctx: commands.Context, dictionary: dict, item: str, field_num: int = 15) -> None:
+        """Convert a dictionary into a pagified embed"""
+        embeds = []
+        count = 0
+        title = item
+        embed = Embed.create(
+            self, ctx, title=title, thumbnail=ctx.guild.icon_url
+        )
 
-        all_members = await self.config.all_members
-        async for guild_id, guild_data in AsyncIter(all_members.items(), steps=500):
-            if id in guild_data:
-                await self.config.member_from_ids(guild_id, id).clear()
+        for key, value in dictionary.items():
+            if count == field_num - 1:
+                embed.add_field(name=key, value=value, inline=True)
+                embeds.append(embed)
 
-    @commands.command(name="petsclear")
-    @commands.is_owner()
-    async def clear_pets(self, ctx, confirm: bool = False):
-        """Clear all of the pets in a guild"""
-        if confirm is True:
-            try:
-                await self.config.clear_all()
-                await ctx.send("Cleared the data")
-            except:
-                await ctx.send("Could not clear the data")
+                embed = Embed.create(
+                    self, ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
+                )
+                count = 0
+            else:
+                embed.add_field(name=key, value=value, inline=True)
+                count += 1
         else:
-            await ctx.send("You need to confirm that you want to erase the data. Please use `[p]petsclear True` to erase the data")
+            embeds.append(embed)
+
+        msg = await ctx.send(embed=embeds[0])
+        control = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
+            "\N{CROSS MARK}": menus.close_menu
+        }
+        asyncio.create_task(menus.menu(ctx, embeds, control, message=msg))
+        menus.start_adding_reactions(msg, control.keys())
 
     @commands.command(name="buypet")
     async def buy_pet(self, ctx, pet_type: str, *, pet_name: str):
@@ -92,8 +114,7 @@ class Pets(commands.Cog):
             await ctx.send("You don't have any pets!")
             return
         if len(pet_list.keys()) > 0:
-            pet_list_humanized = self.readable_dict(pet_list)
-            await ctx.send(pet_list_humanized)
+            await self.page_logic(ctx, pet_list, item="{}'s pets".format(ctx.author.name))
         else:
             await ctx.send("You don't have any pets!")
 
@@ -133,5 +154,4 @@ class Pets(commands.Cog):
         except:
             await ctx.send("I could not find any pets!")
             return
-        pet_list_readable = self.readable_dict(pet_list)
-        await ctx.send("Pet: cost\n{0}".format(pet_list_readable))
+        await self.page_logic(ctx, pet_list, item="{}'s Pet Store".format(ctx.guild.name))
