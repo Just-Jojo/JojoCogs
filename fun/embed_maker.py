@@ -24,19 +24,9 @@ class Embed:
         data.set_author(name=ctx.author.display_name,
                         icon_url=ctx.author.avatar_url)
         if image is not None:
-            validators.url(image)
-            code = requests.get(image).status_code
-            if code == 200:
-                data.set_image(url=image)
-            else:
-                pass
+            data.set_image(url=image)
         if thumbnail is not None:
-            validators.url(thumbnail)
-            code = requests.get(thumbnail).status_code
-            if code == 200:
-                data.set_thumbnail(url=thumbnail)
-            else:
-                pass
+            data.set_thumbnail(url=thumbnail)
         if footer is None:
             footer = "{0.name}'s Embed Maker".format(ctx.bot.user)
         if footer_url is None:
