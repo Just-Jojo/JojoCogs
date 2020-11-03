@@ -31,26 +31,23 @@ class Collectables(commands.Cog):
         embeds = []
         count = 0
         title = item
-        embed = Embed.create(self,
-                             ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
-                             )
-        if len(dictionary.keys()) > field_num:
-            for key, value in dictionary.items():
-                if count == field_num - 1:
-                    embed.add_field(name=key, value=value, inline=True)
-                    embeds.append(embed)
-                    embed = Embed.create(
-                        self, ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
-                    )
-                    count = 0
-                else:
-                    embed.add_field(name=key, value=value, inline=True)
-                    count += 1
-            else:
-                embeds.append(embed)
-        else:
-            for key, value in dictionary.items():
+        embed = Embed.create(
+            self, ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
+        )
+        if field_num >= 26:
+            field_num = 25
+        for key, value in dictionary.items():
+            if count == field_num - 1:
                 embed.add_field(name=key, value=value, inline=True)
+                embeds.append(embed)
+                embed = Embed.create(
+                    self, ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
+                )
+                count = 0
+            else:
+                embed.add_field(name=key, value=value, inline=True)
+                count += 1
+        else:
             embeds.append(embed)
         msg = await ctx.send(embed=embeds[0])
         control = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
