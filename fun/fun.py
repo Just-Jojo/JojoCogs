@@ -261,7 +261,7 @@ class Fun(commands.Cog):
     @commands.is_owner()
     async def pages(self, ctx):
         x = {"Test": 34, "Vanguards": 30, "Vanesrseguards": 30, "Vangersuards": 30, "Vanserguards": 30, "Vangdgesuards": 30, "Vanguargdds": 30, "Vangzuards": 30,
-             "Vnguards": 30, "Vangusards": 30, "Vangfuards": 30, "Vandguards": 30, "Vangauards": 30, "Vangguards": 30, "Vangeuards": 30, "Vanguardsfds": 30, "Vansdfsdfguards": 30,"Vanguasdfsdfsrds": 30, "Vansefsdfweguards": 30, "Vanguardssdfsdf": 30,  "Vangsdfsdfsuards": 30, "Vanguarsdfsdfds": 30, "Vangdsfsuards": 30, }
+             "Vnguards": 30, "Vangusards": 30, "Vangfuards": 30, "Vandguards": 30, "Vangauards": 30, "Vangguards": 30, "Vangeuards": 30, "Vanguardsfds": 30, "Vansdfsdfguards": 30, "Vanguasdfsdfsrds": 30, "Vansefsdfweguards": 30, "Vanguardssdfsdf": 30,  "Vangsdfsdfsuards": 30, "Vanguarsdfsdfds": 30, "Vangdsfsuards": 30, }
         embeds = []
         counts = 0
         embed = discord.Embed(title="Store")
@@ -275,6 +275,8 @@ class Fun(commands.Cog):
                 else:
                     embed.add_field(name=key, value=value, inline=False)
                     counts += 1
+            else:
+                embeds.append(embed)
         else:
             for key, value in x.items():
                 embed.add_field(name=key, value=value, inline=False)
