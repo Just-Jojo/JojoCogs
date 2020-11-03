@@ -45,10 +45,8 @@ class Fun(commands.Cog):
 
     @store.command(name="remove", aliases=["del", ])
     @commands.admin()
-    async def _remove(self, ctx, *, item: str = None):
+    async def _remove(self, ctx, *, item: str):
         """Remove an item from the store"""
-        if item is None:
-            return await ctx.send("You need to input an item for me to remove!")
         try:
             await self.config.guild(ctx.guild).items.clear_raw(item)
             await ctx.send("I removed {} from the store".format(item))
@@ -67,12 +65,12 @@ class Fun(commands.Cog):
     @store.command(name="buy")
     async def _buy(self, ctx, item: str = None):
         """Purchase an item from the store"""
+        item_list = await self.config.guild(ctx.guild).items.get_raw()
         if item is not None:
             try:
                 cost = await self.config.guild(ctx.guild).items.get_raw(item)
             except KeyError:
-                await ctx.send("I could not find that item!")
-                return
+                await self.page_logic(ctx, item_list, "{}'s Store".format(ctx.guild.name))
 
             cur_name, old_bal = await self.bank_utils(ctx, ctx.author)
             if await bank.can_spend(ctx.author, cost):
@@ -94,7 +92,6 @@ class Fun(commands.Cog):
             else:
                 await ctx.send("You can't buy {0}! You don't have enough {1} to buy it!".format(item, cur_name))
         else:
-            item_list = await self.config.guild(ctx.guild).items.get_raw()
             await self.page_logic(ctx, item_list, "{}'s Store".format(ctx.guild.name))
 
     @commands.command()
