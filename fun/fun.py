@@ -62,7 +62,7 @@ class Fun(commands.Cog):
         """List all of the purchasable items in your guild's store"""
         items = await self.config.guild(ctx.guild).items.get_raw()
         if items:
-            await self.page_logic(ctx, items)
+            await self.page_logic(ctx, items, "{}'s Store".format(ctx.guild.name))
         else:
             await ctx.send("Your guild does not have any purchasable items!\nTo get some items, have an admin run `[p]store add <item> [cost]`")
 
@@ -97,7 +97,7 @@ class Fun(commands.Cog):
                 await ctx.send("You can't buy {0}! You don't have enough {1} to buy it!".format(item, cur_name))
         else:
             item_list = await self.config.guild(ctx.guild).items.get_raw()
-            await self.page_logic(ctx, item_list)
+            await self.page_logic(ctx, item_list, "{}'s Store".format(ctx.guild.name))
 
     @commands.command()
     async def use(self, ctx, item: str):
@@ -114,14 +114,14 @@ class Fun(commands.Cog):
                 await ctx.send("You do not have that item!")
         except KeyError:
             items_ = await self.config.user(ctx.author).items.get_raw()
-            await self.page_logic(ctx, items_)
+            await self.page_logic(ctx, items_, "{}'s Items".format(ctx.author.display_name))
 
     @commands.command()
     async def items(self, ctx):
         """List all of your items in a clean embed"""
         items_ = await self.config.user(ctx.author).items.get_raw()
         if items_:
-            await self.page_logic(ctx, items_, 10)
+            await self.page_logic(ctx, items_, "{}'s Store items".format(ctx.guild.name), 10)
         else:
             await ctx.send("You do not have any items!\nYou can buy some using `[p]store buy`")
 
@@ -193,7 +193,7 @@ class Fun(commands.Cog):
         """List all of the role that are purchasable in a guild"""
         roles = await self.config.guild(ctx.guild).roles.get_raw()
         if roles:
-            await self.page_logic(ctx, roles)
+            await self.page_logic(ctx, roles, "{}'s Roles".format(ctx.guild.name))
         else:
             await ctx.send("This guild doesn't have any roles!\nTo add some buyable roles, please ask an admin to create one using `[p]role add`")
 
@@ -229,19 +229,12 @@ class Fun(commands.Cog):
             return name, balance
         return name
 
-    @commands.command()
-    @commands.is_owner()
-    async def pages(self, ctx):
-        x = {"Test": 34, "Vanguards": 30, "Vanesrseguards": 30, "Vangersuards": 30, "Vanserguards": 30, "Vangdgesuards": 30, "Vanguargdds": 30, "Vangzuards": 30,
-             "Vnguards": 30, "Vangusards": 30, "Vangfuards": 30, "Vandguards": 30, "Vangauards": 30, "Vangguards": 30, "Vangeuards": 30, "Vanguardsfds": 30, "Vansdfsdfguards": 30, "Vanguasdfsdfsrds": 30, "Vansefsdfweguards": 30, "Vanguardssdfsdf": 30,  "Vangsdfsdfsuards": 30, "Vanguarsdfsdfds": 30, "Vangdsfsuards": 30, }
-        await self.page_logic(ctx, x)
-
     # You don't know this but this single fucking function took me so long to make that I think my brain will never recover
-    async def page_logic(self, ctx: commands.Context, dictionary: dict, field_num: int = 15) -> None:
+    async def page_logic(self, ctx: commands.Context, dictionary: dict, item: str, field_num: int = 15) -> None:
         """Convert a dictionary into a pagified embed"""
         embeds = []
         count = 0
-        title = "{}'s Collectables".format(ctx.guild.name)
+        title = item
         embed = self.embed.create(
             ctx, title=title, thumbnail=ctx.guild.icon_url)
 

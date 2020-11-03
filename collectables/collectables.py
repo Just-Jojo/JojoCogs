@@ -26,11 +26,11 @@ class Collectables(commands.Cog):
             collectables={}
         )
 
-    async def page_logic(self, ctx: commands.Context, dictionary: dict, field_num: int = 15) -> None:
+    async def page_logic(self, ctx: commands.Context, dictionary: dict, item: str, field_num: int = 15) -> None:
         """Convert a dictionary into a pagified embed"""
         embeds = []
         count = 0
-        title = "{}'s Collectables".format(ctx.guild.name)
+        title = item
         embed = Embed.create(self,
                              ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
                              )
@@ -102,7 +102,7 @@ class Collectables(commands.Cog):
             coll = await self.config.guild(ctx.guild).get_raw()
         except Exception:
             return await ctx.send("Your guild does not have any collectables!\nHave an admin run `{}collectable create <collectable> [cost]` to start collecting!".format(ctx.clean_prefix))
-        await self.page_logic(ctx, coll)
+        await self.page_logic(ctx, coll, item="{}'s Collectables".format(ctx.guild.name))
 
     @collectable.command()
     async def buy(self, ctx, collectable: str):
@@ -129,7 +129,7 @@ class Collectables(commands.Cog):
             collectable_list = await self.config.user(user).get_raw("collectables")
         except Exception:
             return await ctx.send("{} doesn't have any collectables!".format(user.display_name))
-        await self.page_logic(ctx, collectable_list)
+        await self.page_logic(ctx, collectable_list, item="{}'s items".format(user.display_name))
 
     @commands.command(name='99')
     async def nine_nine(self, ctx):
