@@ -9,5 +9,6 @@
         0
     ],
     "install_msg": "Thank you for installing Jojo's Mod Mail cog",
-    "description": "This cog allows you to see DM's that your bot receives from discord members"
+    "description": "This cog allows you to see DM's that your bot receives from discord members",
+    "end_user_data_statement": "This cog doesn't store any data on anyone, don't worry :D"
 }

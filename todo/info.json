@@ -8,5 +8,6 @@
         7,
         0
     ],
-    "install_msg": "Thank you for installing the ToDo tracker! This cog allows you to easily keep track of your projects/things you need to do."
+    "install_msg": "Thank you for installing the ToDo tracker! This cog allows you to easily keep track of your projects/things you need to do.",
+    "end_user_data_statement": "This cog doesn't store any data on anyone, don't worry :D"
 }

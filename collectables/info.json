@@ -8,5 +8,7 @@
         7,
         0
     ],
-    "install_msg": "Thank you for installing the Collectable cog!\nThis cog allows your guild members to buy collectables, and is just meant as a way to have fun on your guild"
+    "install_msg": "Thank you for installing the Collectable cog!\nThis cog allows your guild members to buy collectables, and is just meant as a way to have fun on your guild",
+    "description": "A mini game based around Red's economy system, this cog allows people in servers to buy Collectables and display them. It would be good to have a cog loaded that affects a user's bank balance.",
+    "end_user_data_statement": "This cog doesn't store any data on anyone, don't worry :D"
 }
