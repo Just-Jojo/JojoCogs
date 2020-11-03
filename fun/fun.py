@@ -236,7 +236,9 @@ class Fun(commands.Cog):
              "Vnguards": 30, "Vangusards": 30, "Vangfuards": 30, "Vandguards": 30, "Vangauards": 30, "Vangguards": 30, "Vangeuards": 30, "Vanguardsfds": 30, "Vansdfsdfguards": 30, "Vanguasdfsdfsrds": 30, "Vansefsdfweguards": 30, "Vanguardssdfsdf": 30,  "Vangsdfsdfsuards": 30, "Vanguarsdfsdfds": 30, "Vangdsfsuards": 30, }
         await self.page_logic(ctx, x)
 
+    # You don't know this but this single fucking function took me so long to make that I think my brain will never recover
     async def page_logic(self, ctx: commands.Context, dictionary: dict, field_num: int = 15) -> None:
+        """Convert a dictionary into a pagified embed"""
         embeds = []
         count = 0
         title = "{}'s Collectables".format(ctx.guild.name)

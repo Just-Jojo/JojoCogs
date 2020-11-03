@@ -1,4 +1,6 @@
 from redbot.core import commands, Config, bank, checks
+from redbot.core.utils import menus
+import asyncio
 from .embed import Embed
 import discord
 import random
@@ -24,15 +26,38 @@ class Collectables(commands.Cog):
             collectables={}
         )
 
-    def readable_dict(self, dictionary: dict, numbered: bool = False) -> str:
-        readable = []
-        for num, (key, item) in enumerate(dictionary.items()):
-            if numbered is True:
-                string_version = "{0}. {1}: {2}".format(num, key, item)
+    async def page_logic(self, ctx: commands.Context, dictionary: dict, field_num: int = 15) -> None:
+        """Convert a dictionary into a pagified embed"""
+        embeds = []
+        count = 0
+        title = "{}'s Collectables".format(ctx.guild.name)
+        embed = Embed.create(self,
+                             ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
+                             )
+        if len(dictionary.keys()) > field_num:
+            for key, value in dictionary.items():
+                if count == field_num - 1:
+                    embed.add_field(name=key, value=value, inline=True)
+                    embeds.append(embed)
+                    embed = Embed.create(
+                        self, ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
+                    )
+                    count = 0
+                else:
+                    embed.add_field(name=key, value=value, inline=True)
+                    count += 1
             else:
-                string_version = "{0}: {1}".format(key, item)
-            readable.append(string_version)
-        return "\n".join(readable)
+                embeds.append(embed)
+        else:
+            for key, value in dictionary.items():
+                embed.add_field(name=key, value=value, inline=True)
+            embeds.append(embed)
+        msg = await ctx.send(embed=embeds[0])
+        control = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
+            "\N{CROSS MARK}": menus.close_menu
+        }
+        asyncio.create_task(menus.menu(ctx, embeds, control, message=msg))
+        menus.start_adding_reactions(msg, control.keys())
 
     @commands.Cog.listener()
     async def on_member_remove(self, member) -> None:
@@ -77,12 +102,7 @@ class Collectables(commands.Cog):
             coll = await self.config.guild(ctx.guild).get_raw()
         except Exception:
             return await ctx.send("Your guild does not have any collectables!\nHave an admin run `{}collectable create <collectable> [cost]` to start collecting!".format(ctx.clean_prefix))
-        data = Embed.create(
-            self, ctx, title="{}'s Collectables".format(ctx.guild.name)
-        )
-        for key, item in coll.items():
-            data.add_field(name=key, value=item, inline=False)
-        await ctx.send(embed=data)
+        await self.page_logic(ctx, coll)
 
     @collectable.command()
     async def buy(self, ctx, collectable: str):
@@ -109,11 +129,7 @@ class Collectables(commands.Cog):
             collectable_list = await self.config.user(user).get_raw("collectables")
         except Exception:
             return await ctx.send("{} doesn't have any collectables!".format(user.display_name))
-        data = Embed.create(
-            self, ctx, title="{}'s collectables".format(user.display_name))
-        for key, item in collectable_list.items():
-            data.add_field(name=key, value=item, inline=False)
-        await ctx.send(embed=data)
+        await self.page_logic(ctx, collectable_list)
 
     @commands.command(name='99')
     async def nine_nine(self, ctx):
