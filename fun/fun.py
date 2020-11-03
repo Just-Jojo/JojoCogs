@@ -268,7 +268,7 @@ class Fun(commands.Cog):
         log.info(len(x.keys()))
         if len(x.keys()) > 15:
             for key, value in x.items():
-                if counts == 24:
+                if counts == 14:
                     embed.add_field(name=key, value=value, inline=True)
                     embeds.append(embed)
                     embed = discord.Embed(title="Store")
