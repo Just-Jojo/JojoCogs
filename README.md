@@ -3,7 +3,7 @@
 ##### Some of the cogs I have built for red
 > * Brownies
 >     This Cog allows you to collect brownie points.
->     It was originally devoloped by JJW of [CollectorDevTeam](http://github.com/CollectorDevTeam/)
+>     It was originally developed by JJW of [CollectorDevTeam](http://github.com/CollectorDevTeam/)
 > * Collectables
 >     This Cog allows you to buy Collectables and display them
 >     It was originally thought up by [Kreusada](https://github.com/Kreusada) and was first developed by Otriux.
