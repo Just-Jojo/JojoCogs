@@ -233,23 +233,18 @@ class Fun(commands.Cog):
         embed = self.embed.create(
             ctx, title=title, thumbnail=ctx.guild.icon_url)
 
-        if len(dictionary.keys()) > field_num:
-            for key, value in dictionary.items():
-                if count == field_num - 1:
-                    embed.add_field(name=key, value=value, inline=True)
-                    embeds.append(embed)
-
-                    embed = self.embed.create(
-                        ctx, title=title, thumbnail=ctx.guild.icon_url)
-                    count = 0
-                else:
-                    embed.add_field(name=key, value=value, inline=True)
-                    count += 1
-            else:
-                embeds.append(embed)
-        else:
-            for key, value in dictionary.items():
+        for key, value in dictionary.items():
+            if count == field_num - 1:
                 embed.add_field(name=key, value=value, inline=True)
+                embeds.append(embed)
+
+                embed = self.embed.create(
+                    ctx, title=title, thumbnail=ctx.guild.icon_url)
+                count = 0
+            else:
+                embed.add_field(name=key, value=value, inline=True)
+                count += 1
+        else:
             embeds.append(embed)
 
         msg = await ctx.send(embed=embeds[0])
