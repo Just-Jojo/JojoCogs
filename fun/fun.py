@@ -62,14 +62,7 @@ class Fun(commands.Cog):
         """List all of the purchasable items in your guild's store"""
         items = await self.config.guild(ctx.guild).items.get_raw()
         if items:
-            data = self.embed.create(
-                ctx,
-                title="{0.name}'s Stock".format(ctx.guild), footer="Ye Ole Store | Store",
-                description="Legend\nItem name, Cost"
-            )
-            for key, item in items.items():
-                data.add_field(name=key, value=item, inline=False)
-            await ctx.send(embed=data)
+            await self.page_logic(ctx, items)
         else:
             await ctx.send("Your guild does not have any purchasable items!\nTo get some items, have an admin run `[p]store add <item> [cost]`")
 
@@ -104,12 +97,7 @@ class Fun(commands.Cog):
                 await ctx.send("You can't buy {0}! You don't have enough {1} to buy it!".format(item, cur_name))
         else:
             item_list = await self.config.guild(ctx.guild).items.get_raw()
-            item_list_embed = self.embed.create(ctx, title="{0}'s Store".format(
-                ctx.guild.name), description="Item listing", footer="Store | Ye Ole Store")
-
-            for key, item in item_list.items():
-                item_list_embed.add_field(name=key, inline=False, value=item)
-            await ctx.send(embed=item_list_embed)
+            await self.page_logic(ctx, item_list)
 
     @commands.command()
     async def use(self, ctx, item: str):
@@ -126,11 +114,7 @@ class Fun(commands.Cog):
                 await ctx.send("You do not have that item!")
         except KeyError:
             items_ = await self.config.user(ctx.author).items.get_raw()
-            embed = self.embed.create(
-                ctx, title="{0.display_name}'s Items".format(ctx.author))
-            for key, item in items_.items():
-                embed.add_field(name=key, value=item, inline=False)
-            await ctx.send(embed=embed)
+            await self.page_logic(ctx, items_)
 
     @commands.command()
     async def items(self, ctx):
@@ -209,15 +193,7 @@ class Fun(commands.Cog):
         """List all of the role that are purchasable in a guild"""
         roles = await self.config.guild(ctx.guild).roles.get_raw()
         if roles:
-            data = self.embed.create(
-                ctx, title="{0}'s buyable roles".format(ctx.guild),
-                footer="Buyable roles!"
-            )
-            for key, item in roles.items():
-                data.add_field(
-                    name=key, value="Cost: {}".format(item), inline=False
-                )
-            await ctx.send(embed=data)
+            await self.page_logic(ctx, roles)
         else:
             await ctx.send("This guild doesn't have any roles!\nTo add some buyable roles, please ask an admin to create one using `[p]role add`")
 
