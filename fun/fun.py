@@ -276,7 +276,7 @@ class Fun(commands.Cog):
                     embed.add_field(name=key, value=value, inline=False)
                     counts += 1
         else:
-            for key, value in x.keys():
+            for key, value in x.items():
                 embed.add_field(name=key, value=value, inline=False)
             embeds.append(embed)
 
