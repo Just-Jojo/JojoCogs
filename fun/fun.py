@@ -3,6 +3,9 @@ from redbot.core.utils import menus
 import discord
 from .embed_maker import Embed
 import asyncio
+import logging
+
+log = logging.getLogger('red.jojo.fun')
 
 
 class Fun(commands.Cog):
@@ -263,7 +266,7 @@ class Fun(commands.Cog):
         counts = 0
         embed = discord.Embed(title="Store")
         for key, value in x.items():
-            if counts == 25:
+            if counts == 24:
                 embed.add_field(name=key, value=value, inline=False)
                 embeds.append(embed)
                 embed = discord.Embed(title="Store")
@@ -271,8 +274,9 @@ class Fun(commands.Cog):
             else:
                 embed.add_field(name=key, value=value, inline=False)
                 counts += 1
-        msg = await ctx.send(embed=embeds[0])
-        c = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
-            "\N{CROSS MARK}": menus.close_menu}
-        asyncio.create_task(menus.menu(ctx, embeds, c, message=msg))
-        menus.start_adding_reactions(msg, c.keys())
+        log.info(embeds)
+        # msg = await ctx.send(embed=embeds[0])
+        # c = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
+        #     "\N{CROSS MARK}": menus.close_menu}
+        # asyncio.create_task(menus.menu(ctx, embeds, c, message=msg))
+        # menus.start_adding_reactions(msg, c.keys())
