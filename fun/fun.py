@@ -265,18 +265,24 @@ class Fun(commands.Cog):
         embeds = []
         counts = 0
         embed = discord.Embed(title="Store")
-        for key, value in x.items():
-            if counts == 24:
+        if len(x.keys()) > 25:
+            for key, value in x.items():
+                if counts == 24:
+                    embed.add_field(name=key, value=value, inline=False)
+                    embeds.append(embed)
+                    embed = discord.Embed(title="Store")
+                    counts = 0
+                else:
+                    embed.add_field(name=key, value=value, inline=False)
+                    counts += 1
+        else:
+            for key, value in x.keys():
                 embed.add_field(name=key, value=value, inline=False)
-                embeds.append(embed)
-                embed = discord.Embed(title="Store")
-                counts = 0
-            else:
-                embed.add_field(name=key, value=value, inline=False)
-                counts += 1
+            embeds.append(embed)
+
         log.info(embeds)
-        # msg = await ctx.send(embed=embeds[0])
-        # c = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
-        #     "\N{CROSS MARK}": menus.close_menu}
-        # asyncio.create_task(menus.menu(ctx, embeds, c, message=msg))
-        # menus.start_adding_reactions(msg, c.keys())
+        msg = await ctx.send(embed=embeds[0])
+        c = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
+            "\N{CROSS MARK}": menus.close_menu}
+        asyncio.create_task(menus.menu(ctx, embeds, c, message=msg))
+        menus.start_adding_reactions(msg, c.keys())
