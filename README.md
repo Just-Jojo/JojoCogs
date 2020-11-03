@@ -26,6 +26,6 @@
 ## To receive help with these cogs
 1. DM me on Discord (Jojo#7791)
 2. Join the [Support](https://discord.gg/JmCFyq7) server and ask in #🔹support-jojo-cogs
-=====
+
 
 *Sorry about the above, I just wanted to mess around with markdown* 😅
