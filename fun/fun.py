@@ -262,30 +262,37 @@ class Fun(commands.Cog):
     async def pages(self, ctx):
         x = {"Test": 34, "Vanguards": 30, "Vanesrseguards": 30, "Vangersuards": 30, "Vanserguards": 30, "Vangdgesuards": 30, "Vanguargdds": 30, "Vangzuards": 30,
              "Vnguards": 30, "Vangusards": 30, "Vangfuards": 30, "Vandguards": 30, "Vangauards": 30, "Vangguards": 30, "Vangeuards": 30, "Vanguardsfds": 30, "Vansdfsdfguards": 30, "Vanguasdfsdfsrds": 30, "Vansefsdfweguards": 30, "Vanguardssdfsdf": 30,  "Vangsdfsdfsuards": 30, "Vanguarsdfsdfds": 30, "Vangdsfsuards": 30, }
+        await self.page_logic(ctx, x)
+
+    async def page_logic(self, ctx: commands.Context, dictionary: dict, field_num: int = 15) -> None:
         embeds = []
-        counts = 0
-        embed = discord.Embed(title="Store")
-        log.info(len(x.keys()))
-        if len(x.keys()) > 15:
-            for key, value in x.items():
-                if counts == 14:
+        count = 0
+        title = "{}'s Collectables".format(ctx.guild.name)
+        embed = self.embed.create(
+            ctx, title=title, thumbnail=ctx.guild.icon_url)
+
+        if len(dictionary.keys()) > field_num:
+            for key, value in dictionary.items():
+                if count == field_num - 1:
                     embed.add_field(name=key, value=value, inline=True)
                     embeds.append(embed)
-                    embed = discord.Embed(title="Store")
-                    counts = 0
+
+                    embed = self.embed.create(
+                        ctx, title=title, thumbnail=ctx.guild.icon_url)
+                    count = 0
                 else:
                     embed.add_field(name=key, value=value, inline=True)
-                    counts += 1
+                    count += 1
             else:
                 embeds.append(embed)
         else:
-            for key, value in x.items():
-                embed.add_field(name=key, value=value, inline=False)
+            for key, value in dictionary.items():
+                embed.add_field(name=key, value=value, inline=True)
             embeds.append(embed)
 
-        log.info(embeds)
-        msg = await ctx.send(embed=embeds[0])
-        c = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
-            "\N{CROSS MARK}": menus.close_menu}
-        asyncio.create_task(menus.menu(ctx, embeds, c, message=msg))
-        menus.start_adding_reactions(msg, c.keys())
+        msg = await ctx.send(embeds[0])
+        control = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
+            "\N{CROSS MARK}": menus.close_menu
+        }
+        asyncio.create_task(menus.menu(ctx, embeds, control, message=msg))
+        menus.start_adding_reactions(msg, control.keys())
