@@ -39,7 +39,7 @@ class Pets(commands.Cog):
             return
         if message.author.bot:
             return
-        if message.content[0] in self.bot.get_prefix(message):
+        if message.content[0] in await self.bot.get_prefix(message):
             return
         pets = await self.config.user(message.author).get_raw("pets")
         if len(pets.keys()) <= 0:
