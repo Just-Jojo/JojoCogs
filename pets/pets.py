@@ -33,22 +33,24 @@ class Pets(commands.Cog):
             pets={}
         )
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if isinstance(message.channel, discord.DMChannel):
-            return
-        if message.author.bot:
-            return
-        if message.content[0] in await self.bot.get_prefix(message):
-            return
-        pets = await self.config.user(message.author).get_raw("pets")
-        if len(pets.keys()) <= 0:
-            return
-        chosen = random.choice(list(pets.keys()))
-        old_health = await self.config.user(message.author).pets.get_raw(chosen, "hunger")
-        if old_health >= 100:
-            return await message.channel.send("{}, your pet has 100 hunger points! You need to feed them before they get removed!".format(message.author.name))
-        await self.config.user(message.author).pets.set_raw(chosen, "hunger", value=old_health + 2)
+    # @commands.Cog.listener()
+    # async def on_message(self, message):
+    #     if isinstance(message.channel, discord.DMChannel):
+    #         return
+    #     if message.author.bot:
+    #         return
+    #     if message.content[0] in await self.bot.get_prefix(message):
+    #         return
+    #     if message.channel.id != 758775890954944572:
+    #         return
+    #     pets = await self.config.user(message.author).get_raw("pets")
+    #     if len(pets.keys()) <= 0:
+    #         return
+    #     chosen = random.choice(list(pets.keys()))
+    #     old_health = await self.config.user(message.author).pets.get_raw(chosen, "hunger")
+    #     if old_health >= 100:
+    #         return await message.channel.send("{}, your pet has 100 hunger points! You need to feed them before they get removed!".format(message.author.name))
+    #     await self.config.user(message.author).pets.set_raw(chosen, "hunger", value=old_health + 2)
 
     async def update_balance(self, user: discord.Member, amount: int) -> None:
         """Update a user's balance with the bank module"""
