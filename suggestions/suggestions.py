@@ -34,3 +34,11 @@ class Suggestions(commands.Cog):
                 await msg.edit(content="Removed the channel!")
             else:
                 await msg.edit(content="Okay, I'll cancel the removal")
+
+    @commands.command()
+    @commands.is_owner()
+    async def test(self, ctx):
+        msg = await ctx.author.send("Test")
+        ms = await self.bot.wait_for("message", check=lambda message: message.channel == discord.DMChannel and message.author == ctx.author)
+        if ms:
+            msg.edit(content="Yay!")
