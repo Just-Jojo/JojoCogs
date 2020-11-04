@@ -74,7 +74,7 @@ class Mjolnir(commands.Cog):
         )
         sen = []
         for user in users:
-            name = ctx.guild.get_member(user[0]).display_name
+            name = ctx.guild.get_member(user[0]).name
             amount = user[1]["times_lifted"]
             sen.append("**{}** {}".format(name, amount))
         sending = "\n".join(sen)
