@@ -16,12 +16,21 @@ class Suggestions(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def suggestset(self, ctx, channel: discord.TextChannel):
+    async def suggestset(self, ctx, channel: discord.TextChannel = None):
         """Set up the suggestion channel"""
-        msg = await ctx.send("Would you like to set up the suggest channel as {}?".format(channel.mention))
-        mass = await self.bot.wait_for("message", check=lambda message: message.author == ctx.author)
-        if mass.content[0] == "y":
-            await self.config.set_raw("channel", value=channel.id)
-            await msg.edit(content="Added {} as the suggestion channel".format(channel.mention))
+        if channel is not None:
+            msg = await ctx.send("Would you like to set up the suggest channel as {}? `y/n`".format(channel.mention))
+            mass = await self.bot.wait_for("message", check=lambda message: message.author == ctx.author)
+            if mass.content[0].lower() == "y":
+                await self.config.set_raw("channel", value=channel.id)
+                await msg.edit(content="Added {} as the suggestion channel".format(channel.mention))
+            else:
+                await msg.edit(content="Canceled!")
         else:
-            await msg.edit(content="Canceled!")
+            msg = await ctx.send("Would you like to remove the suggestion channel? `y/n`")
+            mass = await self.bot.wait_for("message", check=lambda message: message.author == ctx.author)
+            if mass.content[0].lower() == "y":
+                await self.config.clear_raw("channel")
+                await msg.edit("Removed the channel!")
+            else:
+                await msg.edit("Okay, I'll cancel the removal")
