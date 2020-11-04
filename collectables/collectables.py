@@ -11,7 +11,6 @@ from discord.utils import get
 import logging
 
 log = logging.getLogger('red.jojo.collectables')
-log.setLevel(logging.INFO)
 
 
 class Collectables(commands.Cog):
@@ -60,8 +59,6 @@ class Collectables(commands.Cog):
     async def on_member_remove(self, member) -> None:
         try:
             await self.config.user(member).clear()
-            log.info(
-                "Cleared the collectables for {} as they left the server".format(member.name))
         except KeyError:
             return
 
