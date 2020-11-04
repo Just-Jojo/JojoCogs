@@ -22,5 +22,6 @@ class Suggestions(commands.Cog):
         mass = await self.bot.wait_for("message", check=lambda message: message.author == ctx.author)
         if mass.content[0] == "y":
             await self.config.set_raw("channel", value=channel.id)
+            await msg.edit("Added {} as the suggestion channel".format(channel.mention))
         else:
             await msg.edit(content="Canceled!")
