@@ -16,11 +16,11 @@ class Suggestions(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def suggestionset(self, ctx, channel: discord.TextChannel):
+    async def suggestset(self, ctx, channel: discord.TextChannel):
         """Set up the suggestion channel"""
         msg = await ctx.send("Would you like to set up the suggest channel as {}?".format(channel.mention))
         mass = await self.bot.wait_for("message", check=lambda message: message.author == ctx.author)
         if mass.content[0] == "y":
-            await self.config.set_raw("channel", value=channel)
+            await self.config.set_raw("channel", value=channel.id)
         else:
             await msg.edit(content="Canceled!")
