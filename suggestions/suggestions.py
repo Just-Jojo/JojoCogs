@@ -31,6 +31,6 @@ class Suggestions(commands.Cog):
             mass = await self.bot.wait_for("message", check=lambda message: message.author == ctx.author)
             if mass.content[0].lower() == "y":
                 await self.config.clear_raw("channel")
-                await msg.edit("Removed the channel!")
+                await msg.edit(content="Removed the channel!")
             else:
-                await msg.edit("Okay, I'll cancel the removal")
+                await msg.edit(content="Okay, I'll cancel the removal")
