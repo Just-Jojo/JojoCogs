@@ -192,19 +192,6 @@ class JojoStore(commands.Cog):
         else:
             await ctx.send("This guild doesn't have any roles!\nTo add some buyable roles, please ask an admin to create one using `[p]role add`")
 
-    @commands.command()
-    @commands.is_owner()
-    async def testing(self, ctx):
-        embeds = []
-        for i in range(10):
-            emb = Embed.create(self, ctx, title="{} embed".format(i))
-            embeds.append(emb)
-        msg = await ctx.send(embed=embeds[0])
-        c = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
-            "\N{CROSS MARK}": menus.close_menu}
-        asyncio.create_task(menus.menu(ctx, embeds, c, message=msg))
-        menus.start_adding_reactions(msg, c.keys())
-
     async def bank_utils(self, ctx: commands.Context, user: discord.Member = None) -> str:
         """Returns the name of the bank's currency and can optionally return the balance of a member"""
         name = await bank.get_currency_name(ctx.guild)
