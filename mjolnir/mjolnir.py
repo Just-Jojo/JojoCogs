@@ -51,14 +51,18 @@ class Mjolnir(commands.Cog):
 
     @commands.command()
     @commands.mod_or_permissions(manage_guild=True)
-    async def rates(self, ctx, number: int):
+    async def rates(self, ctx, number: int = None):
         """
         Adjust the chance for lifting Mjolnir
 
         *Note that if the chance for lifting it is below 50 anyone who lifts it will not be added to the leaderboard"""
 
-        await self.config.guild(ctx.guild).set_raw("drop_rate", value=number)
-        await ctx.send("The chance of lifting Mjolnir is now `{}`".format(number))
+        if number is not None:
+            await self.config.guild(ctx.guild).set_raw("drop_rate", value=number)
+            await ctx.send("The chance of lifting Mjolnir is now `{}`".format(number))
+        else:
+            rate = await self.config.guild(ctx.guild).get_raw("drop_rate")
+            await ctx.send("The chance for lifting Mjolnir is `1/{}`".format(rate))
 
     @commands.command()
     async def liftedboard(self, ctx):
