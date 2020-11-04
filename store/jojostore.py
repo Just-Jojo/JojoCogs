@@ -205,17 +205,6 @@ class JojoStore(commands.Cog):
         asyncio.create_task(menus.menu(ctx, embeds, c, message=msg))
         menus.start_adding_reactions(msg, c.keys())
 
-    def readable_dict(self, dictionary: dict, numbered: bool = False) -> str:
-        """Convert a dictionary into something a regular person could read"""
-        readable = []
-        for num, (key, item) in enumerate(dictionary.items()):
-            if numbered is True:
-                string_version = "{0}. {1}: {2}".format(num, key, item)
-            else:
-                string_version = "{0}: {1}".format(key, item)
-            readable.append(string_version)
-        return "\n".join(readable)
-
     async def bank_utils(self, ctx: commands.Context, user: discord.Member = None) -> str:
         """Returns the name of the bank's currency and can optionally return the balance of a member"""
         name = await bank.get_currency_name(ctx.guild)
