@@ -1,5 +1,9 @@
 from redbot.core import commands, Config
+from redbot.core.utils.menus import start_adding_reactions
+from redbot.core.utils.predicates import ReactionPredicate, MessagePredicate
 import discord
+import asyncio
+import contextlib
 
 
 class Suggestions(commands.Cog):
@@ -38,7 +42,18 @@ class Suggestions(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def test(self, ctx):
-        msg = await ctx.author.send("Test")
-        ms = await self.bot.wait_for("message", check=lambda message: message.channel == discord.DMChannel and message.author == ctx.author)
-        if ms:
-            msg.edit(content="Yay!")
+        msg = await ctx.send("Test")
+        pred = ReactionPredicate.yes_or_no(msg, ctx.author)
+        start_adding_reactions(msg, ReactionPredicate.YES_OR_NO_EMOJIS)
+        try:
+            await ctx.bot.wait_for("reaction_add", check=pred, timeout=20)
+        except asyncio.TimeoutError:
+            await msg.delete()
+            return
+        if not pred.result:
+            await msg.delete()
+            return
+        else:
+            with contextlib.suppress(discord.Forbidden):
+                await msg.clear_reactions()
+        await ctx.send("Done")
