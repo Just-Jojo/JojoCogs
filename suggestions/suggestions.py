@@ -113,13 +113,13 @@ class Suggestions(commands.Cog):
                     self, ctx, title="Suggestion from {}".format(ctx.author.name), description=message.content,
                     footer="Suggestions designed by Jojo", footer_url=ctx.me.avatar_url, thumbnail=author.avatar_url
                 )
-                msg = await ctx.send("Does this look good to you?", embed=emb)
+                msg = await author.send("Does this look good to you?", embed=emb)
                 start_adding_reactions(msg, ReactionPredicate.YES_OR_NO_EMOJIS)
                 pred = ReactionPredicate.yes_or_no(msg, ctx.author)
                 try:
                     await ctx.bot.wait_for("reaction_add", check=pred, timeout=10)
                 except asyncio.TimeoutError:
-                    return await ctx.send("Okay!")
+                    return await author.send("Okay!")
                 if pred.result:
                     await author.send("Your suggestion was added. Thank you for helping keep {} alive!".format(ctx.me.name))
                     return await channel.send(embed=emb)
