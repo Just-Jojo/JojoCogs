@@ -89,17 +89,24 @@ class Suggestions(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def test(self, ctx, *, suggestion: str):
-        if not isinstance(ctx.channel, discord.DMChannel):
-            return await ctx.send("This command only works in dms!")
+    async def test(self, ctx):
+        author = ctx.author
         channel = await self.config.get_raw("channel")
         if channel is None:
-            return await ctx.send("This bot's owner has not set up a suggestion box!")
-        channel = self.bot.get_channel(channel)
+            return await ctx.send("There is no suggestion channel!")
+        try:
+            await author.send("Please input the suggestion you have")
+        except discord.Forbidden:
+            await ctx.send("I couldn't dm you!")
 
-        # Now for the embed
-        emb = Embed.create(
-            self, ctx, title="Suggestion from {}".format(ctx.author.name), description=suggestion,
-            footer="Suggestions designed by Jojo", footer_url=ctx.bot.avatar_url
-        )
-        await channel.send(embed=emb)
+        try:
+            message: discord.Message = await ctx.bot.wait_for('message', timeout=20)
+        except asyncio.TimeoutError:
+            return await author.send("Timed out.")
+        if message.author == author and isinstance(message.channel, discord.DMChannel):
+            channel = self.bot.get_channel(channel)
+            emb = Embed.create(
+                self, ctx, title="Suggestion from {}".format(ctx.author.name), description=message.content,
+                footer="Suggestions designed by Jojo", footer_url=ctx.bot.avatar_url
+            )
+            await channel.send(embed=emb)
