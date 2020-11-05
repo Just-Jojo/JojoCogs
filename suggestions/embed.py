@@ -11,7 +11,7 @@ class Embed:
         footer_url: str = None
     ) -> discord.Embed:
         data = discord.Embed(
-            title=title, description=description, color=ctx.author.color
+            title=title, description=description, color=discord.Color.dark_purple()
         )
         if thumbnail:
             data.set_thumbnail(url=thumbnail)
