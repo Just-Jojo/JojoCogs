@@ -31,13 +31,35 @@ class Suggestions(commands.Cog):
             else:
                 await msg.edit(content="Canceled!")
         else:
-            msg = await ctx.send("Would you like to remove the suggestion channel? `y/n`")
-            mass = await self.bot.wait_for("message", check=lambda message: message.author == ctx.author)
-            if mass.content[0].lower() == "y":
-                await self.config.clear_raw("channel")
-                await msg.edit(content="Removed the channel!")
+            message = "Would you like to remove the channel?"
+            can_react = ctx.channel.permissions_for(ctx.me).add_reactions
+            if not can_react:
+                message += " (y/n)"
+            question = await ctx.send(message)
+            if can_react:
+                start_adding_reactions(
+                    question, ReactionPredicate.YES_OR_NO_EMOJIS)
+                pred = ReactionPredicate.yes_or_no(question, ctx.author)
+                event = "reaction_add"
             else:
-                await msg.edit(content="Okay, I'll cancel the removal")
+                pred = MessagePredicate.yes_or_no(ctx)
+                event = "message"
+            try:
+                await ctx.bot.wait_for(event, check=pred, timeout=30)
+            except asyncio.TimeoutError:
+                return await question.delete()
+
+            if not pred.result:
+                if can_react:
+                    await question.delete()
+                else:
+                    await ctx.send("Okay! :D")
+                return
+            else:
+                if can_react:
+                    with contextlib.suppress(discord.Forbidden):
+                        await question.clear_reactions()
+            await self.config.clear_raw("channel")
 
     @commands.command()
     @commands.is_owner()
