@@ -120,8 +120,8 @@ class Suggestions(commands.Cog):
                     await ctx.bot.wait_for("reaction_add", check=pred, timeout=10)
                 except asyncio.TimeoutError:
                     return await author.send("Okay!")
+                await msg.delete()
                 if pred.result:
-                    await msg.delete()
                     await author.send("Your suggestion was added. Thank you for helping keep {} alive!".format(ctx.me.name))
                     return await channel.send(embed=emb)
                 else:
