@@ -97,6 +97,7 @@ class Suggestions(commands.Cog):
             return await ctx.send("There is no suggestion channel!")
         try:
             await author.send("Please input the suggestion you have")
+            await ctx.send("DM'd you :D")
         except discord.Forbidden:
             await ctx.send("I couldn't dm you!")
 
