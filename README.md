@@ -22,6 +22,10 @@
 > * ToDo
 >     - Helps you remember stuff by writing a ToDo reminder
 >     - Still a W.I.P so be careful
+> * Suggestions
+>   - Allows users to send in a suggestion for ideas for your bot (eg. for cogs and the like)
+>   - Mainly I wanted it so I wouldn't have to come up with my own ideas, lol
+
 
 ## To receive help with these cogs
 1. DM me on Discord (Jojo#7791)

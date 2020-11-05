@@ -88,8 +88,9 @@ class Suggestions(commands.Cog):
             await question.edit(content="Done!")
 
     @commands.command()
-    @commands.is_owner()
-    async def test(self, ctx):
+    async def suggest(self, ctx):
+        """Add a suggestion for the bot"""
+
         author = ctx.author
         channel = await self.config.get_raw("channel")
         if channel is None:
@@ -108,6 +109,6 @@ class Suggestions(commands.Cog):
                 channel = self.bot.get_channel(channel)
                 emb = Embed.create(
                     self, ctx, title="Suggestion from {}".format(ctx.author.name), description=message.content,
-                    footer="Suggestions designed by Jojo", footer_url=ctx.me.avatar_url
+                    footer="Suggestions designed by Jojo", footer_url=ctx.me.avatar_url, thumbnail=author.avatar_url
                 )
                 return await channel.send(embed=emb)
