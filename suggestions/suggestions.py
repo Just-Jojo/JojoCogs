@@ -121,7 +121,7 @@ class Suggestions(commands.Cog):
                 except asyncio.TimeoutError:
                     return await ctx.send("Okay!")
                 if pred.result:
-                    await ctx.send("Your suggestion was added. Thank you for helping keep {} alive!".format(ctx.me.name))
+                    await author.send("Your suggestion was added. Thank you for helping keep {} alive!".format(ctx.me.name))
                     return await channel.send(embed=emb)
                 else:
-                    await ctx.send("Cancled the suggestion!\nYou can always suggest something later")
+                    await author.send("Cancled the suggestion!\nYou can always suggest something later")
