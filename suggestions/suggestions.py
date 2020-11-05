@@ -75,6 +75,9 @@ class Suggestions(commands.Cog):
                 return await question.delete()
 
             if not pred.result:
+                if can_react:
+                    with contextlib.suppress(discord.Forbidden):
+                        await question.clear_reactions()
                 return await ctx.send("Okay! :D")
             else:
                 if can_react:
