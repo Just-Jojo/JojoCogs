@@ -95,10 +95,11 @@ class Suggestions(commands.Cog):
         channel = await self.config.get_raw("channel")
         if channel is None:
             return await ctx.send("This bot's owner has not set up a suggestion box!")
-        channel = bot.get_channel(channel)
+        channel = self.bot.get_channel(channel)
 
         # Now for the embed
         emb = Embed.create(
-            ctx, title="Suggestion from {}".format(ctx.author.name), description=suggestion
+            self, ctx, title="Suggestion from {}".format(ctx.author.name), description=suggestion,
+            footer="Suggestions designed by Jojo", footer_url=ctx.bot.avatar_url
         )
         await channel.send(embed=emb)
