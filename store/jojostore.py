@@ -9,6 +9,10 @@ log = logging.getLogger('red.jojo.fun')
 
 
 class JojoStore(commands.Cog):
+    """A Store designed by Jojo for Red.
+
+    Have fun!"""
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 13814755994)
@@ -22,6 +26,8 @@ class JojoStore(commands.Cog):
         )
         self.config.register_user(items={})
         self.embed = Embed(self)
+
+    __version__ = "1.0.0"
 
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role: discord.Role):
@@ -191,6 +197,18 @@ class JojoStore(commands.Cog):
             await self.page_logic(ctx, roles, "{}'s Roles".format(ctx.guild.name))
         else:
             await ctx.send("This guild doesn't have any roles!\nTo add some buyable roles, please ask an admin to create one using `[p]role add`")
+
+    @commands.command(aliases=["sinfo"])
+    async def storeinfo(self, ctx):
+        """Get the info on the Store cog"""
+        app = await self.bot.application_info()
+        msg = "Jojo's store, a cog designed for fun with the bank system.\nVersionL {}".format(
+            self.__version__)
+        emb = Embed.create(
+            self, ctx, title="Jojo's Store Cog", description=msg, thumbnail=app.owner.avatar_url,
+            footer="Cog designed by {}".format(app.owner.name), footer_url=app.owner.avatar_url
+        )
+        await ctx.send(embed=emb)
 
     async def bank_utils(self, ctx: commands.Context, user: discord.Member = None) -> str:
         """Returns the name of the bank's currency and can optionally return the balance of a member"""
