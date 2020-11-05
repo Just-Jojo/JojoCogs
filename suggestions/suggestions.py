@@ -23,13 +23,35 @@ class Suggestions(commands.Cog):
     async def suggestset(self, ctx, channel: discord.TextChannel = None):
         """Set up the suggestion channel"""
         if channel is not None:
-            msg = await ctx.send("Would you like to set up the suggest channel as {}? `y/n`".format(channel.mention))
-            mass = await self.bot.wait_for("message", check=lambda message: message.author == ctx.author)
-            if mass.content[0].lower() == "y":
-                await self.config.set_raw("channel", value=channel.id)
-                await msg.edit(content="Added {} as the suggestion channel".format(channel.mention))
+            message = "Would you like to set the suggestion channel as {}?".format(
+                channel.mention)
+            can_react = ctx.channel.permissions_for(ctx.me).add_reactions
+            if not can_react:
+                message += " (y/n)"
+            question = await ctx.send(message)
+            if can_react:
+                start_adding_reactions(
+                    question, ReactionPredicate.YES_OR_NO_EMOJIS
+                )
+                pred = ReactionPredicate.yes_or_no(question, ctx.author)
+                event = "reaction_add"
             else:
-                await msg.edit(content="Canceled!")
+                pred = MessagePredicate.yes_or_no(ctx)
+                event = "message"
+            try:
+                await ctx.bot.wait_for(event, check=pred, timeout=30)
+            except asyncio.TimeoutError:
+                return await question.delete()
+
+            if not pred.result:
+                return await ctx.send("Okay! :D")
+            else:
+                if can_react:
+                    with contextlib.suppress(discord.Forbidden):
+                        await question.clear_reactions()
+            await self.config.set_raw("channel", value=channel.id)
+            await question.edit(content="Done! Set up {} as the suggestion channel!".format(channel.mention))
+
         else:
             message = "Would you like to remove the channel?"
             can_react = ctx.channel.permissions_for(ctx.me).add_reactions
@@ -50,11 +72,7 @@ class Suggestions(commands.Cog):
                 return await question.delete()
 
             if not pred.result:
-                if can_react:
-                    await question.delete()
-                else:
-                    await ctx.send("Okay! :D")
-                return
+                return await ctx.send("Okay! :D")
             else:
                 if can_react:
                     with contextlib.suppress(discord.Forbidden):
