@@ -124,4 +124,4 @@ class Suggestions(commands.Cog):
                     await author.send("Your suggestion was added. Thank you for helping keep {} alive!".format(ctx.me.name))
                     return await channel.send(embed=emb)
                 else:
-                    await author.send("Cancled the suggestion!\nYou can always suggest something later")
+                    return await author.send("Cancled the suggestion!\nYou can always suggest something later")
