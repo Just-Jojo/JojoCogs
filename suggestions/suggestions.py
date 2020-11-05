@@ -88,7 +88,7 @@ class Suggestions(commands.Cog):
             await question.edit(content="Done!")
 
     @commands.command()
-    @commands.cooldown(1, 1800, commands.BucketType.user)
+    @commands.cooldown(1, 120, commands.BucketType.user)
     async def suggest(self, ctx):
         """Add a suggestion for the bot"""
 
@@ -97,7 +97,7 @@ class Suggestions(commands.Cog):
         if channel is None:
             return await ctx.send("There is no suggestion channel!")
         try:
-            await author.send("Please input the suggestion you have")
+            await author.send("Please input the suggestion you have\nTime out is `20` seconds")
             await ctx.send("DM'd you :D")
         except discord.Forbidden:
             await ctx.send("I couldn't dm you!")
@@ -113,4 +113,15 @@ class Suggestions(commands.Cog):
                     self, ctx, title="Suggestion from {}".format(ctx.author.name), description=message.content,
                     footer="Suggestions designed by Jojo", footer_url=ctx.me.avatar_url, thumbnail=author.avatar_url
                 )
-                return await channel.send(embed=emb)
+                msg = await ctx.send("Does this look good to you?", embed=emb)
+                start_adding_reactions(msg, ReactionPredicate.YES_OR_NO_EMOJIS)
+                pred = ReactionPredicate.yes_or_no(msg, ctx.author)
+                try:
+                    await ctx.bot.wait_for("reaction_add", check=pred, timeout=10)
+                except asyncio.TimeoutError:
+                    return await ctx.send("Okay!")
+                if pred.result:
+                    await ctx.send("Your suggestion was added. Thank you for helping keep {} alive!".format(ctx.me.name))
+                    return await channel.send(embed=emb)
+                else:
+                    await ctx.send("Cancled the suggestion!\nYou can always suggest something later")
