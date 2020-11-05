@@ -99,14 +99,15 @@ class Suggestions(commands.Cog):
         except discord.Forbidden:
             await ctx.send("I couldn't dm you!")
 
-        try:
-            message: discord.Message = await ctx.bot.wait_for('message', timeout=20)
-        except asyncio.TimeoutError:
-            return await author.send("Timed out.")
-        if message.author == author and isinstance(message.channel, discord.DMChannel):
-            channel = self.bot.get_channel(channel)
-            emb = Embed.create(
-                self, ctx, title="Suggestion from {}".format(ctx.author.name), description=message.content,
-                footer="Suggestions designed by Jojo", footer_url=ctx.bot.avatar_url
-            )
-            await channel.send(embed=emb)
+        while True:
+            try:
+                message: discord.Message = await ctx.bot.wait_for('message', timeout=20)
+            except asyncio.TimeoutError:
+                return await author.send("Timed out.")
+            if message.author == author and isinstance(message.channel, discord.DMChannel):
+                channel = self.bot.get_channel(channel)
+                emb = Embed.create(
+                    self, ctx, title="Suggestion from {}".format(ctx.author.name), description=message.content,
+                    footer="Suggestions designed by Jojo", footer_url=ctx.me.avatar_url
+                )
+                return await channel.send(embed=emb)
