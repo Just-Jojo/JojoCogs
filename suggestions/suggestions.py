@@ -60,6 +60,7 @@ class Suggestions(commands.Cog):
                     with contextlib.suppress(discord.Forbidden):
                         await question.clear_reactions()
             await self.config.clear_raw("channel")
+            await question.edit(content="Done!")
 
     @commands.command()
     @commands.is_owner()
