@@ -88,6 +88,7 @@ class Suggestions(commands.Cog):
             await question.edit(content="Done!")
 
     @commands.command()
+    @commands.cooldown(1, 1800, commands.BucketType.user)
     async def suggest(self, ctx):
         """Add a suggestion for the bot"""
 
