@@ -202,7 +202,7 @@ class JojoStore(commands.Cog):
     async def storeinfo(self, ctx):
         """Get the info on the Store cog"""
         app = await self.bot.application_info()
-        msg = "Jojo's store, a cog designed for fun with the bank system.\nVersionL {}".format(
+        msg = "Jojo's store, a cog designed for fun with the bank system.\nVersion: {}".format(
             self.__version__)
         emb = Embed.create(
             self, ctx, title="Jojo's Store Cog", description=msg, thumbnail=app.owner.avatar_url,
