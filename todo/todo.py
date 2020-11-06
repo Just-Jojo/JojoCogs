@@ -63,7 +63,7 @@ class ToDo(commands.Cog):
                 count = 0
                 embed = self.create(
                     ctx, title=f"{ctx.author}'s ToDo list", color=ctx.author.color,
-                    footer=f"{ctx.author.name}'s ToDos'"
+                    footer=f"{ctx.author.name}'s ToDo's"
                 )
             else:
                 embed.add_field(name=key, value=value, inline=True)
