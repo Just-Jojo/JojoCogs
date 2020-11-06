@@ -50,6 +50,12 @@ class ToDo(commands.Cog):
         todos = await self.config.user(ctx.author).get_raw()
         await self.page_logic(ctx, todos)
 
+    @commands.command()
+    @commands.is_owner()
+    async def cleart(self, ctx):
+        await self.config.user(ctx.author).clear_raw("todo")
+        await ctx.message.add_reaction("✅")
+
     async def page_logic(self, ctx: commands.Context, object: dict) -> None:
         count = 0
         embeds = []
