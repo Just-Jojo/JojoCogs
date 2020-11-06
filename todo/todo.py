@@ -54,7 +54,7 @@ class ToDo(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def cleart(self, ctx):
-        await self.config.user(ctx.author).clear_raw("todo")
+        await self.config.clear_raw()
         await ctx.message.add_reaction("✅")
 
     async def page_logic(self, ctx: commands.Context, object: dict) -> None:
