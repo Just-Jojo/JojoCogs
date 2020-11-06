@@ -5,7 +5,7 @@ import time
 from operator import itemgetter
 from typing import Literal, Optional
 
-from redbot.core import commands, Config, checks
+from redbot.core import commands, Config
 from redbot.core.utils import AsyncIter
 from redbot.core.commands.converter import TimedeltaConverter
 import discord
@@ -46,19 +46,12 @@ class Brownie(commands.Cog):
         self.config.register_guild(**self.default_guild_settings)
 
     async def red_delete_data_for_user(
-        self,
-        *,
-        user: Literal["discord_deleted_user", "owner", "owner", "user", "user_strict"],
-        id: int
-    ):
-        if user != "discord_deleted_user":
-            return
-        await self.config.user_from_id(id).clear()
-
-        all_members = await self.config.all_members
-        async for guild_id, guild_data in AsyncIter(all_members.items(), steps=500):
-            if id in guild_data:
-                await self.config.member_from_ids(guild_id, id).clear()
+            self,
+            *,
+            user: Literal["discord_deleted_user", "owner", "owner", "user", "user_strict"],
+            id: int):
+        """Nothing to remove"""
+        return
 
     @commands.group()
     @commands.guild_only()
@@ -66,7 +59,7 @@ class Brownie(commands.Cog):
         """brownie settings group command"""
 
     @setbrownie.command(name="stealcd")
-    @checks.admin()
+    @commands.is_admin()
     async def _stealcd_heist(self, ctx, seconds: int):
         """Set the cooldown for stealing brownies"""
         if seconds >= 0:
@@ -77,7 +70,7 @@ class Brownie(commands.Cog):
         await ctx.send(msg)
 
     @setbrownie.command(name="browniecd")
-    @checks.admin()
+    @commands.is_admin()
     async def _browniecd_heist(self, ctx, cooldown: int):
         """Set the cooldown for brownie command"""
         if cooldown >= 0:
