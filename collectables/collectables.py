@@ -4,11 +4,8 @@ import asyncio
 from .embed import Embed
 import discord
 import random
-import json
-import os
-import discord
-from discord.utils import get
 import logging
+from typing import Literal
 
 log = logging.getLogger('red.jojo.collectables')
 
@@ -25,35 +22,12 @@ class Collectables(commands.Cog):
             collectables={}
         )
 
-    async def page_logic(self, ctx: commands.Context, dictionary: dict, item: str, field_num: int = 15) -> None:
-        """Convert a dictionary into a pagified embed"""
-        embeds = []
-        count = 0
-        title = item
-        embed = Embed.create(
-            self, ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
-        )
-        if field_num >= 26:
-            field_num = 25
-        for key, value in dictionary.items():
-            if count == field_num - 1:
-                embed.add_field(name=key, value=value, inline=True)
-                embeds.append(embed)
-                embed = Embed.create(
-                    self, ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
-                )
-                count = 0
-            else:
-                embed.add_field(name=key, value=value, inline=True)
-                count += 1
-        else:
-            embeds.append(embed)
-        msg = await ctx.send(embed=embeds[0])
-        control = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
-            "\N{CROSS MARK}": menus.close_menu
-        }
-        asyncio.create_task(menus.menu(ctx, embeds, control, message=msg))
-        menus.start_adding_reactions(msg, control.keys())
+    async def red_delete_data_for_user(
+        self,
+        requester: Literal["discord", "owner", "user", "user_strict"],
+        user_id: int
+    ) -> None:
+        await self.config.user_from_id(user_id).clear()
 
     @commands.Cog.listener()
     async def on_member_remove(self, member) -> None:
@@ -140,3 +114,33 @@ class Collectables(commands.Cog):
         ]
 
         await ctx.send(random.choice(brooklyn_99_quotes))
+
+    async def page_logic(self, ctx: commands.Context, dictionary: dict, item: str, field_num: int = 15) -> None:
+        """Convert a dictionary into a pagified embed"""
+        embeds = []
+        count = 0
+        title = item
+        embed = Embed.create(
+            self, ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
+        )
+        if field_num >= 26:
+            field_num = 25
+        for key, value in dictionary.items():
+            if count == field_num - 1:
+                embed.add_field(name=key, value=value, inline=True)
+                embeds.append(embed)
+                embed = Embed.create(
+                    self, ctx=ctx, title=title, thumbnail=ctx.guild.icon_url
+                )
+                count = 0
+            else:
+                embed.add_field(name=key, value=value, inline=True)
+                count += 1
+        else:
+            embeds.append(embed)
+        msg = await ctx.send(embed=embeds[0])
+        control = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
+            "\N{CROSS MARK}": menus.close_menu
+        }
+        asyncio.create_task(menus.menu(ctx, embeds, control, message=msg))
+        menus.start_adding_reactions(msg, control.keys())

@@ -4,6 +4,7 @@ import discord
 from .embed_maker import Embed
 import asyncio
 import logging
+from typing import Literal
 
 log = logging.getLogger('red.jojo.fun')
 
@@ -28,6 +29,13 @@ class JojoStore(commands.Cog):
         self.embed = Embed(self)
 
     __version__ = "1.0.0"
+
+    async def red_delete_data_for_user(
+        self,
+        requester: Literal["discord", "owner", "user", "user_strict"],
+        user_id: int
+    ) -> None:
+        await self.config.user_from_id(user_id).clear()
 
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role: discord.Role):

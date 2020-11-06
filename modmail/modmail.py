@@ -1,6 +1,7 @@
 from redbot.core import commands, Config
 import discord
 from .embed_maker import Embed
+from typing import Literal
 
 
 class ModMail(commands.Cog):
@@ -15,6 +16,14 @@ class ModMail(commands.Cog):
         self.config = Config.get_conf(
             self, 12386760762, force_registration=True)
         self.config.register_global(**self.default_global)
+
+    async def red_delete_data_for_user(
+        self,
+        requester: Literal["discord", "owner", "user", "user_strict"],
+        user_id: int
+    ) -> None:
+        """Nothing to delete"""
+        return
 
     @commands.Cog.listener()
     async def on_message(self, message):

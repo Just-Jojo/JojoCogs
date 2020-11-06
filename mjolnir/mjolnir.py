@@ -2,6 +2,7 @@ from redbot.core import commands, Config
 import discord
 import random
 import logging
+from typing import Literal
 
 log = logging.getLogger('red.jojo.mjolnir')
 
@@ -19,6 +20,13 @@ class Mjolnir(commands.Cog):
         self.config = Config.get_conf(self, 15034742, force_registration=True)
         self.config.register_user(**self.default_user)
         self.config.register_guild(**self.default_guild)
+
+    async def red_delete_data_for_user(
+        self,
+        requester: Literal["discord", "owner", "user", "user_strict"],
+        user_id: int
+    ) -> None:
+        await self.config.user_from_id(user_id).clear()
 
     @commands.command()
     @commands.cooldown(1, 300, commands.BucketType.user)

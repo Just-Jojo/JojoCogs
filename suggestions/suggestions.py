@@ -19,6 +19,14 @@ class Suggestions(commands.Cog):
             **self.default_global
         )
 
+    async def red_delete_data_for_user(
+        self,
+        requester: Literal["discord", "owner", "user", "user_strict"],
+        user_id: int
+    ) -> None:
+        """Nothing to delete"""
+        return
+
     @commands.command()
     @commands.is_owner()
     async def suggestset(self, ctx, channel: discord.TextChannel = None):
