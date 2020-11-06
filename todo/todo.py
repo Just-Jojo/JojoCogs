@@ -52,7 +52,7 @@ class ToDo(commands.Cog):
 
     async def page_logic(self, ctx: commands.Context, object: dict) -> None:
         count = 0
-        embeds: list
+        embeds = []
         embed = self.create(
             ctx, title=f"{ctx.author}'s ToDo list", color=ctx.author.color,
             footer=f"{ctx.author.name}'s ToDos'"
