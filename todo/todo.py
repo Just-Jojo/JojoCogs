@@ -10,16 +10,12 @@ log = logging.getLogger("red.jojo.todo")
 class ToDo(commands.Cog):
     """A simple todo list for discord"""
 
-    default_user = {
-        "ToDo": "Write a ToDo list"
-    }
-
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(
             self, 19924714019, force_registration=True)
         self.config.register_user(
-            **self.default_user
+            todo={}
         )
 
     @commands.group()
@@ -29,7 +25,7 @@ class ToDo(commands.Cog):
     @todo.command()
     async def add(self, ctx, title: str, *, description: str):
         """Add a to do reminder"""
-        await self.config.user(ctx.author).set_raw(title, value=description)
+        await self.config.user(ctx.author).todo.set_raw(title, value=description)
         await ctx.send("I have added the reminder under the name `{}`".format(title))
 
     @todo.command(aliases=["del", "delete"])
@@ -37,7 +33,7 @@ class ToDo(commands.Cog):
         """Remove a to do reminder
         Note this *is* case sensitive"""
         try:
-            await self.config.user(ctx.author).clear_raw(todo)
+            await self.config.user(ctx.author).todo.clear_raw(todo)
         except KeyError:
             return await ctx.send("I could not find that ToDo reminder. Please use `{}todo list`".format(
                 ctx.clean_prefix
@@ -47,15 +43,15 @@ class ToDo(commands.Cog):
     @todo.command(name="list")  # Fuck you, reserved keywords >:|
     async def todo_list(self, ctx):
         """List your ToDo reminders"""
-        todos = await self.config.user(ctx.author).get_raw()
+        try:
+            todos = await self.config.user(ctx.author).todo.get_raw()
+        except KeyError:
+            return await ctx.send(
+                "You don't have any todos! To add a todo reminder use `{}todo add <name> <reminder>`".format(
+                    ctx.clean_prefix)
+            )
         log.info(todos)
         await self.page_logic(ctx, todos)
-
-    @commands.command()
-    @commands.is_owner()
-    async def cleart(self, ctx):
-        await self.config.clear_raw()
-        await ctx.message.add_reaction("✅")
 
     async def page_logic(self, ctx: commands.Context, object: dict) -> None:
         count = 0
