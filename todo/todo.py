@@ -17,7 +17,7 @@ class ToDo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(
-            self, 19924714009, force_registration=True)
+            self, 19924714019, force_registration=True)
         self.config.register_user(
             **self.default_user
         )
