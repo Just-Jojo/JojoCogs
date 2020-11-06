@@ -43,15 +43,11 @@ class ToDo(commands.Cog):
     @todo.command(name="list")  # Fuck you, reserved keywords >:|
     async def todo_list(self, ctx):
         """List your ToDo reminders"""
-        try:
-            todos = await self.config.user(ctx.author).todo.get_raw()
-        except KeyError:
-            return await ctx.send(
-                "You don't have any todos! To add a todo reminder use `{}todo add <name> <reminder>`".format(
-                    ctx.clean_prefix)
-            )
-        log.info(todos)
-        await self.page_logic(ctx, todos)
+        todos = await self.config.user(ctx.author).todo.get_raw()
+        if len(todos.keys()) >= 1:
+            await self.page_logic(ctx, todos)
+        else:
+            await ctx.send(f"You don't have any ToDo reminders!\nYou can add one using `{ctx.clean_prefix}todo add <name> <ToDO>`")
 
     async def page_logic(self, ctx: commands.Context, object: dict) -> None:
         count = 0
