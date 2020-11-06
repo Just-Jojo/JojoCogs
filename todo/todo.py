@@ -48,6 +48,7 @@ class ToDo(commands.Cog):
     async def todo_list(self, ctx):
         """List your ToDo reminders"""
         todos = await self.config.user(ctx.author).get_raw()
+        log.info(todos)
         await self.page_logic(ctx, todos)
 
     @commands.command()
