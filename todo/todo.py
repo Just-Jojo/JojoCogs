@@ -24,13 +24,20 @@ class ToDo(commands.Cog):
 
     @todo.command()
     async def add(self, ctx, title: str, *, description: str):
-        """Add a to do reminder"""
+        """Add a to do reminder
+
+        Example:
+        `[p]todo add ToDo Walk the dog soon`"""
         await self.config.user(ctx.author).todo.set_raw(title, value=description)
         await ctx.send("I have added the reminder under the name `{}`".format(title))
 
     @todo.command(aliases=["del", "delete"])
     async def remove(self, ctx, todo: str):
         """Remove a to do reminder
+
+        Example:
+        `[p]todo remove|del|delete ToDo`
+
         Note this *is* case sensitive"""
         try:
             await self.config.user(ctx.author).todo.clear_raw(todo)
