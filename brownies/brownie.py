@@ -59,7 +59,7 @@ class Brownie(commands.Cog):
         """brownie settings group command"""
 
     @setbrownie.command(name="stealcd")
-    @commands.is_admin()
+    @commands.admin()
     async def _stealcd_heist(self, ctx, seconds: int):
         """Set the cooldown for stealing brownies"""
         if seconds >= 0:
@@ -70,7 +70,7 @@ class Brownie(commands.Cog):
         await ctx.send(msg)
 
     @setbrownie.command(name="browniecd")
-    @commands.is_admin()
+    @commands.admin()
     async def _browniecd_heist(self, ctx, cooldown: int):
         """Set the cooldown for brownie command"""
         if cooldown >= 0:
