@@ -72,7 +72,7 @@ class ToDo(commands.Cog):
         else:
             embeds.append(embed)
 
-        msg = await ctx.send(embeds[0])
+        msg = await ctx.send(embed=embeds[0])
         controls = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
             "\N{CROSS MARK}": menus.close_menu
         }
