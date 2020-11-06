@@ -3,6 +3,7 @@ from redbot.core.utils import menus
 import discord
 import logging
 import asyncio
+from typing import Literal
 
 log = logging.getLogger("red.jojo.todo")
 
@@ -17,6 +18,13 @@ class ToDo(commands.Cog):
         self.config.register_user(
             todo={}
         )
+
+    async def red_delete_data_for_user(
+        self,
+        requester: Literal["discord", "owner", "user", "user_strict"],
+        user_id: int
+    ) -> None:
+        await self.config.user_from_id(user_id).clear()
 
     @commands.group()
     async def todo(self, ctx):
