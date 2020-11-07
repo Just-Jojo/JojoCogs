@@ -5,6 +5,7 @@ import discord
 import asyncio
 import contextlib
 from .embed import Embed
+from typing import Literal
 
 
 class Suggestions(commands.Cog):
