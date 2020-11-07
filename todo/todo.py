@@ -72,8 +72,8 @@ class ToDo(commands.Cog):
             footer=f"{ctx.author.name}'s ToDos'"
         )
         for key, value in object.items():
+            embed.add_field(name=key, value=value, inline=True)
             if count == 5:
-                embed.add_field(name=key, value=value, inline=True)
                 embeds.append(embed)
                 count = 0
                 embed = self.create(
@@ -81,7 +81,6 @@ class ToDo(commands.Cog):
                     footer=f"{ctx.author.name}'s ToDo's"
                 )
             else:
-                embed.add_field(name=key, value=value, inline=True)
                 count += 1
         else:
             embeds.append(embed)
