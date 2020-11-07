@@ -140,8 +140,7 @@ class Collectables(commands.Cog):
             else:
                 embed.add_field(name=key, value=value, inline=True)
                 count += 1
-        else:
-            embeds.append(embed)
+        embeds.append(embed)
         msg = await ctx.send(embed=embeds[0])
         control = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
             "\N{CROSS MARK}": menus.close_menu
