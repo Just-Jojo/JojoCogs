@@ -54,6 +54,8 @@ class ModMail(commands.Cog):
                     msg = "Successfully removed the Mod Mail channel!"
                 elif msg.content[0].lower() == "n":
                     msg = "Aborted the removal of the Mod Mail channel"
+                else:
+                    msg = "No changes have been made."
             except TimeoutError:
                 msg = "Canceled the removal of the Mod Mail channel"
             return await ctx.send(msg)
