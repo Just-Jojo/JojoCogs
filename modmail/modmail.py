@@ -1,4 +1,5 @@
 from redbot.core import commands, Config
+from redbot.core.utils.predicates import MessagePredicate
 import discord
 from .embed_maker import Embed
 from typing import Literal
@@ -49,13 +50,9 @@ class ModMail(commands.Cog):
             await ctx.send("Would you like to disable the Mod Mail? (y/n)")
             try:
                 msg = await self.bot.wait_for("message", check=lambda message: message.author == ctx.author, timeout=30)
-                if msg.content[0].lower() == "y":
-                    await self.config.set_raw("Channel", value=None)
-                    msg = "Successfully removed the Mod Mail channel!"
-                elif msg.content[0].lower() == "n":
-                    msg = "Aborted the removal of the Mod Mail channel"
+
             except TimeoutError:
-                msg = "Canceled the removal of the Mod Mail channel"
+                message = "Canceled the removal of the Mod Mail channel"
             return await ctx.send(msg)
         await self.config.set_raw("Channel", value=toggle.id)
         await ctx.send("Channel changed to {}".format(toggle.mention))
