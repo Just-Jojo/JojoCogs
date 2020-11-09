@@ -50,7 +50,13 @@ class ModMail(commands.Cog):
             await ctx.send("Would you like to disable the Mod Mail? (y/n)")
             try:
                 msg = await self.bot.wait_for("message", check=lambda message: message.author == ctx.author, timeout=30)
-
+                if msg.content[0].lower() == "y":
+                    await self.config.set_raw("Channel", value=None)
+                    msg = "Successfully removed the Mod Mail channel!"
+                elif msg.content[0].lower() == "n":
+                    msg = "Aborted the removal of the Mod Mail channel"
+                else:
+                    msg = "No changes have been made."
             except TimeoutError:
                 message = "Canceled the removal of the Mod Mail channel"
             return await ctx.send(msg)
