@@ -1,8 +1,10 @@
-from redbot.core import commands, Config
-from redbot.core.utils.predicates import MessagePredicate
-import discord
-from .embed_maker import Embed
 from typing import Literal
+
+import discord
+from redbot.core import Config, commands
+from redbot.core.utils.predicates import MessagePredicate
+
+from .embed_maker import Embed
 
 
 class ModMail(commands.Cog):

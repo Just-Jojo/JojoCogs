@@ -1,10 +1,12 @@
-from redbot.core import commands, bank, Config, modlog
-from redbot.core.utils import menus
-import discord
-from .embed_maker import Embed
 import asyncio
 import logging
 from typing import Literal
+
+import discord
+from redbot.core import Config, bank, commands, modlog
+from redbot.core.utils import menus
+
+from .embed_maker import Embed
 
 log = logging.getLogger('red.jojo.fun')
 

@@ -1,9 +1,10 @@
-from redbot.core import commands, checks, Config
-from redbot.core.utils import menus
-import discord
-import logging
 import asyncio
+import logging
 from typing import Literal
+
+import discord
+from redbot.core import Config, checks, commands
+from redbot.core.utils import menus
 
 log = logging.getLogger("red.jojo.todo")
 

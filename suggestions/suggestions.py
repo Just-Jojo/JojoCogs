@@ -1,11 +1,13 @@
-from redbot.core import commands, Config
-from redbot.core.utils.menus import start_adding_reactions
-from redbot.core.utils.predicates import ReactionPredicate, MessagePredicate
-import discord
 import asyncio
 import contextlib
-from .embed import Embed
 from typing import Literal
+
+import discord
+from redbot.core import Config, commands
+from redbot.core.utils.menus import start_adding_reactions
+from redbot.core.utils.predicates import MessagePredicate, ReactionPredicate
+
+from .embed import Embed
 
 
 class Suggestions(commands.Cog):

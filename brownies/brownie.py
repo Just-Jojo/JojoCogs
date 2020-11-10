@@ -5,10 +5,8 @@ import time
 from operator import itemgetter
 from typing import Literal, Optional
 
-from redbot.core import commands, Config
-from redbot.core.utils import AsyncIter
-from redbot.core.commands.converter import TimedeltaConverter
 import discord
+from redbot.core import Config, commands
 
 
 class PluralDict(dict):
@@ -50,7 +48,7 @@ class Brownie(commands.Cog):
             *,
             user: Literal["discord_deleted_user", "owner", "owner", "user", "user_strict"],
             id: int):
-        """Nothing to remove"""
+        """Nothing to delete"""
         return
 
     @commands.group()

@@ -1,11 +1,13 @@
-from redbot.core import commands, Config, bank, checks
-from redbot.core.utils import menus
 import asyncio
-from .embed import Embed
-import discord
-import random
 import logging
+import random
 from typing import Literal
+
+import discord
+from redbot.core import Config, bank, checks, commands
+from redbot.core.utils import menus
+
+from .embed import Embed
 
 log = logging.getLogger('red.jojo.collectables')
 

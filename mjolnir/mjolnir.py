@@ -1,8 +1,9 @@
-from redbot.core import commands, Config
-import discord
-import random
 import logging
+import random
 from typing import Literal
+
+import discord
+from redbot.core import Config, commands
 
 log = logging.getLogger('red.jojo.mjolnir')
 
