@@ -4,8 +4,6 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.utils.predicates import MessagePredicate
 
-from .embed_maker import Embed
-
 
 class ModMail(commands.Cog):
     """This cog allows you to see any dms your bot receives"""
@@ -62,3 +60,24 @@ class ModMail(commands.Cog):
             return await ctx.send(message)
         await self.config.set_raw("Channel", value=toggle.id)
         await ctx.send("Channel changed to {}".format(toggle.mention))
+
+class Embed:
+    def __init__(self, bot):
+        self.bot = bot
+
+    def create(self, message, title="", description="", image: str = None, thumbnail: str = None) -> discord.Embed:
+        """A modified version of JJW's embed maker to suit the `on_message` listener"""
+
+        data = discord.Embed(title=title, color=discord.Color.dark_magenta())
+        if description is not None:
+            if len(description) <= 1500:
+                data.description = description
+        data.set_author(name=message.author.display_name,
+                        icon_url=message.author.avatar_url)
+        if image is not None:
+            data.set_image(url=image)
+        if thumbnail is not None:
+            data.set_thumbnail(url=thumbnail)
+        data.set_footer(text="{0.name} modmail".format(
+            self.bot.user), icon_url=self.bot.user.avatar_url)
+        return data
