@@ -10,6 +10,10 @@ import traceback as tb
 from .embed_maker import Embed
 import random
 
+import logging
+
+log = logging.getLogger(name="red.jojo.pets")
+
 
 class Pets(commands.Cog):
     async def red_delete_data_for_user(
@@ -47,6 +51,7 @@ class Pets(commands.Cog):
         if len(pets.keys()) <= 0:
             return
         pet_type = random.choice(list(pets.keys()))
+        log.info(pet_type)
         chosen = random.choice(pets[pet_type])
         old_health = await self.config.user(message.author).pets.get_raw(pet_type, chosen, "hunger")
         if old_health >= 100:
