@@ -47,7 +47,7 @@ class Pets(commands.Cog):
         if len(pets.keys()) <= 0:
             return
         pet_type = random.choice(list(pets.keys()))
-        chosen = random.choice(list(pet_type.keys()))
+        chosen = random.choice(pets[pet_type])
         old_health = await self.config.user(message.author).pets.get_raw(pet_type, chosen, "hunger")
         if old_health >= 100:
             return await message.channel.send("{}, your pet has 100 hunger points! You need to feed them before they get removed!".format(message.author.name))
