@@ -46,11 +46,12 @@ class Pets(commands.Cog):
         pets = await self.config.user(message.author).get_raw("pets")
         if len(pets.keys()) <= 0:
             return
-        chosen = random.choice(list(pets.keys()))
-        old_health = await self.config.user(message.author).pets.get_raw(chosen, "hunger")
+        pet_type = random.choice(list(pets.keys()))
+        chosen = random.choice(list(pet_type.keys()))
+        old_health = await self.config.user(message.author).pets.get_raw(pet_type, chosen, "hunger")
         if old_health >= 100:
             return await message.channel.send("{}, your pet has 100 hunger points! You need to feed them before they get removed!".format(message.author.name))
-        await self.config.user(message.author).pets.set_raw(chosen, "hunger", value=old_health + 2)
+        await self.config.user(message.author).pets.set_raw(pet_type, chosen, "hunger", value=old_health + 2)
 
     async def update_balance(self, user: discord.Member, amount: int) -> None:
         """Update a user's balance with the bank module"""
