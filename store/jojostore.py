@@ -52,10 +52,8 @@ class JojoStore(commands.Cog):
 
     @store.command()
     @commands.admin_or_permissions(manage_guild=True)
-    async def add(self, ctx, item: str, cost: int = None):
+    async def add(self, ctx, item: str, cost: int = 250):
         """Add an item to the store"""
-        if cost is None:
-            cost = 250
         await self.config.guild(ctx.guild).set_raw(item, value=cost)
         await ctx.send("{0} can now be bought with {1} credits".format(item, cost))
 
