@@ -62,10 +62,10 @@ class Pets(commands.Cog):
             return
         pet_type = random.choice(list(pets.keys()))
         chosen = random.choice(list(pets[pet_type]))
-        old_health = await self.config.user(message.author).pets.get_raw(pet_type, chosen, "hunger")
+        old_health = await self.config.user(message.author).pets.get_raw(pet_type, chosen)
         if old_health >= 100:
             return await message.channel.send("{}, your pet has 100 hunger points! You need to feed them before they get removed!".format(message.author.name))
-        await self.config.user(message.author).pets.set_raw(pet_type, chosen, "hunger", value=old_health + 2)
+        await self.config.user(message.author).pets.set_raw(pet_type, chosen, value=old_health + 2)
 
     async def update_balance(self, user: discord.Member, amount: int) -> None:
         """Update a user's balance with the bank module"""
@@ -115,9 +115,9 @@ class Pets(commands.Cog):
 
         if await bank.can_spend(ctx.author, cost):
             await self.config.user(ctx.author).pets.set_raw(
-                pet_type, pet_name, value={"cost": cost, "hunger": 0}
+                pet_type, pet_name, value=0
             )
-            await ctx.send("You have purchased a {0} and called it {1}".format(pet_type, pet_name))
+            await ctx.send("You have purchased a {} and called it {}".format(pet_type, pet_name))
             await self.update_balance(ctx.author, cost)
         else:
             await ctx.send("You do not have enough money to buy that pet!")
@@ -126,12 +126,27 @@ class Pets(commands.Cog):
     async def pets(self, ctx):
         """List the pets that you own"""
         try:
-            pet_list = await self.config.user(ctx.author).get_raw("pets")
+            pet_list = await self.config.user(ctx.author).pets.get_raw()
         except:
             await ctx.send("You don't have any pets!")
             return
         if len(pet_list.keys()) > 0:
-            await self.page_logic(ctx, pet_list, item="{}'s pets".format(ctx.author.name))
+            pets = {}
+            for val in pet_list.values():
+                pet = ", ".join([x for x in val.values()])
+                pets[val] = pet
+            embeds = []
+            for key, value in pets.items():
+                embed = Embed.create(
+                    self, ctx, title="{}'s Pets".format(ctx.author.name)
+                )
+                embed.add_field(name=key, value=value, inline=True)
+                embeds.append(embed)
+            msg = await ctx.send(embed=embeds[0])
+            ctls = menus.DEFAULT_CONTROLS if len(embeds) > 1 \
+                else {"\N{CROSS MARK}": menus.close_menu}
+            asyncio.create_task(menus.menu(ctx, embeds, ctls, message=msg))
+            menus.start_adding_reactions(msg, ctls.keys())
         else:
             await ctx.send("You don't have any pets!")
 
@@ -144,7 +159,7 @@ class Pets(commands.Cog):
             await ctx.send("You don't own that pet!")
             return
         hunger = pet.get("hunger")
-        await ctx.send("Your pet has {0}/100 hunger".format(hunger))
+        await ctx.send("Your pet has {}/100 hunger".format(hunger))
 
     @commands.command()
     async def feed(self, ctx, pet_name: str, food: int):
