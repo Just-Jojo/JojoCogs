@@ -135,9 +135,11 @@ class Pets(commands.Cog):
             for val in pet_list.values():
                 for key, value in val.items():
                     embed = Embed.create(
-                        self, ctx, title="{}'s Pets".format(ctx.author.name)
+                        self, ctx, title="{}'s Pets".format(ctx.author.name),
+                        description="{}s".format(val.capitalize())
                     )
-                    embed.add_field(name=key, value=value, inline=True)
+                    embed.add_field(
+                        name=key, value="Hunger: {}".format(value), inline=True)
                     embeds.append(embed)
             msg = await ctx.send(embed=embeds[0])
             ctls = menus.DEFAULT_CONTROLS if len(embeds) > 1 \
