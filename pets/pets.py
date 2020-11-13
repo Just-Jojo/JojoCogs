@@ -54,7 +54,7 @@ class Pets(commands.Cog):
         if message.channel.id != 758775890954944572:
             return
 
-        if await self._check_cooldown(ctx) is False:
+        if await self._check_cooldown(message.channel) is False:
             return
 
         pets = await self.config.user(message.author).get_raw("pets")
@@ -173,8 +173,8 @@ class Pets(commands.Cog):
             return
         await self.page_logic(ctx, pet_list, item="{}'s Pet Store".format(ctx.guild.name))
 
-    async def _check_cooldown(self, ctx: commands.Context) -> bool:
-        async for message in ctx.channel.history:
+    async def _check_cooldown(self, channl: discord.TextChannel) -> bool:
+        async for message in channel.history:
             dt = datetime.utcnow() - message.created_at
             if dt.total_seconds() < 300:
                 return True
