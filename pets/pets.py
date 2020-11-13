@@ -174,7 +174,7 @@ class Pets(commands.Cog):
         await self.page_logic(ctx, pet_list, item="{}'s Pet Store".format(ctx.guild.name))
 
     async def _check_cooldown(self, channel: discord.TextChannel) -> bool:
-        async for message in channel.history:
+        async for message in channel.history(limit=5):
             dt = datetime.utcnow() - message.created_at
             if dt.total_seconds() < 300:
                 return True
