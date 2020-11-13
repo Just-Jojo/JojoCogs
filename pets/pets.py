@@ -43,7 +43,10 @@ class Pets(commands.Cog):
             return
         if message.author.bot:
             return
-        if message.content[0] in await self.bot.get_prefix(message):
+        try:
+            if message.content[0] in await self.bot.get_prefix(message):
+                return
+        except KeyError:
             return
         if message.channel.id != 758775890954944572:
             return
