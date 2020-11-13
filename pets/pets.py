@@ -48,6 +48,8 @@ class Pets(commands.Cog):
                 return
         except IndexError:
             return
+        except Exception as e:
+            log.error(e)
         if message.channel.id != 758775890954944572:
             return
         pets = await self.config.user(message.author).get_raw("pets")
