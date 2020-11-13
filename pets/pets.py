@@ -131,17 +131,14 @@ class Pets(commands.Cog):
             await ctx.send("You don't have any pets!")
             return
         if len(pet_list.keys()) > 0:
-            pets = {}
-            for val in pet_list.values():
-                pet = ", ".join([x for x in val.values()])
-                pets[val] = pet
             embeds = []
-            for key, value in pets.items():
-                embed = Embed.create(
-                    self, ctx, title="{}'s Pets".format(ctx.author.name)
-                )
-                embed.add_field(name=key, value=value, inline=True)
-                embeds.append(embed)
+            for val in pet_list.values():
+                for key, value in val.items():
+                    embed = Embed.create(
+                        self, ctx, title="{}'s Pets".format(ctx.author.name)
+                    )
+                    embed.add_field(name=key, value=value, inline=True)
+                    embeds.append(embed)
             msg = await ctx.send(embed=embeds[0])
             ctls = menus.DEFAULT_CONTROLS if len(embeds) > 1 \
                 else {"\N{CROSS MARK}": menus.close_menu}
