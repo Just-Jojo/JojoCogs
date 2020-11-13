@@ -6,6 +6,7 @@ from redbot.core.utils import AsyncIter, menus
 import asyncio
 
 import discord
+from datetime import datetime
 import traceback as tb
 from .embed_maker import Embed
 import random
@@ -52,6 +53,10 @@ class Pets(commands.Cog):
             log.error(e)
         if message.channel.id != 758775890954944572:
             return
+
+        if await self._check_cooldown(ctx) is False:
+            return
+
         pets = await self.config.user(message.author).get_raw("pets")
         if len(pets.keys()) <= 0:
             return
@@ -156,7 +161,7 @@ class Pets(commands.Cog):
         await self.config.user(ctx.author).pets.set_raw(
             pet_name, "hunger", value=new_hunger
         )
-        await ctx.send("Your pet is now at {0}/100 hunger!".format(new_hunger))
+        await ctx.send("Your pet is now at {}/100 hunger!".format(new_hunger))
 
     @commands.command(name="petlist", aliases=["plist"])
     async def pet_list(self, ctx):
@@ -167,3 +172,11 @@ class Pets(commands.Cog):
             await ctx.send("I could not find any pets!")
             return
         await self.page_logic(ctx, pet_list, item="{}'s Pet Store".format(ctx.guild.name))
+
+    async def _check_cooldown(self, ctx: commands.Context) -> bool:
+        async for message in ctx.channel.history:
+            dt = datetime.utcnow() - message.created_at
+            if dt.total_seconds() < 300:
+                return True
+            else:
+                return False
