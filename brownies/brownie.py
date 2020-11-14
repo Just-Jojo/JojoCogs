@@ -227,8 +227,8 @@ class Brownie(commands.Cog):
                     brownies_stolen = 1
 
                 stolen = random.randint(1, brownies_stolen)
-                await self.config.guild(author.guild).Players.set_raw(user.id, "brownies", value=brownies - brownies_stolen)
-                await self.config.guild(author.guild).Players.set_raw(author.id, "brownies", value=author_brownies + brownies_stolen)
+                await self.config.guild(author.guild).Players.set_raw(user.id, "brownies", value=brownies - stolen)
+                await self.config.guild(author.guild).Players.set_raw(author.id, "brownies", value=author_brownies + stolen)
                 msg = ("{0} stole {1} brownie points from {2}!".format(
                     author.name, stolen, user.name))
             else:
