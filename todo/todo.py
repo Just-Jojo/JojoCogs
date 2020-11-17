@@ -38,7 +38,7 @@ class ToDo(commands.Cog):
 
         Example:
         `[p]todo add Walk the dog soon`"""
-        await self.config.user(ctx.author).todos.set_raw(value=todo)
+        await self.config.user(ctx.author).set_raw("todos", value=todo)
         await ctx.send("Added the reminder `{}`".format(todo))
 
     @todo.command(aliases=["del", "delete"])
@@ -50,7 +50,7 @@ class ToDo(commands.Cog):
 
         Note this *is* case sensitive"""
         try:
-            await self.config.user(ctx.author).todos.clear_raw(todo)
+            await self.config.user(ctx.author).clear_raw("todos", todo)
         except KeyError:
             return await ctx.send("I could not find that ToDo reminder. Please use `{}todo list`".format(
                 ctx.clean_prefix
@@ -60,7 +60,7 @@ class ToDo(commands.Cog):
     @todo.command(name="list")  # Fuck you, reserved keywords >:|
     async def todo_list(self, ctx):
         """List your ToDo reminders"""
-        todos = await self.config.user(ctx.author).todos.get_raw()
+        todos = await self.config.user(ctx.author).get_raw("todos")
         if len(todos) >= 1:
             await self.page_logic(ctx, todos)
         else:
