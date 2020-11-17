@@ -4,6 +4,7 @@ from typing import Literal
 
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils import menus
 
 log = logging.getLogger("red.jojo.todo")
@@ -17,7 +18,7 @@ class ToDo(commands.Cog):
         self.config = Config.get_conf(
             self, 19924714019, force_registration=True)
         self.config.register_user(
-            todo={}
+            todo=[]
         )
 
     async def red_delete_data_for_user(
@@ -32,13 +33,13 @@ class ToDo(commands.Cog):
         """Base To do reminder command"""
 
     @todo.command()
-    async def add(self, ctx, title: str, *, description: str):
+    async def add(self, ctx, *, todo: str):
         """Add a to do reminder
 
         Example:
-        `[p]todo add ToDo Walk the dog soon`"""
-        await self.config.user(ctx.author).todo.set_raw(title, value=description)
-        await ctx.send("I have added the reminder under the name `{}`".format(title))
+        `[p]todo add Walk the dog soon`"""
+        await self.config.user(ctx.author).todo.set_raw(value=todo)
+        await ctx.send("Added the reminder `{}`".format(todo))
 
     @todo.command(aliases=["del", "delete"])
     async def remove(self, ctx, todo: str):
@@ -60,30 +61,23 @@ class ToDo(commands.Cog):
     async def todo_list(self, ctx):
         """List your ToDo reminders"""
         todos = await self.config.user(ctx.author).todo.get_raw()
-        if len(todos.keys()) >= 1:
+        if len(todos) >= 1:
             await self.page_logic(ctx, todos)
         else:
             await ctx.send(f"You don't have any ToDo reminders!\nYou can add one using `{ctx.clean_prefix}todo add <name> <ToDO>`")
 
-    async def page_logic(self, ctx: commands.Context, object: dict) -> None:
-        count = 0
+    async def page_logic(self, ctx: commands.Context, object: list) -> None:
         embeds = []
-        embed = self.create(
-            ctx, title=f"{ctx.author}'s ToDo list", color=ctx.author.color,
-            footer=f"{ctx.author.name}'s ToDo's"
-        )
-        for key, value in object.items():
-            embed.add_field(name=key, value=value, inline=True)
-            if count == 5:
-                embeds.append(embed)
-                count = 0
-                embed = self.create(
-                    ctx, title=f"{ctx.author}'s ToDo list", color=ctx.author.color,
-                    footer=f"{ctx.author.name}'s ToDo's"
-                )
-            else:
-                count += 1
-        else:
+        values = {
+            "title": "{}'s ToDos".format(ctx.author.display_name),
+            "color": ctx.author.color
+        }
+        paged = pagify(", ".join(object), page_length=500)
+        for i in paged:
+            embed = discord.Embed(**values)
+            embed.set_author(name=ctx.author.name,
+                             icon_url=ctx.author.avatar_url)
+            embed.add_field(name="ToDo's", value=i)
             embeds.append(embed)
 
         msg = await ctx.send(embed=embeds[0])
