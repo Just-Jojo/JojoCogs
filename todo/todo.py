@@ -72,7 +72,7 @@ class ToDo(commands.Cog):
             "title": "{}'s ToDos".format(ctx.author.display_name),
             "color": ctx.author.color
         }
-        paged = pagify(", ".join(object), page_length=500)
+        paged = pagify(object, page_length=500)
         for i in paged:
             embed = discord.Embed(**values)
             embed.set_author(name=ctx.author.name,
