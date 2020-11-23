@@ -86,5 +86,8 @@ class Mjolnir(commands.Cog):
             name = self.bot.get_member(user[0]).name
             amount = user[1]["times_lifted"]
             sen.append("**{}** {}".format(name, amount))
-        sending = "\n".join(sen)
-        await ctx.send(sending)
+        if len(sen) > 0:
+            sending = "\n".join(sen)
+            await ctx.send(sending)
+        else:
+            await ctx.send("No one has lifted Thor's hammer yet!")
