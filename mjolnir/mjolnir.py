@@ -1,9 +1,13 @@
+#pylint: disable=unused-variable
 import logging
 import random
 from typing import Literal
+import asyncio
 
 import discord
 from redbot.core import Config, commands
+from redbot.core.utils import menus
+from redbot.core.utils.chat_formatting import pagify
 
 log = logging.getLogger('red.jojo.mjolnir')
 
@@ -21,6 +25,7 @@ class Mjolnir(commands.Cog):
         self.config = Config.get_conf(self, 15034742, force_registration=True)
         self.config.register_user(**self.default_user)
         self.config.register_guild(**self.default_guild)
+        self.embed = Embed(self.bot)
 
     async def red_delete_data_for_user(
         self,
@@ -83,11 +88,62 @@ class Mjolnir(commands.Cog):
         )
         sen = []
         for user in users:
-            name = self.bot.get_member(user[0]).name
+            name = self.bot.get_user(user[0]).name
             amount = user[1]["times_lifted"]
             sen.append("**{}** {}".format(name, amount))
         if len(sen) > 0:
-            sending = "\n".join(sen)
-            await ctx.send(sending)
+            paged = pagify(text=(sending := "\n".join(sen)), page_length=1500)
+            embeds = []
+            for page in paged:
+                embed = await self.embed.create(ctx, title="Worthy leaderboard")
+                embed.add_field(name="Liftedboard", value=page)
+                embeds.append(embed)
+            controls = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
+                "\N{CROSS MARK}": menus.close_menu
+            }
+            asyncio.create_task(
+                menus.menu(
+                    ctx, embeds, controls, message=(msg := await ctx.send(embed=embeds[0])),
+                    timeout=20
+                )
+            )
+            menus.start_adding_reactions(msg, controls)
         else:
             await ctx.send("No one has lifted Thor's hammer yet!")
+
+
+class Embed:
+    def __init__(self, bot):
+        self.bot = bot
+
+    async def create(
+        self, ctx: commands.Context, title: str = None, description: str = None,
+        image: str = None, thumbnail: str = None, footer: str = None, footer_url: str = None,
+        color: discord.Colour = None
+    ) -> discord.Embed:
+        data = discord.Embed()
+        if title:
+            data.title = title
+        if description:
+            data.description = description
+
+        if color:
+            data.colour = color
+        else:
+            if isinstance(ctx.channel, discord.TextChannel):
+                data.colour = ctx.author.colour
+            else:
+                data.colour = await ctx.embed_colour()
+
+        if thumbnail:
+            data.set_thumbnail(url=thumbnail)
+        if image:
+            data.set_image(url=image)
+
+        if not footer:
+            footer = "{} embed maker".format(ctx.me.name)
+        if not footer_url:
+            footer_url = ctx.me.avatar_url
+        data.set_footer(text=footer, icon_url=footer_url)
+
+        return data
