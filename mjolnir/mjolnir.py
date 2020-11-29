@@ -45,8 +45,8 @@ class Mjolnir(commands.Cog):
             "You'll get it! Just keep trying! I believe in you"
         ]
         rate = await self.config.guild(ctx.guild).get_raw("drop_rate")
-        trylift_result = random.randint(1, rate)
-        if trylift_result == rate:
+        # trylift_result = random.randint(1, rate)
+        if (trylift_result := random.randint(1, rate)) == rate:
             old = await self.config.user(ctx.author).get_raw('times_lifted')
             msg = "The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin"
             if rate >= 50:
