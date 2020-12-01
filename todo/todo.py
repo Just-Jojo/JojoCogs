@@ -38,7 +38,7 @@ class ToDo(commands.Cog):
 
         Example:
         `[p]todo add Walk the dog soon`"""
-        await self.config.user(ctx.author).todos.set_raw(value=todo)
+        await self.config.user(ctx.author).set_raw("todos", value=todo)
         await ctx.send("Added the reminder `{}`".format(todo))
 
     @todo.command(aliases=["del", "delete"])
