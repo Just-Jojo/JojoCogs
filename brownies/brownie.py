@@ -248,7 +248,7 @@ class Brownie(commands.Cog):
 
         return user
 
-    def time_formatting(self, seconds):
+    def time_formatting(self, seconds) -> str:
 
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
