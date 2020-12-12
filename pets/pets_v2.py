@@ -31,6 +31,11 @@ class Pets(commands.Cog):
         self.config.register_member(pets={}, food=0)
         self.embed = Embed(self.bot)  # For embeds
 
+    async def red_delete_data_for_user(
+        self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int
+    ) -> None:
+        await self.config.member(user_id).clear()
+
     @commands.command()
     async def buypet(self, ctx: commands.Context, pet_type: str, *, name: str):
         """Buy a pet!
