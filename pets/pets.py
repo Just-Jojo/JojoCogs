@@ -37,8 +37,8 @@ class Pets(commands.Cog):
             pets={}
         )
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
+    @commands.Cog.listener("on_message_without_command")
+    async def on_message_for_pets(self, message):
         if isinstance(message.channel, discord.DMChannel):
             return
         if message.author.bot:
