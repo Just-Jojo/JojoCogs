@@ -4,6 +4,7 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import menu, close_menu, start_adding_reactions, DEFAULT_CONTROLS
 
 import logging
+from typing import *
 
 import discord
 import asyncio
