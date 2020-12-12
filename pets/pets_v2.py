@@ -66,11 +66,12 @@ class Pets(commands.Cog):
         # pets = list(await self.config.member(ctx.author).pets.get_raw())
         pets = await self.config.member(ctx.author).pets.get_raw()
         pets = list(pets.keys())
-        if not "".join(pets):
+        act_pets = ", ".join(pets)
+        if not act_pets:
             await ctx.send(f"You don't have any pets! Buy some using `{ctx.clean_prefix}buypet <pet type> <name>`")
             return
         embeds = []
-        for page in pagify(", ".join(pets)):
+        for page in pagify(act_pets):
             embed = self.embed.create(
                 ctx, title=f"{ctx.author.display_name}'s pets")
             embed.add_field(name="Pets", value=page)
