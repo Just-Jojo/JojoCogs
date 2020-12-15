@@ -26,4 +26,4 @@ class Version(commands.Cog):
         if hasattr(cog, "__version__"):
             await ctx.send(f"`{cog.qualified_name}` version `{cog.__version__}`")
         else:
-            await ctx.send(f"{cog.qualified_name} does not have a version!")
+            await ctx.send(f"`{cog.qualified_name}` does not have a version!")
