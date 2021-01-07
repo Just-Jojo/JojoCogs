@@ -21,6 +21,12 @@ class ToDo(commands.Cog):
             todos=[]
         )
 
+    @commands.is_owner()
+    @commands.command()
+    async def clear_up(self, ctx):
+        await self.config.clear_all()
+        await ctx.tick()
+
     async def red_delete_data_for_user(
         self,
         requester: Literal["discord", "owner", "user", "user_strict"],
