@@ -3,7 +3,7 @@ import os
 import random
 import time
 from operator import itemgetter
-from typing import Literal, Optional
+from typing import Literal
 
 import discord
 from redbot.core import Config, commands
