@@ -4,9 +4,26 @@ import random
 import time
 from operator import itemgetter
 from typing import Literal, Optional
+import aiohttp
+import logging
 
 import discord
 from redbot.core import Config, commands
+from redbot.core.utils import AsyncIter
+
+log = logging.getLogger("red.mcoc-v3.brownies")
+
+# From redbot.cogs.cleanup.converters
+
+
+def positive_int(arg: str) -> int:
+    """Returns a positive int"""
+    try:
+        ret = int(arg)
+    except ValueError:
+        raise commands.BadArgument(f"{arg} is not a integer.")
+    if ret <= 0:
+        raise commands.BadArgument(f"{arg} is not a positive integer.")
 
 
 class PluralDict(dict):
@@ -27,226 +44,249 @@ class PluralDict(dict):
 
 class Brownie(commands.Cog):
     """Collector loves brownies, and will steal from others for you!"""
+    __author__ = ["JJW", "Jojo#7791"]
+    __version__ = "0.1.0"
+
+    async def default_embed(
+        self, ctx: commands.Context, title: str = None, description: str = None,
+        thumbnail: str = None, image: str = None, footer: str = None, footer_url: str = None
+    ) -> discord.Embed:
+        """Get a default embed from context"""
+        data = discord.Embed()
+        if title:
+            data.title = title
+        if description and len(description) < 2048:
+            data.description = description
+        elif description and len(description) > 2048:
+            data.description = description[:2047]  # String splicing
+            log.warning(
+                f"Descriptions length ({len(description)}) was larger than the character limit")
+
+        if ctx.guild is not None:
+            if str(ctx.author.colour) != "#000000":
+                data.colour = ctx.author.colour
+            else:
+                data.colour = ctx.embed_colour()
+        else:
+            data.colour = ctx.embed_colour()
+        if thumbnail is not None:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(thumbnail) as response:
+                    if response.status == 200:
+                        data.thumbnail = thumbnail
+        if image is not None:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(image) as response:
+                        if response.status == 200:
+                            data.image = image
+                        else:
+                            log.warning(
+                                f"Image got a status code of {response.status}")
+            except TypeError:
+                log.warning(f"`image` must be type str not {type(thumbnail)}")
+        if footer is None:
+            footer = f"{ctx.bot.user.name} Embed"
+        if footer_url is None:
+            footer_url = ctx.bot.user.avatar_url
+        else:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(footer_url) as response:
+                    if response.status != 200:
+                        footer_url = ctx.bot.user.avatar_url
+        data.set_footer(text=footer, icon_url=footer_url)
+        return data
 
     default_guild_settings = {
-        "Players": {},
-        "Config": {
-            "Steal CD": 300,
-            "brownie CD": 300
-        }
+        "StealCD": 300,
+        "BrownieCD": 300
+    }
+    default_user_settings = {
+        "brownies": 0,
+        "StealCD": 5,
+        "BrownieCD": 5
     }
 
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(
-            self, 2287042090, force_registration=True
-        )
+            self, 2287042090, force_registration=True)
+        self.config.register_member(**self.default_user_settings)
         self.config.register_guild(**self.default_guild_settings)
 
     async def red_delete_data_for_user(
-            self,
-            *,
-            user: Literal["discord_deleted_user", "owner", "owner", "user", "user_strict"],
-            id: int):
-        """Nothing to delete"""
-        return
+        self,
+        *,
+        user: Literal["discord_deleted_user", "owner", "owner", "user", "user_strict"],
+        uid: int
+    ):
+        """Delete brownie data for a user"""
+        all_members = await self.config.all_members()
+        async for guild_id, guild_data in AsyncIter(all_members.items(), steps=100):
+            if uid in guild_data:
+                await self.config.member_from_ids(guild_id, uid).clear()
 
     @commands.group()
-    @commands.guild_only()
+    @command.admin()
     async def setbrownie(self, ctx):
-        """brownie settings group command"""
+        """Change the Brownie settings for your guild"""
 
-    @setbrownie.command(name="stealcd")
-    @commands.admin()
-    async def _stealcd_heist(self, ctx, seconds: int):
-        """Set the cooldown for stealing brownies"""
-        if seconds >= 0:
-            await self.config.guild(ctx.guild).Config.set_raw("Steal CD", value=seconds)
-            msg = "Cooldown for steal set to {0} seconds".format(seconds)
-        else:
-            msg = "Cooldown needs to be higher than 0."
-        await ctx.send(msg)
+    @setbrownie.command()
+    async def stealcd(self, ctx, seconds: positive_int):
+        """Set the cooldown for stealing"""
+        await self.config.guild(ctx.guild).StealCD.set(seconds)
+        await ctx.send(f"Cooldown is now {seconds}")
 
-    @setbrownie.command(name="browniecd")
-    @commands.admin()
-    async def _browniecd_heist(self, ctx, cooldown: int):
-        """Set the cooldown for brownie command"""
-        if cooldown >= 0:
-            await self.config.guild(ctx.guild).Config.set_raw("brownie CD", value=cooldown*60)
-            msg = "Cooldown for brownie set to {0}".format(cooldown)
+    @setbrownie.command()
+    async def browniecd(self, ctx, seconds: positive_int):
+        """Set the cooldown for finding brownies"""
+        await self.config.guild(ctx.guild).BrownieCD.set(seconds)
+        await ctx.send(f"Cooldown is now {seconds}")
+
+    @setbrownie.command()
+    async def settings(self, ctx):
+        """Get the settings for Brownie and Steal cooldown"""
+        settings = await self.config.guild(ctx.guild).get_raw()
+        embed = await self.default_embed(ctx, title=f"{ctx.guild.name} Settings", thumbnail=ctx.guild.icon_url)
+        for key, value in settings.items():
+            embed.add_field(name=key, value=f"{value} seconds")
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def brownies(self, ctx):
+        """See how many brownies you have!"""
+        brownies = await self.config.member(ctx.author).brownies()
+        if brownies == 0:
+            msg = "You have 0 brownie points!"
+        elif brownies == 1:
+            msg = "You have 1 brownie point!"
         else:
-            msg = "Cooldown needs to be higher than 0."
+            msg = f"You have {brownies} brownie points!"
         await ctx.send(msg)
 
     @commands.command()
     async def brownie(self, ctx):
-        """Obtain a random number of brownies. 12h cooldown"""
-        await self.account_check(ctx.author, guild=ctx.guild)
-
-        action = "brownie CD"
-        toogle = await self.check_cooldowns(ctx, ctx.author, action)
-        if toogle is True:
-            weighted_sample = [1] * 152 + [x for x in range(49) if x > 1]
-            brownies = random.choice(weighted_sample)
-
-            author_brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author.id, "brownies")
-            await self.config.guild(ctx.guild).Players.set_raw(ctx.author.id, "brownies", value=author_brownies+brownies)
-            if brownies > 1:
-                await ctx.send("{0} found {1} brownies!".format(ctx.author.name, brownies))
-            else:
-                await ctx.send('{} found 1 brownie!'.format(ctx.author.name))
+        """Get a random amount of brownies"""
+        action = "BrownieCD"
+        cd = await self.check_cooldown(ctx=ctx, user=ctx.author, action=action)
+        if cd is False:
+            return  # I don't like huge if statements
+        weighted_sample = [1] * 152 + [x for x in range(49) if x > 1]
+        brownies = random.choice(weighted_sample)
+        user_brownies = await self.config.member(ctx.author).brownies()
+        user_brownies += brownies
+        await self.config.member(ctx.author).brownies.set(user_brownies)
+        if brownies > 1:
+            msg = f"{ctx.author.name} found {brownies} brownies!"
+        else:
+            msg = f"{ctx.author.name} found 1 brownie!"
+        await ctx.send(msg)
 
     @commands.command()
-    @commands.guild_only()
     async def brownies(self, ctx):
-        """Check how many brownie points you have"""
-        try:
-            brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author.id, "brownies")
-            msg = "{0} has **{1}** brownie points".format(
-                ctx.author.name, brownies)
-        except KeyError:
-            msg = "{} has no brownies points".format(ctx.author.name)
-        await ctx.send(msg)
-
-    @commands.command(aliases=['giveb', ])
-    @commands.guild_only()
-    async def givebrownie(self, ctx, user: discord.Member, brownies: int):
-        """Gives another user your brownies"""
-        author = ctx.author
-        if ctx.author.id == user.id:
-            return await ctx.send("You can't give yourself brownie points.")
-        await self.account_check(ctx.author, ctx.guild)
-        await self.account_check(user, guild=ctx.guild)
-        sender_brownies = await self.config.guild(ctx.guild).Players.get_raw(ctx.author.id, "brownies")
-        user_brownies = await self.config.guild(ctx.guild).Players.get_raw(user.id, "brownies")
-
-        if 0 < brownies <= sender_brownies:
-            await self.config.guild(ctx.guild).Players.set_raw(author.id, "brownies", value=sender_brownies - brownies)
-            await self.config.guild(ctx.guild).Players.set_raw(user.id, "brownies", value=user_brownies + brownies)
-            msg = "{0} gave {1} brownies to {2}".format(
-                ctx.author.name, brownies, user.name
-            )
+        """Check your brownies!"""
+        brownies = await self.config.member(ctx.author).brownies()
+        if brownies > 1:
+            msg = f"You have {brownies} brownies!"
         else:
-            msg = "You don't have enough brownies points"
-        await ctx.send(msg)
+            msg = "You have 1 brownie!"
+        await ctx.send(msg)  # might at some point make it a user check...
+
+    @commands.command(aliases=("giveb", "gib"))
+    async def givebrownies(self, ctx, user: discord.Member, brownies: positive_int):
+        """Give a user brownies!"""
+        if user.id == ctx.author.id:
+            return await ctx.send("You can't give yourself brownies")
+        user_brownies = await self.config.member(user).brownies()
+        author_brownies = await self.config.member(ctx.author).brownies()
+        if brownies > author_brownies:
+            return await ctx.send("You don't have enough brownies points")
+        user_brownies += brownies
+        author_brownies -= brownies
+        await ctx.send(f"{ctx.author.name} gave {brownies} brownies to {user.name}")
+        await self.config.member(user).brownies.set(user_brownies)
+        await self.config.member(ctx.author).brownies.set(author_brownies)
 
     @commands.command()
-    @commands.guild_only()
     async def nom(self, ctx):
-        """Eat a brownie"""
-        author = ctx.author
-        await self.account_check(ctx.author, guild=ctx.guild)
-        user_brownies = await self.config.guild(ctx.guild).Players.get_raw(author.id, "brownies")
-        if user_brownies == 0:
-            return await ctx.send("There are no brownies to eat")
-        user_brownies -= 1
-        await self.config.guild(ctx.guild).Players.set_raw(author.id, "brownies", value=user_brownies)
-        if user_brownies > 1:
-            msg = "Nom nom nom.\n{0.name} has {1} brownie points remaining".format(
-                ctx.author, user_brownies
-            )
-        elif user_brownies == 1:
-            msg = "Nom nom nom.\n{0.name} has 1 brownie point remaining".format(
-                ctx.author
-            )
+        """Nom nom nom..."""
+        brownies = await self.config.member(ctx.author).brownies()
+        if brownies == 0:
+            return await ctx.send("There are no brownies to eat!")
+        brownies -= 1
+        if brownies == 0:
+            msg = f"Nom nom nom.\n{ctx.author.name} has no more brownie points!"
+        elif brownies == 1:
+            msg = f"Nom nom nom.\n{ctx.author.name} has 1 brownie point!"
         else:
-            msg = "Nom nom nom.\n{0.name} has no more brownie points.".format(
-                ctx.author
-            )
+            msg = f"Nom nom nom.\n{ctx.author.name} has {brownies} brownie points!"
         await ctx.send(msg)
+        await self.config.member(ctx.author).brownies.set(brownies)
 
     @commands.command()
-    @commands.guild_only()
-    async def steal(self, ctx, *, user: discord.Member = None):
-        """Steal brownies from another user"""
-        author = ctx.author
-        guild = ctx.guild
-        action = "Steal CD"
-
+    async def steal(self, ctx, user: Optional[discord.Member] = None):
+        """Steal brownies!"""
+        action = "StealCD"
+        cd = await self.check_cooldown(ctx, ctx.author, action)
+        if cd is False:
+            return
         if user is None:
-            user = await self.random_user(author, guild)
-        if user == "Fail":
-            return await ctx.send("I could not find anyone with brownie points.")
-        elif user.bot:
-            return await ctx.send(
-                "Stealing failed because the picked target is a bot.\nYou can retry stealing again, your cooldown is not consumed."
-            )
-        await self.account_check(author, guild)
-        if await self.check_cooldowns(ctx, author, action) is True:
-            msg = await self.steal_logic(user, author)
-            await ctx.send("{} is on the prowl to steal brownies.".format(ctx.author.name))
-            await asyncio.sleep(4)
-            await ctx.send(msg)
+            user = self.random_user(ctx.guild, ctx.author)
+        msg = await self.steal_logic(ctx, user, ctx.author)
+        await ctx.send(f"{ctx.author.name} is on the prowl for brownies...")
+        await asyncio.sleep(4)
+        await ctx.send(msg)
 
-    async def check_cooldowns(self, ctx: commands.Context, user: discord.Member, action: str) -> bool:
-        guild_cooldown = await self.config.guild(ctx.guild).Config.get_raw(action)
-        cooldown = await self.config.guild(ctx.guild).Players.get_raw(user.id, action)
+    async def steal_logic(self, ctx: commands.Context, user: discord.Member, author: discord.Member):
+        """Logic for stealing brownies"""
+        user_brownies = await self.config.member(user).brownies()
+        author_brownies = await self.config.member(author).brownies()
+
+        if user_brownies == 0:
+            return f"{user.name} has no brownies!"
+        steal_chance = random.randint(1, 100)
+        if steal_chance > 90:
+            return "I could not find their brownie points"
+        steal_b = int(user_brownies * 0.75)
+        if steal_b < 0:
+            steal_b = 1
+        stolen = random.randint(1, steal_b)
+        user_brownies -= stolen
+        author_brownies += stolen
+        await self.config.member(user).brownies.set(user_brownies)
+        await self.config.member(author).brownies.set(author_brownies)
+        return f"{author.name} stole {stolen} brownies from {user.name}" if stolen > 1 else\
+            f"{author.name} stole 1 brownie from {user.name}"
+
+    async def check_cooldown(self, ctx: commands.Context, user: discord.Member, action: str) -> bool:
+        """Check the cooldown for a member"""
+        guild_cooldown = await self.config.guild(ctx.guild).get(action)
+        cooldown = await self.config.member(user).get(action)
         if abs(cooldown - int(time.perf_counter())) >= guild_cooldown:
+            # I have no idea how this works
             cooldown = int(time.perf_counter())
-            await self.config.guild(ctx.guild).Players.set_raw(user.id, action, value=cooldown)
+            await self.config.member(user).set_raw(action, value=cooldown)
             return True
         elif cooldown == 0:
-            cooldown = int(time.perf_counter)
-            await self.config.guild(ctx.guild).Players.set_raw(user.id, action, value=cooldown)
+            cooldown = int(time.perf_counter())
+            await self.config.member(user).set_raw(action, value=cooldown)
             return True
         else:
-            s = abs(
-                cooldown - int(time.perf_counter())
-            )
+            s = abs(cooldown - int(time.perf_counter()))
             seconds = abs(s - guild_cooldown)
             remaining = self.time_formatting(seconds)
-            await ctx.send("This action has a cooldown. You still have:\n{}".format(remaining))
+            await ctx.send(f"This action has a cooldown. You still have:\n{remaining}")
             return False
 
-    async def account_check(self, user: discord.Member, guild: discord.Guild) -> None:
-        try:
-            await self.config.guild(guild).Players.get_raw(user.id)
-        except KeyError:
-            default_user = {"Steal CD": 5, "brownie CD": 5, "brownies": 0}
-            await self.config.guild(guild).Players.set_raw(user.id, value=default_user)
-
-    async def steal_logic(self, user: discord.Member, author) -> str:
-        success_chance = random.randint(1, 100)
-        if user == "Fail":
-            msg = "I couldn't find anyone with brownie points"
-            return msg
-
-        await self.account_check(user, guild=author.guild)
-        await self.account_check(author, author.guild)
-        brownies = await self.config.guild(author.guild).Players.get_raw(user.id, "brownies")
-        author_brownies = await self.config.guild(author.guild).Players.get_raw(author.id, "brownies")
-
-        if brownies == 0:
-            msg = ('{} has no brownie points.'.format(user.name))
-        else:
-            if success_chance <= 90:
-                brownie_jar = await self.config.guild(author.guild).Players.get_raw(user.id, "brownies")
-                brownies_stolen = int(brownie_jar * 0.75)
-
-                if brownies_stolen == 0:
-                    brownies_stolen = 1
-
-                stolen = random.randint(1, brownies_stolen)
-                await self.config.guild(author.guild).Players.set_raw(user.id, "brownies", value=brownies - stolen)
-                await self.config.guild(author.guild).Players.set_raw(author.id, "brownies", value=author_brownies + stolen)
-                msg = ("{0} stole {1} brownie points from {2}!".format(
-                    author.name, stolen, user.name))
-            else:
-                msg = "I could not find their brownie points"
-
-        return msg
-
-    async def random_user(self, author, server: discord.Guild) -> discord.Member:
-        legit_users = [x for x in server.members]
-        user = random.choice(legit_users)
-        if user == user.bot:
-            legit_users.remove(user.bot)
-
-            await self.config.guild(server).Players.clear_raw(user)
-            user = random.choice(legit_users)
-        await self.account_check(user, user.guild)
-
+    def random_user(self, guild: discord.Guild, author: discord.Member):
+        """Return a random, non-bot user"""
+        clean_users = [
+            member for member in guild.members if not member.bot and not member == author]
+        user = random.choice(clean_users)
         return user
+
+    async def cog_check(self, ctx: commands.Context):
+        return ctx.guild is not None  # Guild only commands
 
     def time_formatting(self, seconds) -> str:
 
