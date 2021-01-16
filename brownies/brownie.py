@@ -66,25 +66,28 @@ class Brownie(commands.Cog):
             if str(ctx.author.colour) != "#000000":
                 data.colour = ctx.author.colour
             else:
-                data.colour = ctx.embed_colour()
+                data.colour = await ctx.embed_colour()
         else:
-            data.colour = ctx.embed_colour()
+            data.colour = await ctx.embed_colour()
         if thumbnail is not None:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(thumbnail) as response:
-                    if response.status == 200:
-                        data.thumbnail = thumbnail
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(str(thumbnail)) as response:
+                        if response.status == 200:
+                            data.set_thumbnail(thumbnail)
+            except TypeError:
+                pass
         if image is not None:
             try:
                 async with aiohttp.ClientSession() as session:
-                    async with session.get(image) as response:
+                    async with session.get(str(image)) as response:
                         if response.status == 200:
-                            data.image = image
+                            data.set_image(image)
                         else:
                             log.warning(
                                 f"Image got a status code of {response.status}")
             except TypeError:
-                log.warning(f"`image` must be type str not {type(thumbnail)}")
+                pass
         if footer is None:
             footer = f"{ctx.bot.user.name} Embed"
         if footer_url is None:
@@ -127,7 +130,7 @@ class Brownie(commands.Cog):
                 await self.config.member_from_ids(guild_id, uid).clear()
 
     @commands.group()
-    @command.admin()
+    @commands.admin()
     async def setbrownie(self, ctx):
         """Change the Brownie settings for your guild"""
 
@@ -147,6 +150,7 @@ class Brownie(commands.Cog):
     async def settings(self, ctx):
         """Get the settings for Brownie and Steal cooldown"""
         settings = await self.config.guild(ctx.guild).get_raw()
+        settings.pop("Players")
         embed = await self.default_embed(ctx, title=f"{ctx.guild.name} Settings", thumbnail=ctx.guild.icon_url)
         for key, value in settings.items():
             embed.add_field(name=key, value=f"{value} seconds")
@@ -260,8 +264,8 @@ class Brownie(commands.Cog):
 
     async def check_cooldown(self, ctx: commands.Context, user: discord.Member, action: str) -> bool:
         """Check the cooldown for a member"""
-        guild_cooldown = await self.config.guild(ctx.guild).get(action)
-        cooldown = await self.config.member(user).get(action)
+        guild_cooldown = await self.config.guild(ctx.guild).get_raw(action)
+        cooldown = await self.config.member(user).get_raw(action)
         if abs(cooldown - int(time.perf_counter())) >= guild_cooldown:
             # I have no idea how this works
             cooldown = int(time.perf_counter())
