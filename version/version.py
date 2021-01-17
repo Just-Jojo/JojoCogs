@@ -12,10 +12,14 @@ class Version(commands.Cog):
 
     @commands.command()
     async def version(self, ctx: commands.Context, cog_name: str):
-        """Get a cog's version (if any)
+        """
+        Get a cog's version (if any)
+        
         *Note, you must have the proper capitalization for cogs, this uses PascalCase
+        
         Example:
-        `[p]version Version`, `[p]version JojoStore`"""
+        `[p]version Version`, `[p]version JojoStore`
+        """
         cog: commands.Cog = self.bot.get_cog(cog_name)
         if not cog:
             await ctx.send(
