@@ -252,7 +252,7 @@ class Brownie(commands.Cog):
         if steal_chance > 90:
             return "I could not find their brownie points"
         steal_b = int(user_brownies * 0.75)
-        if steal_b < 0:
+        if steal_b < 1:
             steal_b = 1
         stolen = random.randint(1, steal_b)
         user_brownies -= stolen
