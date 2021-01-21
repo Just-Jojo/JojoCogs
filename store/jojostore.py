@@ -30,7 +30,7 @@ class JojoStore(commands.Cog):
         )
         self.config.register_member(items={})
 
-    __version__ = "1.0.0"
+    __version__ = "1.1.0"
 
     async def red_delete_data_for_user(
         self,
