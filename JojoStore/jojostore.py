@@ -128,9 +128,9 @@ class JojoStore(commands.Cog):
             amount=found, user=user, author=ctx.author)
         if state is False:
             return await ctx.send(desc)
-        if item == 1:
+        if found == 1:
             desc += f" {item}!"
-        elif item > 0:
+        elif found > 0:
             desc += f" {item}s!"
 
         embed = self.create_embed(
