@@ -7,7 +7,7 @@ from redbot.core import Config, bank, commands, modlog
 from redbot.core.bot import Red  # Type hinting
 from redbot.core.utils import menus, predicates
 from redbot.core.utils.chat_formatting import pagify
-from .utils import StoreMenu, LargeMenu
+from .utils import JojoMenu, JojoPages
 
 log = logging.getLogger('red.jojo.fun')
 
@@ -51,20 +51,8 @@ class JojoStore(commands.Cog):
         if not items:
             return await ctx.send("Hm, looks like this guild doesn't have any items!")
         items = "\n".join([f"**{k}:** {v}" for k, v in items.items()])
-        embeds = []
-        for page in pagify(text=items, page_length=200):
-            embed = self.create_embed(
-                ctx=ctx, title=f"{ctx.guild.name}'s Store", description=f"__Legend__\n**Item:** Cost\n\n{page}")
-            embed.set_thumbnail(url=ctx.guild.icon_url)
-            embeds.append(embed)
-        if len(embeds) > 5:
-            menu = LargeMenu(pages=embeds, timeout=30.0,
-                             remove_reactions=True, delete_message_after=False)
-        elif len(embeds) > 1:
-            menu = StoreMenu(pages=embeds, timeout=30.0,
-                             remove_reactions=True, delete_message_after=False)
-        else:
-            return await ctx.send(embed=embeds[0])
+        menu = JojoMenu(source=JojoPages(
+            data=list(pagify(items, page_length=50))))
         await menu.start(ctx=ctx, channel=ctx.channel)
 
     @store.command()
@@ -158,19 +146,8 @@ class JojoStore(commands.Cog):
         if not items:
             return await ctx.send("Hm, you don't seem to have any items")
         items = "\n".join([f"**{k}:** {v}" for k, v in items.items()])
-        embeds = []
-        for page in pagify(items, page_length=50):
-            embed = self.create_embed(
-                ctx=ctx, title=f"{ctx.author.name}'s items", description=page)
-            embeds.append(embed)
-        if len(embeds) > 5:
-            menu = LargeMenu(pages=embeds, timeout=30.0,
-                             remove_reactions=True, delete_message_after=False)
-        elif len(embeds) > 1:
-            menu = StoreMenu(pages=embeds, timeout=30.0,
-                             remove_reactions=True, delete_message_after=False)
-        else:
-            return await ctx.send(embed=embeds[0])
+        menu = JojoMenu(source=JojoPages(
+            data=list(pagify(items))))
         await menu.start(ctx=ctx, channel=ctx.channel)
 
     @item.command()
