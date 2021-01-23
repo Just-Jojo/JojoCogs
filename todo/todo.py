@@ -4,8 +4,8 @@ from typing import Literal
 
 import discord
 from redbot.core import Config, checks, commands
-from redbot.core.utils.chat_formatting import pagify, humanize_list as hl
-from redbot.core.utils import menus
+from redbot.core.utils.chat_formatting import pagify
+from . import menus
 
 log = logging.getLogger("red.jojo.todo")
 
@@ -67,7 +67,7 @@ class ToDo(commands.Cog):
             await ctx.send("Removed that todo!")
             await self.config.user(ctx.author).todos.set(todos)
 
-    @todo.command(name="list")  # Fuck you, reserved keywords >:|
+    @todo.command(name="list")  # Fuck you reserved keywords >:|
     async def todo_list(self, ctx):
         """List your ToDo reminders"""
         todos = await self.config.user(ctx.author).todos()
@@ -77,29 +77,11 @@ class ToDo(commands.Cog):
         else:
             await ctx.send(f"You don't have any ToDo reminders!\nYou can add one using `{ctx.clean_prefix}todo add <name> <ToDo>`")
 
-    async def page_logic(self, ctx: commands.Context, object: list) -> None:
-        embeds = []
-        values = {
-            "title": "{}'s ToDos".format(ctx.author.display_name),
-            "color": ctx.author.color
-        }
-        object = [f"`{x}`" for x in object]
-        paged = pagify(", ".join(object), page_length=500)  # hl(object)
-        for i in paged:
-            embed = discord.Embed(**values)
-            embed.set_author(name=ctx.author.name,
-                             icon_url=ctx.author.avatar_url)
-            embed.add_field(name="ToDo's", value=i)
-            embed.set_footer(
-                text=f"Use `{ctx.clean_prefix}todo add <todo>` to add a todo | `{ctx.clean_prefix}todo del <index>` to remove a todo")
-            embeds.append(embed)
-
-        msg = await ctx.send(embed=embeds[0])
-        controls = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
-            "\N{CROSS MARK}": menus.close_menu
-        }
-        asyncio.create_task(menus.menu(ctx, embeds, controls, msg, timeout=15))
-        menus.start_adding_reactions(msg, controls.keys())
+    async def page_logic(self, ctx, things: list):
+        things = "\n".join(things)
+        menu = menus.TodoMenu(source=menus.TodoPages(
+            list(pagify(things))), delete_message_after=False, clear_reactions_after=True)
+        await menu.start(ctx=ctx, channel=ctx.channel)
 
     def create(
         self, ctx, title: str = "", color: discord.Colour = None, footer: str = None, footer_url: str = None
