@@ -1,35 +1,32 @@
-# Jojo cogs
+A repo for some of the cogs I have built for Red - Discord bot
 
-##### Some of the cogs I have built for red
-> * Brownies
->     - This Cog allows you to collect brownie points.
->     - It was originally developed by JJW of [CollectorDevTeam](http://github.com/CollectorDevTeam/)
-> * Collectables
->     - This Cog allows you to buy Collectables and display them
->     - It was originally thought up by [Kreusada](https://github.com/Kreusada) and was first developed by Otriux.
-> * Mjolnir
->     - This Cog was based on another mini game (My cogs are built around mini games, okay?!) that was in a server I joined and I created it as a cog
->     - It allows you to try to lift Thor's hammer. If you succeed the feat you will be added to a global leaderboard
-> * Mod Mail
->     - This Cog will send any non-command dms your bot receives to a channel of your choosing.
->     - Pretty handy for seeing what your users are sending to the bot
-> * Pets
->     - Basically... I ripped this off of Red's documentation of the config module.
->     - You can buy pets and... that's it for now
-> * Jojo Store
->     - This Cog is a store I made early on working with the Bank and Config modules
->     - It acts as a small mini game and also a way to set buyable roles (which is my favorite part of the cog)
-> * ToDo
->     - Helps you remember stuff by writing a ToDo reminder
->     - Still a W.I.P so be careful
-> * Suggestions
->   - Allows users to send in a suggestion for ideas for your bot (eg. for cogs and the like)
->   - Mainly I wanted it so I wouldn't have to come up with my own ideas, lol
+## Help
+For help you can either join the [support](https://discord.gg/JmCFyq7) server and hop in `#support-jojocogs` or ping me on Red (perferably in testing)
+If you have a bug you found you can either ping me in the above servers or make an issue.
+
+## Forking
+Forks are great! 🍴
+If you would like to contribute, make personal edits, or just about anything just fork this repo (just don't blame me for the bad code)
+
+## Cogs
+Here are some of the cogs I've written. Anything marked `X` in the approved section has been approved by me to be pretty much working as intended
+Anything marked with `O`, however, is either not working or hasn't been finished
 
 
-## To receive help with these cogs
-1. DM me on Discord (Jojo#7791)
-2. Join the [Support](https://discord.gg/JmCFyq7) server and ask in #🔹support-jojo-cogs
+| Name           | Description                                            | Author                 | Type     | Approved |
+|----------------|--------------------------------------------------------|------------------------|----------|----------|
+| Alliance       | Alliance tools for MCOC                                | Jojo#7791, Kreusada    | Utility  | O        |
+| Brownies       | Brownie based economy system                           | Jojo#7791, JJW         | Fun      | X        |
+| Collectables   | Collectables for your guild                            | Jojo#7791, Otriux      | Fun      | O        |
+| Embedder       | Create, upload, store, and drop embeds                 | Jojo#7791              | Utility  | O        |
+| Mjolnir        | Try to lift Thor's mighty hammer                       | Jojo#7791              | Fun      | O        |
+| Pets           | Buy pets and feed them                                 | Jojo#7791              | Fun      | O        |
+| Store          | Buy items from the store and use them                  | Jojo#7791              | Fun      | X        |
+| ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | O        |
 
-
-*Sorry about the above, I just wanted to mess around with markdown* 😅
+## Pull requests
+If you want to make a pull request, first thank you for contributing (because I need help) and second follow this list
+1. Fork the repo
+2. Make your edits on that fork
+3. Test your changes (really rather not merge broken code)
+4. Make a pull request with the changes listed
