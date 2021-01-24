@@ -33,7 +33,7 @@ class Mjolnir(commands.Cog):
     @commands.command()
     async def trylift(self, ctx):
         lifted = random.randint(0, 100)
-        if lifted >= 80:
+        if lifted >= 95:
             content = "The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin"
             lift = await self.config.user(ctx.author).lifted()
             lift += 1
