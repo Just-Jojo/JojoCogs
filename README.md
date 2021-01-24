@@ -20,7 +20,7 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 | Collectables   | Collectables for your guild                            | Jojo#7791, Otriux      | Fun      | O        |
 | Embedder       | Create, upload, store, and drop embeds                 | Jojo#7791              | Utility  | O        |
 | Mjolnir        | Try to lift Thor's mighty hammer                       | Jojo#7791              | Fun      | O        |
-| Pets           | Buy pets and feed them                                 | Jojo#7791              | Fun      | O        |
+<!--| Pets           | Buy pets and feed them                                 | Jojo#7791              | Fun      | O        |-->
 | JojoStore      | Buy items from the store and use them                  | Jojo#7791              | Fun      | X        |
 | ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | O        |
 
