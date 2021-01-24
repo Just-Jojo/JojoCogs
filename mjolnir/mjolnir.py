@@ -31,6 +31,7 @@ class Mjolnir(commands.Cog):
             sending = f"You have lifted Mjolnir {lifted} times."
         await ctx.send(content=sending)
 
+    @commands.cooldown(1, 60.0, commands.BucketType.user)
     @commands.command()
     async def trylift(self, ctx):
         lifted = random.randint(0, 100)
