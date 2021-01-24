@@ -8,7 +8,7 @@ class MjolnirPages(menus.ListPageSource):
     def __init__(self, data):
         super().__init__(data, per_page=1)  # Use pagify
 
-    async def is_paginating(self):
+    def is_paginating(self):
         return True
 
     async def format_page(self, menu, page):
