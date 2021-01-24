@@ -71,21 +71,21 @@ class Embedder(commands.Cog):
 
     @embed.group(name="global")
     @commands.is_owner()
-    async def glob(self, ctx):
+    async def global_embed(self, ctx):
         """Base global command"""
 
-    @glob.command(name="upload")
-    async def _upload(self, ctx, name):
+    @global_embed.command(name="upload")
+    async def global_upload(self, ctx, name):
         """Upload a global embed"""
         await self.upload_embed_parser(ctx, name, True)
 
-    @glob.command(name="create")  # Pesky already-defined errors
-    async def _create(self, ctx, name: str, title: str, *, description):
+    @global_embed.command(name="create")  # Pesky already-defined errors
+    async def global_create(self, ctx, name: str, title: str, *, description):
         """Create a global embed"""
         await self.create_embed(ctx, name, title, description, True)
 
-    @glob.command(name="remove", aliases=("del", "delete"))
-    async def _remove(self, ctx, embed: str):
+    @global_embed.command(name="remove", aliases=("del", "delete"))
+    async def globla_remove(self, ctx, embed: str):
         """Remove a global embed"""
         embeds = await self.config.get_raw('embeds')
         if embed not in embeds.keys():
@@ -108,7 +108,7 @@ class Embedder(commands.Cog):
         await channel.send(embed=discord.Embed.from_dict(embed))
 
     @drop.command(name="global")
-    async def _global(self, ctx, channel: Optional[discord.TextChannel], name: str):
+    async def drop_global(self, ctx, channel: Optional[discord.TextChannel], name: str):
         """Drop a global embed"""
         embeds = await self.config.get_raw("embeds")
         try:
@@ -183,7 +183,7 @@ class Embedder(commands.Cog):
         await ctx.send(embed=em)
 
     @embed.command(name="list")
-    async def _list(self, ctx, guild_specific: bool = True):
+    async def embed_list(self, ctx, guild_specific: bool = True):
         """List all of the available embeds"""
         embs = await self.embed_lister(ctx, guild_specific)
         log.info(embs)
@@ -214,15 +214,16 @@ class Embedder(commands.Cog):
             if len(list(embeds.keys())) > 0:
                 return list(embeds.keys())
             return None
-        embeds = await self.config.get_raw('embeds')
-        if len(list(embeds.keys())) > 0:
-            return list(embeds.keys())
-        return None
+        else:
+            embeds = await self.config.get_raw('embeds')
+            if len(list(embeds.keys())) > 0:
+                return list(embeds.keys())
+            return None
 
-    def default_embed(self, ctx: commands.Context = None):
+    async def default_embed(self, ctx: commands.Context = None):
         embed = discord.Embed()
         if ctx:
-            embed.colour = ctx.embed_color
+            embed.colour = await ctx.embed_colour
         else:
             embed.colour = 0x00ffff
         return embed  # This was shorter than I thought...
@@ -267,7 +268,7 @@ class Embedder(commands.Cog):
             await ctx.send(f"An embed with the name `{name}` already exists!")
             return
 
-        embed = self.default_embed()
+        embed = await self.default_embed()
         embed.title = title
         embed.description = description
         log.info(embed)
@@ -275,6 +276,6 @@ class Embedder(commands.Cog):
         await ctx.send(embed=embed)
         embeds[name] = embed.to_dict()
         if glob:
-            await self.config.set_raw("embeds", value=embeds)
-            return
-        await self.config.guild(ctx.guild).set_raw("embeds", value=embeds)
+            await self.config.embeds.set(embeds)
+        else:
+            await self.config.guild(ctx.guild).embeds.set(embeds)

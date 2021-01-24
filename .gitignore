@@ -2,3 +2,4 @@
 # VS Code things
 .vscode
 .venv
+**\.tmp
