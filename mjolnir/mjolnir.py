@@ -1,149 +1,73 @@
-#pylint: disable=unused-variable
-import logging
-import random
-from typing import Literal
-import asyncio
-
 import discord
-from redbot.core import Config, commands
-from redbot.core.utils import menus
+import logging
+import asyncio
+import typing
+import random
+
+from . import menus
+
+from redbot.core import commands, Config
+from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
 
-log = logging.getLogger('red.jojo.mjolnir')
+log = logging.getLogger("red.JojoCogs.mjolnir")
 
 
 class Mjolnir(commands.Cog):
-    default_user = {
-        "times_lifted": 0
-    }
-    default_guild = {
-        "drop_rate": 100
-    }
+    """Attempt to lift Thor's hammer!"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Red):
         self.bot = bot
-        self.config = Config.get_conf(self, 15034742, force_registration=True)
-        self.config.register_user(**self.default_user)
-        self.config.register_guild(**self.default_guild)
-        self.embed = Embed(self.bot)
-
-    async def red_delete_data_for_user(
-        self,
-        requester: Literal["discord", "owner", "user", "user_strict"],
-        user_id: int
-    ) -> None:
-        await self.config.user_from_id(user_id).clear()
+        self.config = Config.get_conf(self, 1242351245243535476356, True)
+        self.config.register_user(lifted=0)
 
     @commands.command()
-    @commands.cooldown(1, 300, commands.BucketType.user)
+    async def lifted(self, ctx):
+        lifted = await self.config.user(ctx.author).lifted()
+        if lifted == 1:
+            sending = f"You have lifted Mjolnir 1 time."
+        else:
+            sending = f"You have lifted Mjolnir {lifted} times."
+        await ctx.send(content=sending)
+
+    @commands.command()
     async def trylift(self, ctx):
-        """Try to lift Thor's mighty hammer"""
-        trylift_error = [
-            "You tried your best but still lost. Fear not! There is still hope!",
-            "If you wish for the power of a god, you better be worthy of it",
-            "No luck just yet, try again!",
-            "You'll get it! Just keep trying! I believe in you"
-        ]
-        rate = await self.config.guild(ctx.guild).get_raw("drop_rate")
-        # trylift_result = random.randint(1, rate)
-        if (trylift_result := random.randint(1, rate)) == rate:
-            old = await self.config.user(ctx.author).get_raw('times_lifted')
-            msg = "The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin"
-            if rate >= 50:
-                await self.config.user(ctx.author).set_raw("times_lifted", value=old + 1)
-                log.info("{}({}) has lifted mjolnir".format(
-                    ctx.author.name, ctx.author.id)
-                )
-            else:
-                log.info(
-                    "{} has lifted the hammer but because the drop rate was so low I will not be adding it to the leaderboard".format(
-                        ctx.author.name)
-                )
+        lifted = random.randint(0, 100)
+        if lifted >= 80:
+            content = "The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin"
+            lift = await self.config.user(ctx.author).lifted()
+            lift += 1
+            await self.config.user(ctx.author).lifted.set(lift)
         else:
-            msg = random.choice(trylift_error)
-        await ctx.send(msg)
-
-    @commands.command()
-    @commands.mod_or_permissions(manage_guild=True)
-    async def rates(self, ctx, number: int = None):
-        """
-        Adjust the chance for lifting Mjolnir
-
-        *Note that if the chance for lifting it is below 50 anyone who lifts it will not be added to the leaderboard"""
-
-        if number is not None:
-            await self.config.guild(ctx.guild).set_raw("drop_rate", value=number)
-            await ctx.send("The chance of lifting Mjolnir is now `{}`".format(number))
-        else:
-            rate = await self.config.guild(ctx.guild).get_raw("drop_rate")
-            await ctx.send("The chance for lifting Mjolnir is `1/{}`".format(rate))
+            content = random.choice((
+                "The hammer is strong, but so are you. Keep at it", "Mjolnir budges a bit but remains steadfast, as you should.",
+                "You've got this!"))
+        await ctx.send(content=content)
 
     @commands.command()
     async def liftedboard(self, ctx):
-        """Get the leaderboard for the people who have lifted Thor's hammer"""
-
-        board = await self.config.all_users()
-        users = sorted(
-            board.items(), key=lambda x: x[1]["times_lifted"], reverse=True
+        all_users = await self.config.all_users()
+        # log.info(all_users)
+        # await ctx.tick()
+        board = sorted(
+            all_users.items(), key=lambda m: m[0], reverse=True
         )
-        sen = []
-        for user in users:
-            name = self.bot.get_user(user[0]).name
-            amount = user[1]["times_lifted"]
-            sen.append("**{}** {}".format(name, amount))
-        if len(sen) > 0:
-            paged = pagify(text=(sending := "\n".join(sen)), page_length=1500)
-            embeds = []
-            for page in paged:
-                embed = await self.embed.create(ctx, title="Worthy leaderboard")
-                embed.add_field(name="Liftedboard", value=page)
-                embeds.append(embed)
-            controls = menus.DEFAULT_CONTROLS if len(embeds) > 1 else {
-                "\N{CROSS MARK}": menus.close_menu
-            }
-            asyncio.create_task(
-                menus.menu(
-                    ctx, embeds, controls, message=(msg := await ctx.send(embed=embeds[0])),
-                    timeout=20
-                )
+        sending = []
+        for user in board:
+            _user = await self.bot.get_or_fetch_user(user[0])
+            name = _user.display_name
+            amount = user[1]["lifted"]
+            sending.append(f"**{name}:** {amount}")
+        sending = list(pagify("\n".join(sending)))
+        if not len(sending):
+            embed = discord.Embed(
+                title="Mjolnir!",
+                description=f"No one has lifted Mjolnir yet!\nWill you be the first? Try `{ctx.clean_prefix}`",
+                colour=discord.Colour.blue()
             )
-            menus.start_adding_reactions(msg, controls)
-        else:
-            await ctx.send("No one has lifted Thor's hammer yet!")
+            return await ctx.send(embed=embed)
+        menu = menus.MjolnirMenu(source=menus.MjolnirPages(sending))
+        await menu.start(ctx=ctx, channel=ctx.channel)
 
-
-class Embed:
-    def __init__(self, bot):
-        self.bot = bot
-
-    async def create(
-        self, ctx: commands.Context, title: str = None, description: str = None,
-        image: str = None, thumbnail: str = None, footer: str = None, footer_url: str = None,
-        color: discord.Colour = None
-    ) -> discord.Embed:
-        data = discord.Embed()
-        if title:
-            data.title = title
-        if description:
-            data.description = description
-
-        if color:
-            data.colour = color
-        else:
-            if isinstance(ctx.channel, discord.TextChannel):
-                data.colour = ctx.author.colour
-            else:
-                data.colour = await ctx.embed_colour()
-
-        if thumbnail:
-            data.set_thumbnail(url=thumbnail)
-        if image:
-            data.set_image(url=image)
-
-        if not footer:
-            footer = "{} embed maker".format(ctx.me.name)
-        if not footer_url:
-            footer_url = ctx.me.avatar_url
-        data.set_footer(text=footer, icon_url=footer_url)
-
-        return data
+    async def cog_check(self, ctx: commands.Context):
+        return ctx.guild is not None
