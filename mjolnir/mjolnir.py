@@ -22,6 +22,9 @@ class Mjolnir(commands.Cog):
         self.config = Config.get_conf(self, 1242351245243535476356, True)
         self.config.register_user(lifted=0)
 
+    async def red_delete_data_for_user(self, *, requester, user_id):
+        await self.config.user_from_id(user_id).clear()
+
     @commands.command()
     async def lifted(self, ctx):
         lifted = await self.config.user(ctx.author).lifted()
