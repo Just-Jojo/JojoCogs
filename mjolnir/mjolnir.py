@@ -49,10 +49,8 @@ class Mjolnir(commands.Cog):
     @commands.command()
     async def liftedboard(self, ctx):
         all_users = await self.config.all_users()
-        # log.info(all_users)
-        # await ctx.tick()
         board = sorted(
-            all_users.items(), key=lambda m: m[0], reverse=True
+            all_users.items(), key=lambda m: m[0]
         )
         sending = []
         for user in board:
