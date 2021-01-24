@@ -15,6 +15,7 @@ log = logging.getLogger("red.JojoCogs.mjolnir")
 
 class Mjolnir(commands.Cog):
     """Attempt to lift Thor's hammer!"""
+    __version__ = "0.1.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
