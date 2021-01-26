@@ -146,6 +146,7 @@ class JojoStore(commands.Cog):
 
     @item.command(name="list")
     async def item_list(self, ctx):
+        """List all the items in your inventory"""
         items = await self.config.member(member=ctx.author).items()
         if not items:
             return await ctx.send("Hm, you don't seem to have any items")
