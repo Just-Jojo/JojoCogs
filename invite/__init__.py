@@ -1,1 +1,0 @@
-from .invite import setup
