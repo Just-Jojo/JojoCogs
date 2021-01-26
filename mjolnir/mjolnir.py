@@ -27,6 +27,7 @@ class Mjolnir(commands.Cog):
 
     @commands.command()
     async def lifted(self, ctx):
+        """Shows how many times you've lifted the hammer."""
         lifted = await self.config.user(ctx.author).lifted()
         if lifted == 1:
             sending = f"You have lifted Mjolnir 1 time."
@@ -37,6 +38,7 @@ class Mjolnir(commands.Cog):
     @commands.cooldown(1, 60.0, commands.BucketType.user)
     @commands.command()
     async def trylift(self, ctx):
+        """Try and lift Thor's hammer!"""
         lifted = random.randint(0, 100)
         if lifted >= 95:
             content = "The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin"
@@ -51,6 +53,7 @@ class Mjolnir(commands.Cog):
 
     @commands.command()
     async def liftedboard(self, ctx):
+        """Shows the leaderboard for those who have lifted the hammer."""
         all_users = await self.config.all_users()
         board = sorted(
             all_users.items(), key=lambda m: m[0]
@@ -65,7 +68,7 @@ class Mjolnir(commands.Cog):
         if not len(sending):
             embed = discord.Embed(
                 title="Mjolnir!",
-                description=f"No one has lifted Mjolnir yet!\nWill you be the first? Try `{ctx.clean_prefix}`",
+                description=f"No one has lifted Mjolnir yet!\nWill you be the first? Try `{ctx.clean_prefix}trylift`",
                 colour=discord.Colour.blue()
             )
             return await ctx.send(embed=embed)
