@@ -12,6 +12,17 @@ from .utils import JojoMenu, JojoPages
 log = logging.getLogger('red.jojo.fun')
 
 
+def positive_int(arg: str) -> int:
+    """Returns a positive int"""
+    try:
+        ret = int(arg)
+    except ValueError:
+        raise commands.BadArgument(f"{arg} is not a integer.")
+    if ret <= 0:
+        raise commands.BadArgument(f"{arg} is not a positive integer.")
+    return ret
+
+
 class JojoStore(commands.Cog):
     """A Store designed by Jojo for Red.
 
@@ -56,14 +67,16 @@ class JojoStore(commands.Cog):
         await menu.start(ctx=ctx, channel=ctx.channel)
 
     @store.command()
-    async def buy(self, ctx, item: str):
+    async def buy(self, ctx, item: str, amount: positive_int = 1):
         """Buy an item from the store!"""
+        log.info(amount)
         item = item.lower()  # DON'T have case sensitive items
         guild_items = await self.config.guild(guild=ctx.guild).items()
         found = guild_items.get(item, False)
         if found is False:
             return await ctx.send("I could not find that item!")
-        if await bank.can_spend(member=ctx.author, amount=found):
+        actual_amount = int(found * amount)
+        if await bank.can_spend(member=ctx.author, amount=actual_amount):
             user_items = await self.config.member(member=ctx.author).items()
             amount = user_items.get(item)
             if amount is None:
@@ -71,8 +84,8 @@ class JojoStore(commands.Cog):
             else:
                 user_items[item] += 1
             await self.config.member(ctx.author).items.set(user_items)
-            await ctx.send(f"You bought a {item.capitalize()} for {found}!")
-            await bank.withdraw_credits(member=ctx.author, amount=found)
+            await ctx.send(f"You bought a {item.capitalize()} for {actual_amount}!")
+            await bank.withdraw_credits(member=ctx.author, amount=actual_amount)
         else:
             await ctx.send("You did not have enough for that item!")
 
