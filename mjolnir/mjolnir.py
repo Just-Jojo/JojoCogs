@@ -41,7 +41,7 @@ class Mjolnir(commands.Cog):
         """Try and lift Thor's hammer!"""
         lifted = random.randint(0, 100)
         if lifted >= 95:
-            content = "The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin"
+            await ctx.send("The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin")
             lift = await self.config.user(ctx.author).lifted()
             lift += 1
             await self.config.user(ctx.author).lifted.set(lift)
@@ -49,7 +49,7 @@ class Mjolnir(commands.Cog):
             content = random.choice((
                 "The hammer is strong, but so are you. Keep at it", "Mjolnir budges a bit but remains steadfast, as you should.",
                 "You've got this!"))
-        await ctx.send(content=content)
+            await ctx.send(content=content)
 
     @commands.command()
     async def liftedboard(self, ctx):
