@@ -46,9 +46,9 @@ class Mjolnir(commands.Cog):
             lift += 1
             await self.config.user(ctx.author).lifted.set(lift)
         else:
-            content = random.choice((
-                "The hammer is strong, but so are you. Keep at it", "Mjolnir budges a bit but remains steadfast, as you should.",
-                "You've got this!"))
+            sayings = ["The hammer is strong, but so are you. Keep at it!", "Mjolnir budges a bit, but remains steadfast, as should you",
+                       "You've got this! I believe in you!", "Don't think it even moved... why don't you try again?"]
+            content = random.choice(sayings)
             await ctx.send(content=content)
 
     @commands.command()
