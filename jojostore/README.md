@@ -22,6 +22,4 @@
   3. To use an item, use `[p]use <item>`
   4. Adding an item to the store is a simple as running `[p]store add <item> [cost]` *note, if no cost is given it will default to 250
 
-~~~
-And that's how you use my store. Have fun!
-~~~
+###### And that's how you use my store. Have fun!
