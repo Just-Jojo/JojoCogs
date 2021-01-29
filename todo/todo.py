@@ -18,7 +18,7 @@ class ToDo(commands.Cog):
         self.config = Config.get_conf(
             self, 19924714019, force_registration=True)
         self.config.register_user(
-            todos=[]
+            todos=[], use_md=True
         )
 
     async def red_delete_data_for_user(
@@ -27,6 +27,17 @@ class ToDo(commands.Cog):
         user_id: int
     ) -> None:
         await self.config.user_from_id(user_id).clear()
+
+    @commands.command()
+    async def mdtoggle(self, ctx, toggle: bool):
+        """Toggle whether or not the list should use markdown"""
+        md = await self.config.user(ctx.author).use_md()
+        toggled = "disabled!" if toggle is False else "enabled!"
+        if md == toggle:
+            await ctx.send(f"Markdown is already {toggled}")
+        else:
+            await ctx.send(f"Markdown is now {toggled}")
+            await self.config.user(ctx.author).use_md.set(toggle)
 
     @commands.group()
     async def todo(self, ctx):
@@ -81,8 +92,11 @@ class ToDo(commands.Cog):
 
     async def page_logic(self, ctx, things: list):
         things = "\n".join(things)
-        menu = menus.TodoMenu(source=menus.TodoPages(
-            list(pagify(things))), delete_message_after=False, clear_reactions_after=True)
+        use_md = await self.config.user(ctx.author).use_md()
+        menu = menus.TodoMenu(
+            source=menus.TodoPages(data=list(pagify(things)), use_md=use_md),
+            delete_message_after=False, clear_reactions_after=True
+        )
         await menu.start(ctx=ctx, channel=ctx.channel)
 
     def create(

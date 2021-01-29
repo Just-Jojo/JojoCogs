@@ -2,11 +2,13 @@ import discord
 from redbot.vendored.discord.ext import menus
 from redbot.core import commands
 from redbot.core.bot import Red
+from redbot.core.utils.chat_formatting import box
 
 
 class TodoPages(menus.ListPageSource):
-    def __init__(self, data):
+    def __init__(self, data, use_md: bool):
         super().__init__(data, per_page=1)
+        self.md = use_md
 
     def is_paginating(self):
         return True
@@ -16,14 +18,21 @@ class TodoPages(menus.ListPageSource):
         ctx: commands.Context = menu.ctx
         if ctx.channel.permissions_for(ctx.me).embed_links:
             embed = discord.Embed(
-                title=f"{bot.user.name} Pages", description=page,
+                title=f"Todo pages",  # description=box(page, "md"),
                 colour=await ctx.embed_colour()
             )
+            if self.md:
+                embed.description = box(page, "md")
+            else:
+                embed.description = page
             embed.set_footer(
                 text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
             return embed
         else:
-            return page
+            if self.md:
+                return box(page, "md")
+            else:
+                return page
 
 
 class TodoMenu(menus.MenuPages, inherit_buttons=False):
