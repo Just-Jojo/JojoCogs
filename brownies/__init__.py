@@ -1,5 +1,5 @@
-from .brownie import Brownie
+from .brownie import Brownies
 
 
 def setup(bot):
-    bot.add_cog(Brownie(bot))
+    bot.add_cog(Brownies(bot))

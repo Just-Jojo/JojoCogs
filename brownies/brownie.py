@@ -43,7 +43,7 @@ class PluralDict(dict):
         raise KeyError(key)
 
 
-class Brownie(commands.Cog):
+class Brownies(commands.Cog):
     """Collector loves brownies, and will steal from others for you!"""
     __author__ = ["JJW", "Jojo#7791"]
     __version__ = "0.1.0"
