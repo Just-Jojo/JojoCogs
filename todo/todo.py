@@ -49,16 +49,18 @@ class ToDo(commands.Cog):
 
         Example:
         `[p]todo del <number>`"""
-        todos = await self.config.user(ctx.author).todos()
-        if len(todos) < 1:
+        todos: list = await self.config.user(ctx.author).todos()
+        if not len(todos):
             await ctx.send(f"You don't have any todos yet!\nUse `{ctx.clean_prefix}todo add <todo>` to add one!")
             return
         if todo is None:  # can't use `not todo` since `0` is falsy
             sending = []
-            for index, item in enumerate(todos):
+            for index, item in enumerate(todos, 1):
                 sending.append(f"{index} {item}")
             await self.page_logic(ctx, sending)
             return
+        else:
+            todo -= 1
         try:
             del todos[todo]
         except IndexError:
@@ -71,7 +73,7 @@ class ToDo(commands.Cog):
     async def todo_list(self, ctx):
         """List your ToDo reminders"""
         todos = await self.config.user(ctx.author).todos()
-        log.info(type(todos))
+        todos = [f"{num}. {item}" for num, item in enumerate(todos, 1)]
         if len(todos) >= 1:
             await self.page_logic(ctx, todos)
         else:
