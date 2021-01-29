@@ -30,11 +30,11 @@ class ToDo(commands.Cog):
 
     @commands.group()
     async def todo(self, ctx):
-        """Base To do reminder command"""
+        """Base todo reminder command"""
 
     @todo.command()
     async def add(self, ctx, *, todo: str):
-        """Add a to do reminder
+        """Add a todo reminder
 
         Example:
         `[p]todo add Walk the dog soon`"""
@@ -45,7 +45,7 @@ class ToDo(commands.Cog):
 
     @todo.command(aliases=["del", "delete"])
     async def remove(self, ctx, todo: int = None):
-        """Remove a to do reminder
+        """Remove a todo reminder
 
         Example:
         `[p]todo del <number>`"""
@@ -71,7 +71,7 @@ class ToDo(commands.Cog):
 
     @todo.command(name="list")  # Fuck you reserved keywords >:|
     async def todo_list(self, ctx):
-        """List your ToDo reminders"""
+        """List your todo reminders"""
         todos = await self.config.user(ctx.author).todos()
         todos = [f"{num}. {item}" for num, item in enumerate(todos, 1)]
         if len(todos) >= 1:
