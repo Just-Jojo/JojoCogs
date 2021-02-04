@@ -10,6 +10,17 @@ from . import menus
 log = logging.getLogger("red.jojo.todo")
 
 
+def positive_int(arg: str) -> int:
+    """Returns a positive int"""
+    try:
+        ret = int(arg)
+    except ValueError:
+        raise commands.BadArgument(f"{arg} is not a integer.")
+    if ret <= 0:
+        raise commands.BadArgument(f"{arg} is not a positive integer.")
+    return ret
+
+
 class ToDo(commands.Cog):
     """A simple todo list for discord"""
 
@@ -62,8 +73,10 @@ class ToDo(commands.Cog):
         `[p]todo del <number>`"""
         todos: list = await self.config.user(ctx.author).todos()
         if not len(todos):
-            await ctx.send(f"You don't have any todos yet!\nUse `{ctx.clean_prefix}todo add <todo>` to add one!")
-            return
+            return await ctx.send((
+                "You don't have any todos yet!"
+                f"\nUse `{ctx.clean_prefix}todo add <todo>` to add one!"
+            ))
         if todo is None:  # can't use `not todo` since `0` is falsy
             sending = []
             for index, item in enumerate(todos, 1):
@@ -88,7 +101,30 @@ class ToDo(commands.Cog):
         if len(todos) >= 1:
             await self.page_logic(ctx, todos)
         else:
-            await ctx.send(f"You don't have any ToDo reminders!\nYou can add one using `{ctx.clean_prefix}todo add <name> <ToDo>`")
+            await ctx.send(
+                (
+                    f"You don't have any ToDo reminders!"
+                    f"\nYou can add one using "
+                    f"`{ctx.clean_prefix}todo add <name> <ToDo>`"
+                )
+            )
+
+    @todo.command(aliases=["move", ])
+    async def rearrange(self, ctx, index: positive_int, new_index: positive_int):
+        """Rearrange a todo!"""
+        index -= 1
+        new_index -= 1
+        items = await self.config.user(ctx.author).todos()
+        if new_index > (leng := len(items)):
+            new_index = leng - 1
+        try:
+            item = items.pop(index)
+        except IndexError:
+            await ctx.send("Hm, that doesn't seem to be a todo!")
+        else:
+            items.insert(new_index, item)
+            await ctx.send("I moved that todo!")
+            await self.config.user(ctx.author).todos.set(items)
 
     async def page_logic(self, ctx, things: list):
         things = "\n".join(things)
@@ -100,7 +136,8 @@ class ToDo(commands.Cog):
         await menu.start(ctx=ctx, channel=ctx.channel)
 
     def create(
-        self, ctx, title: str = "", color: discord.Colour = None, footer: str = None, footer_url: str = None
+        self, ctx, title: str = "", color: discord.Colour = None,
+        footer: str = None, footer_url: str = None
     ) -> discord.Embed:
         data = discord.Embed(title=title, color=color)
         if footer is None:

@@ -18,7 +18,7 @@ class TodoPages(menus.ListPageSource):
         ctx: commands.Context = menu.ctx
         if ctx.channel.permissions_for(ctx.me).embed_links:
             embed = discord.Embed(
-                title=f"Todo pages",  # description=box(page, "md"),
+                title=f"Todo List",
                 colour=await ctx.embed_colour()
             )
             if self.md:
