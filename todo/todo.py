@@ -4,6 +4,7 @@ from typing import Literal
 
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.utils.predicates import MessagePredicate
 from redbot.core.utils.chat_formatting import pagify
 from . import menus
 
@@ -29,7 +30,7 @@ class ToDo(commands.Cog):
         self.config = Config.get_conf(
             self, 19924714019, force_registration=True)
         self.config.register_user(
-            todos=[], use_md=True
+            todos=[], use_md=True, sort=False
         )
 
     async def red_delete_data_for_user(
@@ -65,7 +66,8 @@ class ToDo(commands.Cog):
         await self.config.user(ctx.author).todos.set(todos)
         await ctx.send("Added that todo reminder!")
 
-    @todo.command(aliases=["del", "delete"])
+    # `pop` because you're basically using list.pop(index) :p
+    @todo.command(aliases=["del", "delete", "pop"])
     async def remove(self, ctx, todo: int = None):
         """Remove a todo reminder
 
@@ -109,6 +111,26 @@ class ToDo(commands.Cog):
                 )
             )
 
+    @todo.command()
+    async def sort(self, ctx):
+        """Sort your todos alphabetically"""
+        msg = await ctx.send("Would you like to sort your todos in reverse?")
+        try:
+            pred = MessagePredicate.yes_or_no(ctx)
+            result = await self.bot.wait_for("message", check=pred, timeout=15.0)
+        except asyncio.TimeoutError:
+            await ctx.send("Alright!")
+            reverse = True
+        else:
+            reverse = pred.result
+        items: list = await self.config.user(ctx.author).todos()
+        items.sort(reverse=reverse)
+        await ctx.send("Okay! I've sorted your todos!")
+        await self.page_logic(
+            ctx=ctx, things=[f"{num}. {i}" for num, i in enumerate(items, 1)]
+        )
+        await self.config.user(ctx.author).todos.set(items)
+
     @todo.command(aliases=["move", ])
     async def rearrange(self, ctx, index: positive_int, new_index: positive_int):
         """Rearrange a todo!"""
@@ -126,7 +148,7 @@ class ToDo(commands.Cog):
             await ctx.send("I moved that todo!")
             await self.config.user(ctx.author).todos.set(items)
 
-    async def page_logic(self, ctx, things: list):
+    async def page_logic(self, ctx: commands.Context, things: list):
         things = "\n".join(things)
         use_md = await self.config.user(ctx.author).use_md()
         menu = menus.TodoMenu(
@@ -136,7 +158,8 @@ class ToDo(commands.Cog):
         await menu.start(ctx=ctx, channel=ctx.channel)
 
     def create(
-        self, ctx, title: str = "", color: discord.Colour = None,
+        self, ctx: commands.Context, title: str = "",
+        color: discord.Colour = None,
         footer: str = None, footer_url: str = None
     ) -> discord.Embed:
         data = discord.Embed(title=title, color=color)
