@@ -32,7 +32,7 @@ class ToDo(commands.Cog):
         self.config = Config.get_conf(
             self, 19924714019, force_registration=True)
         self.config.register_user(
-            todos=[], use_md=True, sort=False
+            todos=[], use_md=True, detailed_pop=False
         )
 
     async def red_delete_data_for_user(
@@ -41,6 +41,17 @@ class ToDo(commands.Cog):
         user_id: int
     ) -> None:
         await self.config.user_from_id(user_id).clear()
+
+    @commands.command()
+    async def logpop(self, ctx, toggle: bool):
+        """Log popped todo reminders"""
+        logged = await self.config.user(ctx.author).detailed_pop()
+        toggled = "disabled!" if not toggle else "enabled!"
+        if logged == toggle:
+            await ctx.send(f"Logged todos are already {toggled}")
+        else:
+            await ctx.send(f"Logged todos are now {toggled}")
+            await self.config.user(ctx.author).detailed_pop.set(toggle)
 
     @commands.command()
     async def mdtoggle(self, ctx, toggle: bool):
@@ -70,7 +81,7 @@ class ToDo(commands.Cog):
 
     # `pop` because you're basically using list.pop(index) :p
     @todo.command(aliases=["del", "delete", "pop"])
-    async def remove(self, ctx, todo: int = None):
+    async def remove(self, ctx, todo: positive_int = None):
         """Remove a todo reminder
 
         Example:
@@ -81,27 +92,28 @@ class ToDo(commands.Cog):
                 "You don't have any todos yet!"
                 f"\nUse `{ctx.clean_prefix}todo add <todo>` to add one!"
             ))
-        if todo is None:  # can't use `not todo` since `0` is falsy
-            sending = []
-            for index, item in enumerate(todos, 1):
-                sending.append(f"{index} {item}")
+        if not todo:
+            sending = self.number(item=todos)
             await self.page_logic(ctx, sending)
             return
         else:
             todo -= 1
         try:
-            del todos[todo]
+            popped = todos.pop(todo)
         except IndexError:
             await ctx.send("That was an invalid todo index!")
         else:
-            await ctx.send("Removed that todo!")
+            if await self.config.user(ctx.author).detailed_pop():
+                await ctx.send(content=f"Popped `{popped}`!")
+            else:
+                await ctx.send("Removed that todo!")
             await self.config.user(ctx.author).todos.set(todos)
 
     @todo.command(name="list")  # Fuck you reserved keywords >:|
     async def todo_list(self, ctx):
         """List your todo reminders"""
         todos = await self.config.user(ctx.author).todos()
-        todos = [f"{num}. {item}" for num, item in enumerate(todos, 1)]
+        todos = self.number(item=todos)
         if len(todos) >= 1:
             await self.page_logic(ctx, todos)
         else:
@@ -149,6 +161,9 @@ class ToDo(commands.Cog):
             items.insert(new_index, item)
             await ctx.send("I moved that todo!")
             await self.config.user(ctx.author).todos.set(items)
+
+    def number(self, item: list):
+        return [f"{num}. {act}" for num, act in enumerate(item, 1)]
 
     async def page_logic(self, ctx: commands.Context, things: list):
         things = "\n".join(things)
