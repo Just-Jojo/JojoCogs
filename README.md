@@ -15,7 +15,6 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 
 | Name           | Description                                            | Author                 | Type     | Approved | Notes     |
 |----------------|--------------------------------------------------------|------------------------|----------|----------|-----------|
-| Alliance       | Alliance tools for MCOC                                | Jojo#7791, Kreusada    | Utility  | O        |           |
 | Brownies       | Brownie based economy system                           | Jojo#7791, JJW         | Fun      | X        |           |
 | Collectables   | Collectables for your guild                            | Jojo#7791, Otriux      | Fun      | O        |           |
 | Embedder       | Create, upload, store, and drop embeds                 | Jojo#7791              | Utility  | O        |           |
