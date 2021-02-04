@@ -32,7 +32,8 @@ class ToDo(commands.Cog):
         self.config = Config.get_conf(
             self, 19924714019, force_registration=True)
         self.config.register_user(
-            todos=[], use_md=True, detailed_pop=False
+            todos=[], use_md=True,
+            detailed_pop=False, use_embeds=True
         )
 
     async def red_delete_data_for_user(
@@ -63,6 +64,19 @@ class ToDo(commands.Cog):
         else:
             await ctx.send(f"Markdown is now {toggled}")
             await self.config.user(ctx.author).use_md.set(toggle)
+
+    @commands.command(name="embedded", aliases=["useembeds", "usee"])
+    async def use_embeds(self, ctx, toggle: bool):
+        """Toggle whether or not to use embeds for todo lists"""
+        use_e = await self.config.user(ctx.author).use_embeds()
+        # I used three different ways to do the same thing
+        # LOL
+        toggled = "enabled!" if toggle else "disabled!"
+        if use_e == toggle:
+            await ctx.send(f"Embeds are already {toggled}")
+        else:
+            await ctx.send(f"Embeds are now {toggled}")
+            await self.config.user(ctx.author).use_embeds.set(toggle)
 
     @commands.group()
     async def todo(self, ctx):
@@ -168,8 +182,12 @@ class ToDo(commands.Cog):
     async def page_logic(self, ctx: commands.Context, things: list):
         things = "\n".join(things)
         use_md = await self.config.user(ctx.author).use_md()
+        use_embeds = await self.config.user(ctx.author).use_embeds()
         menu = menus.TodoMenu(
-            source=menus.TodoPages(data=list(pagify(things)), use_md=use_md),
+            source=menus.TodoPages(
+                data=list(pagify(things)), use_md=use_md,
+                use_embeds=use_embeds
+            ),
             delete_message_after=False, clear_reactions_after=True
         )
         await menu.start(ctx=ctx, channel=ctx.channel)

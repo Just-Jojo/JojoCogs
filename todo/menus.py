@@ -6,9 +6,10 @@ from redbot.core.utils.chat_formatting import box
 
 
 class TodoPages(menus.ListPageSource):
-    def __init__(self, data, use_md: bool):
+    def __init__(self, data, use_md: bool, use_embeds: bool):
         super().__init__(data, per_page=1)
         self.md = use_md
+        self.use_embeds = use_embeds
 
     def is_paginating(self):
         return True
@@ -16,7 +17,7 @@ class TodoPages(menus.ListPageSource):
     async def format_page(self, menu, page):
         bot: Red = menu.bot
         ctx: commands.Context = menu.ctx
-        if ctx.channel.permissions_for(ctx.me).embed_links:
+        if ctx.channel.permissions_for(ctx.me).embed_links and self.use_embeds:
             embed = discord.Embed(
                 title=f"Todo List",
                 colour=await ctx.embed_colour()
@@ -30,9 +31,9 @@ class TodoPages(menus.ListPageSource):
             return embed
         else:
             if self.md:
-                return box(page, "md")
+                return f"{box(page, 'md')}\nPage {menu.current_page + 1}/{self.get_max_pages()}"
             else:
-                return page
+                return page + f"\nPage {menu.current_page + 1}/{self.get_max_pages()}"
 
 
 class TodoMenu(menus.MenuPages, inherit_buttons=False):
