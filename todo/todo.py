@@ -42,8 +42,8 @@ class ToDo(commands.Cog):
         """
         return (
             f"{super().format_help_for_context(ctx)}"
-            f"\n__Version:__ `{self.__version__}`\n"
-            f"__Author:__: `{', '.join(self.__author__)}`"
+            f"\n\n__Version:__ `{self.__version__}`\n"
+            f"__Author:__ `{', '.join(self.__author__)}`"
         )
 
     async def red_delete_data_for_user(
