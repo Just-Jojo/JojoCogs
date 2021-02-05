@@ -26,6 +26,7 @@ class ToDo(commands.Cog):
     """A simple todo list for discord"""
 
     __version__ = "0.1.2"
+    __author__ = ["Jojo", ]
 
     def __init__(self, bot):
         self.bot = bot
@@ -34,6 +35,15 @@ class ToDo(commands.Cog):
         self.config.register_user(
             todos=[], use_md=True,
             detailed_pop=False, use_embeds=True
+        )
+
+    def format_help_for_context(self, ctx):
+        """Thankie thankie Sinbad
+        """
+        return (
+            f"{super().format_help_for_context(ctx)}"
+            f"\n__Version:__ `{self.__version__}`\n"
+            f"**__Author:__**: `{', '.join(self.__author__)}`"
         )
 
     async def red_delete_data_for_user(
