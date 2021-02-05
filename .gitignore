@@ -4,4 +4,4 @@
 .venv
 **\.tmp
 # Cogs that aren't ready yet
-invite/
+embedder/
