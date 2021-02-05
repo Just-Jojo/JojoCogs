@@ -1,10 +1,11 @@
 from redbot.core import commands
 
-from typing import *
 import discord
 
 
 class Version(commands.Cog):
+    """Get a cog's Version (if any)!"""
+    
     __version__ = "1.0.1"
 
     def __init__(self, bot):
@@ -26,8 +27,7 @@ class Version(commands.Cog):
                 f"I could not find a cog by the name of `{cog_name}`!\n"
                 f"Use `{ctx.clean_prefix}help` to find all of the cogs I have!"
             )
-            return
-        if hasattr(cog, "version") and any([isinstance(cog.version, typ) for typ in (int, str)]):
+        elif hasattr(cog, "version") and any([isinstance(cog.version, typ) for typ in (int, str)]):
             await ctx.send(f"`{cog.qualified_name}` version `{cog.version}`")
         elif hasattr(cog, "__version__"):
             await ctx.send(f"`{cog.qualified_name}` version `{cog.__version__}`")
