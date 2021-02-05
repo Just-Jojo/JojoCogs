@@ -98,10 +98,12 @@ class ToDo(commands.Cog):
 
         Example:
         `[p]todo add Walk the dog soon`"""
-        todos = await self.config.user(ctx.author).todos()
-        todos.append(todo)
-        await self.config.user(ctx.author).todos.set(todos)
-        await ctx.send(f"Added this as a todo reminder!\n`{todo}`")
+        async with self.config.user(ctx.author).todos() as todos:
+            todos.append(todo)
+            if await self.config.user(ctx.author).detailed_pop():
+                await ctx.send(f"Added this as a todo reminder!\n`{todo}`")
+            else:
+                await ctx.send("Added that todo reminder!")
 
     # `pop` because you're basically using list.pop(index) :p
     @todo.command(aliases=["del", "delete", "pop"])
@@ -110,35 +112,34 @@ class ToDo(commands.Cog):
 
         Example:
         `[p]todo del <number>`"""
-        todos: list = await self.config.user(ctx.author).todos()
-        if not len(todos):
-            return await ctx.send((
-                "You don't have any todos yet!"
-                f"\nUse `{ctx.clean_prefix}todo add <todo>` to add one!"
-            ))
-        if not todo:
-            sending = self.number(item=todos)
-            await self.page_logic(ctx, sending)
-            return
-        else:
-            todo -= 1
-        try:
-            popped = todos.pop(todo)
-        except IndexError:
-            await ctx.send("That was an invalid todo index!")
-        else:
-            if await self.config.user(ctx.author).detailed_pop():
-                await ctx.send(content=f"Popped this todo reminder!\n`{popped}`")
+        async with self.config.user(ctx.author).todos() as todos:
+            if not len(todos):
+                return await ctx.send((
+                    "You don't have any todos yet!"
+                    f"\nUse `{ctx.clean_prefix}todo add <todo>` to add one!"
+                ))
+            if not todo:
+                sending = self.number(item=todos)
+                await self.page_logic(ctx, sending)
+                return
             else:
-                await ctx.send("Removed that todo!")
-            await self.config.user(ctx.author).todos.set(todos)
+                todo -= 1
+            try:
+                popped = todos.pop(todo)
+            except IndexError:
+                await ctx.send("That was an invalid todo index!")
+            else:
+                if await self.config.user(ctx.author).detailed_pop():
+                    await ctx.send(content=f"Popped this todo reminder!\n`{popped}`")
+                else:
+                    await ctx.send("Removed that todo!")
 
     @todo.command(name="list")  # Fuck you reserved keywords >:|
     async def todo_list(self, ctx):
         """List your todo reminders"""
         todos = await self.config.user(ctx.author).todos()
-        todos = self.number(item=todos)
         if len(todos) >= 1:
+            todos = self.number(item=todos)
             await self.page_logic(ctx, todos)
         else:
             await ctx.send(
@@ -161,30 +162,32 @@ class ToDo(commands.Cog):
             reverse = True
         else:
             reverse = pred.result
-        items: list = await self.config.user(ctx.author).todos()
-        items.sort(reverse=reverse)
-        await ctx.send("Okay! I've sorted your todos!")
-        await self.page_logic(
-            ctx=ctx, things=[f"{num}. {i}" for num, i in enumerate(items, 1)]
-        )
-        await self.config.user(ctx.author).todos.set(items)
+        async with self.config.user(ctx.author).todos() as items:
+            if not len(items):
+                await ctx.send("You don't have any todos!")
+            else:
+                items.sort(reverse=reverse)
+                await ctx.send("Okay! I've sorted your todos!")
+                await self.page_logic(
+                    ctx=ctx,
+                    things=[f"{num}. {i}" for num, i in enumerate(items, 1)]
+                )
 
     @todo.command(aliases=["move", ])
     async def rearrange(self, ctx, index: positive_int, new_index: positive_int):
         """Rearrange a todo!"""
         index -= 1
         new_index -= 1
-        items = await self.config.user(ctx.author).todos()
-        if new_index > (leng := len(items)):
-            new_index = leng - 1
-        try:
-            item = items.pop(index)
-        except IndexError:
-            await ctx.send("Hm, that doesn't seem to be a todo!")
-        else:
-            items.insert(new_index, item)
-            await ctx.send("I moved that todo!")
-            await self.config.user(ctx.author).todos.set(items)
+        async with self.config.user(ctx.author).todos() as items:
+            if new_index > (leng := len(items)):
+                new_index = leng - 1
+            try:
+                item = items.pop(index)
+            except IndexError:
+                await ctx.send("Hm, there doesn't seem to be a todo there")
+            else:
+                items.insert(new_index, item)
+                await ctx.send(f"Moved todo reminder `{item}`")
 
     def number(self, item: list):
         return [f"{num}. {act}" for num, act in enumerate(item, 1)]
@@ -201,16 +204,3 @@ class ToDo(commands.Cog):
             delete_message_after=False, clear_reactions_after=True
         )
         await menu.start(ctx=ctx, channel=ctx.channel)
-
-    def create(
-        self, ctx: commands.Context, title: str = "",
-        color: discord.Colour = None,
-        footer: str = None, footer_url: str = None
-    ) -> discord.Embed:
-        data = discord.Embed(title=title, color=color)
-        if footer is None:
-            footer = ctx.author.name
-        if footer_url is None:
-            footer_url = ctx.author.avatar_url
-        data.set_footer(text=footer, icon_url=footer_url)
-        return data
