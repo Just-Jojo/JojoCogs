@@ -101,7 +101,7 @@ class ToDo(commands.Cog):
         todos = await self.config.user(ctx.author).todos()
         todos.append(todo)
         await self.config.user(ctx.author).todos.set(todos)
-        await ctx.send("Added that todo reminder!")
+        await ctx.send(f"Added this as a todo reminder!\n`{todo}`")
 
     # `pop` because you're basically using list.pop(index) :p
     @todo.command(aliases=["del", "delete", "pop"])
@@ -128,7 +128,7 @@ class ToDo(commands.Cog):
             await ctx.send("That was an invalid todo index!")
         else:
             if await self.config.user(ctx.author).detailed_pop():
-                await ctx.send(content=f"Popped `{popped}`!")
+                await ctx.send(content=f"Popped this todo reminder!\n`{popped}`")
             else:
                 await ctx.send("Removed that todo!")
             await self.config.user(ctx.author).todos.set(todos)
@@ -150,7 +150,7 @@ class ToDo(commands.Cog):
             )
 
     @todo.command()
-    async def sort(self, ctx):
+    async def sort(self, ctx: commands.Context):
         """Sort your todos alphabetically"""
         msg = await ctx.send("Would you like to sort your todos in reverse?")
         try:
