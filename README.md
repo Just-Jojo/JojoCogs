@@ -20,7 +20,7 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 | Embedder       | Create, upload, store, and drop embeds                 | Jojo#7791              | Utility  | O        | Needs work |
 | Mjolnir        | Try to lift Thor's mighty hammer                       | Jojo#7791              | Fun      | O        |            |
 | JojoStore      | Buy items from the store and use them                  | Jojo#7791              | Fun      | X        |            |
-| ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | O        |            |
+| ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        |            |
 | Invite         | A custom invite :D                                     | Jojo#7791              | Utility  | O        | Not ready  |
 
 ## Pull requests
