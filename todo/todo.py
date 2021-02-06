@@ -53,8 +53,12 @@ class ToDo(commands.Cog):
     ) -> None:
         await self.config.user_from_id(user_id).clear()
 
-    @commands.command()
-    async def logpop(self, ctx, toggle: bool):
+    @commands.group()
+    async def todoset(self, ctx):
+        """Base settings command for customizing todo lists"""
+
+    @todoset.command()
+    async def pop(self, ctx, toggle: bool):
         """Log popped todo reminders"""
         logged = await self.config.user(ctx.author).detailed_pop()
         toggled = "disabled!" if not toggle else "enabled!"
@@ -64,8 +68,8 @@ class ToDo(commands.Cog):
             await ctx.send(f"Logged todos are now {toggled}")
             await self.config.user(ctx.author).detailed_pop.set(toggle)
 
-    @commands.command()
-    async def mdtoggle(self, ctx, toggle: bool):
+    @todoset.command()
+    async def md(self, ctx, toggle: bool):
         """Toggle whether or not the list should use markdown"""
         md = await self.config.user(ctx.author).use_md()
         toggled = "disabled!" if toggle is False else "enabled!"
@@ -75,7 +79,7 @@ class ToDo(commands.Cog):
             await ctx.send(f"Markdown is now {toggled}")
             await self.config.user(ctx.author).use_md.set(toggle)
 
-    @commands.command(name="embedded", aliases=["useembeds", "usee"])
+    @todoset.command(name="embed")
     async def use_embeds(self, ctx, toggle: bool):
         """Toggle whether or not to use embeds for todo lists"""
         use_e = await self.config.user(ctx.author).use_embeds()
