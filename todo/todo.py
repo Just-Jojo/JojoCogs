@@ -25,7 +25,7 @@ def positive_int(arg: str) -> int:
 class ToDo(commands.Cog):
     """A simple todo list for discord"""
 
-    __version__ = "0.1.4"
+    __version__ = "0.1.5"
     __author__ = ["Jojo", ]
 
     def __init__(self, bot):
