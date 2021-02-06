@@ -196,10 +196,10 @@ class ToDo(commands.Cog):
     @todo.command()
     async def show(self, ctx, index: positive_int):
         """Show a todo reminder by index!"""
-        index -= 1
+        act_index = index - 1
         async with self.config.user(ctx.author).todos() as todos:
             try:
-                todo = todos[index]
+                todo = todos[act_index]
             except IndexError:
                 return await ctx.send("Hm, that doesn't seem to be a todo!")
         todo = f"{index}. {todo}"
