@@ -5,7 +5,7 @@ from typing import Literal
 import discord
 from redbot.core import Config, checks, commands
 from redbot.core.utils.predicates import MessagePredicate
-from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.chat_formatting import pagify, box
 from . import menus
 
 log = logging.getLogger("red.jojo.todo")
@@ -192,6 +192,36 @@ class ToDo(commands.Cog):
             else:
                 items.insert(new_index, item)
                 await ctx.send(f"Moved todo reminder `{item}`")
+
+    @todo.command()
+    async def show(self, ctx, index: positive_int):
+        """Show a todo reminder by index!"""
+        index -= 1
+        async with self.config.user(ctx.author).todos() as todos:
+            try:
+                todo = todos[index]
+            except IndexError:
+                return await ctx.send("Hm, that doesn't seem to be a todo!")
+        todo = f"{index}. {todo}"
+        md = await self.config.user(ctx.author).use_md()
+        embedded = await self.config.user(ctx.author).use_embeds()
+        if embedded:
+            sending = discord.Embed(
+                title=f"{ctx.author.name}'s ToDos",
+                colour=await ctx.embed_colour()
+            )
+            sending.set_footer(text="ToDo list")
+            if md:
+                sending.description = box(todo, lang="md")
+            else:
+                sending.description = todo
+            await ctx.send(embed=sending)
+        else:
+            if md:
+                sending = box(todo, lang="md")
+            else:
+                sending = todo
+            await ctx.send(sending)
 
     def number(self, item: list):
         return [f"{num}. {act}" for num, act in enumerate(item, 1)]
