@@ -8,7 +8,7 @@ from redbot.core.utils.predicates import MessagePredicate
 from redbot.core.utils.chat_formatting import pagify, box
 from . import menus
 
-log = logging.getLogger("red.jojo.todo")
+log = logging.getLogger("red.JojoCogs.todo")
 
 
 def positive_int(arg: str) -> int:

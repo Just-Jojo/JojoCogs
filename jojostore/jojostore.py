@@ -9,7 +9,7 @@ from redbot.core.utils import menus, predicates
 from redbot.core.utils.chat_formatting import pagify
 from .utils import JojoMenu, JojoPages
 
-log = logging.getLogger("red.jojo.fun")
+log = logging.getLogger("red.JojoCogs.fun")
 
 
 def positive_int(arg: str) -> int:

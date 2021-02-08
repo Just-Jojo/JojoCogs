@@ -7,7 +7,7 @@ import discord
 from redbot.core import Config, bank, checks, commands
 from redbot.core.utils import menus
 
-log = logging.getLogger("red.jojo.collectables")
+log = logging.getLogger("red.JojoCogs.collectables")
 
 
 class Collectables(commands.Cog):
