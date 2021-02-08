@@ -3,5 +3,6 @@
 .vscode
 .venv
 **\.tmp
-# Cogs that aren't ready yet
+# Cogs and files that aren't ready yet
 embedder/
+todo/assigned.py
