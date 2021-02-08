@@ -26,20 +26,19 @@ class ToDo(commands.Cog):
     """A simple todo list for discord"""
 
     __version__ = "0.1.6"
-    __author__ = ["Jojo", ]
+    __author__ = [
+        "Jojo",
+    ]
 
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(
-            self, 19924714019, force_registration=True)
+        self.config = Config.get_conf(self, 19924714019, force_registration=True)
         self.config.register_user(
-            todos=[], use_md=True,
-            detailed_pop=False, use_embeds=True
+            todos=[], use_md=True, detailed_pop=False, use_embeds=True
         )
 
     def format_help_for_context(self, ctx):
-        """Thankie thankie Sinbad
-        """
+        """Thankie thankie Sinbad"""
         return (
             f"{super().format_help_for_context(ctx)}"
             f"\n\n__Version:__ `{self.__version__}`\n"
@@ -49,7 +48,7 @@ class ToDo(commands.Cog):
     async def red_delete_data_for_user(
         self,
         requester: Literal["discord", "owner", "user", "user_strict"],
-        user_id: int
+        user_id: int,
     ) -> None:
         await self.config.user_from_id(user_id).clear()
 
@@ -118,10 +117,12 @@ class ToDo(commands.Cog):
         `[p]todo del <number>`"""
         async with self.config.user(ctx.author).todos() as todos:
             if not len(todos):
-                return await ctx.send((
-                    "You don't have any todos yet!"
-                    f"\nUse `{ctx.clean_prefix}todo add <todo>` to add one!"
-                ))
+                return await ctx.send(
+                    (
+                        "You don't have any todos yet!"
+                        f"\nUse `{ctx.clean_prefix}todo add <todo>` to add one!"
+                    )
+                )
             if not todo:
                 sending = self.number(item=todos)
                 await self.page_logic(ctx, sending)
@@ -173,11 +174,14 @@ class ToDo(commands.Cog):
                 items.sort(reverse=reverse)
                 await ctx.send("Okay! I've sorted your todos!")
                 await self.page_logic(
-                    ctx=ctx,
-                    things=[f"{num}. {i}" for num, i in enumerate(items, 1)]
+                    ctx=ctx, things=[f"{num}. {i}" for num, i in enumerate(items, 1)]
                 )
 
-    @todo.command(aliases=["move", ])
+    @todo.command(
+        aliases=[
+            "move",
+        ]
+    )
     async def rearrange(self, ctx, index: positive_int, new_index: positive_int):
         """Rearrange a todo!"""
         index -= 1
@@ -207,8 +211,7 @@ class ToDo(commands.Cog):
         embedded = await self.config.user(ctx.author).use_embeds()
         if embedded:
             sending = discord.Embed(
-                title=f"{ctx.author.name}'s ToDos",
-                colour=await ctx.embed_colour()
+                title=f"{ctx.author.name}'s ToDos", colour=await ctx.embed_colour()
             )
             sending.set_footer(text="ToDo list")
             if md:
@@ -232,9 +235,9 @@ class ToDo(commands.Cog):
         use_embeds = await self.config.user(ctx.author).use_embeds()
         menu = menus.TodoMenu(
             source=menus.TodoPages(
-                data=list(pagify(things)), use_md=use_md,
-                use_embeds=use_embeds
+                data=list(pagify(things)), use_md=use_md, use_embeds=use_embeds
             ),
-            delete_message_after=False, clear_reactions_after=True
+            delete_message_after=False,
+            clear_reactions_after=True,
         )
         await menu.start(ctx=ctx, channel=ctx.channel)

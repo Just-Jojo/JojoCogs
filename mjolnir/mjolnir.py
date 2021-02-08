@@ -15,6 +15,7 @@ log = logging.getLogger("red.JojoCogs.mjolnir")
 
 class Mjolnir(commands.Cog):
     """Attempt to lift Thor's hammer!"""
+
     __version__ = "0.1.1"
 
     def __init__(self, bot: Red):
@@ -41,13 +42,19 @@ class Mjolnir(commands.Cog):
         """Try and lift Thor's hammer!"""
         lifted = random.randint(0, 100)
         if lifted >= 95:
-            await ctx.send("The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin")
+            await ctx.send(
+                "The sky opens up and a bolt of lightning strikes the ground\nYou are worthy. Hail, son of Odin"
+            )
             lift = await self.config.user(ctx.author).lifted()
             lift += 1
             await self.config.user(ctx.author).lifted.set(lift)
         else:
-            sayings = ["The hammer is strong, but so are you. Keep at it!", "Mjolnir budges a bit, but remains steadfast, as should you",
-                       "You've got this! I believe in you!", "Don't think it even moved... why don't you try again?"]
+            sayings = [
+                "The hammer is strong, but so are you. Keep at it!",
+                "Mjolnir budges a bit, but remains steadfast, as should you",
+                "You've got this! I believe in you!",
+                "Don't think it even moved... why don't you try again?",
+            ]
             content = random.choice(sayings)
             await ctx.send(content=content)
 
@@ -55,9 +62,7 @@ class Mjolnir(commands.Cog):
     async def liftedboard(self, ctx):
         """Shows the leaderboard for those who have lifted the hammer."""
         all_users = await self.config.all_users()
-        board = sorted(
-            all_users.items(), key=lambda m: m[0]
-        )
+        board = sorted(all_users.items(), key=lambda m: m[0])
         sending = []
         for user in board:
             _user = await self.bot.get_or_fetch_user(user[0])
@@ -69,7 +74,7 @@ class Mjolnir(commands.Cog):
             embed = discord.Embed(
                 title="Mjolnir!",
                 description=f"No one has lifted Mjolnir yet!\nWill you be the first? Try `{ctx.clean_prefix}trylift`",
-                colour=discord.Colour.blue()
+                colour=discord.Colour.blue(),
             )
             return await ctx.send(embed=embed)
         menu = menus.MjolnirMenu(source=menus.MjolnirPages(sending))

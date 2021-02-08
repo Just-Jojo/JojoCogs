@@ -9,7 +9,7 @@ from redbot.core.utils import menus, predicates
 from redbot.core.utils.chat_formatting import pagify
 from .utils import JojoMenu, JojoPages
 
-log = logging.getLogger('red.jojo.fun')
+log = logging.getLogger("red.jojo.fun")
 
 
 def positive_int(arg: str) -> int:
@@ -32,12 +32,7 @@ class JojoStore(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 13814755994)
         self.config.register_guild(
-            items={
-                "coffee": 100,
-                "scone": 150,
-                "tea": 100
-            },
-            default_cost=300
+            items={"coffee": 100, "scone": 150, "tea": 100}, default_cost=300
         )
         self.config.register_member(items={})
 
@@ -46,7 +41,7 @@ class JojoStore(commands.Cog):
     async def red_delete_data_for_user(
         self,
         requester: typing.Literal["discord", "owner", "user", "user_strict"],
-        user_id: int
+        user_id: int,
     ) -> None:
         await self.config.user_from_id(user_id).clear()
 
@@ -62,8 +57,7 @@ class JojoStore(commands.Cog):
         if not items:
             return await ctx.send("Hm, looks like this guild doesn't have any items!")
         items = "\n".join([f"**{k}:** {v}" for k, v in items.items()])
-        menu = JojoMenu(source=JojoPages(
-            data=list(pagify(items, page_length=50))))
+        menu = JojoMenu(source=JojoPages(data=list(pagify(items, page_length=50))))
         await menu.start(ctx=ctx, channel=ctx.channel)
 
     @store.command()
@@ -99,9 +93,12 @@ class JojoStore(commands.Cog):
             cost = default_cost
         guild_items = await self.config.guild(ctx.guild).items()
         if item in guild_items.keys():
-            await ctx.send("This item already exists! Would you like to edit it's cost? (y/n)")
+            await ctx.send(
+                "This item already exists! Would you like to edit it's cost? (y/n)"
+            )
             pred = predicates.MessagePredicate.yes_or_no(
-                ctx=ctx, channel=ctx.channel, user=ctx.author)
+                ctx=ctx, channel=ctx.channel, user=ctx.author
+            )
             try:
                 answer = await self.bot.wait_for("message", check=pred)
             except asyncio.TimeoutError:
@@ -137,8 +134,7 @@ class JojoStore(commands.Cog):
         item = item.lower()
         items = await self.config.member(user).items()
         found = items.get(item, False)
-        desc, state = self.desc_parser(
-            amount=found, user=user, author=ctx.author)
+        desc, state = self.desc_parser(amount=found, user=user, author=ctx.author)
         if state is False:
             return await ctx.send(desc)
         if found == 1:
@@ -147,13 +143,23 @@ class JojoStore(commands.Cog):
             desc += f" {item}s!"
 
         embed = self.create_embed(
-            ctx=ctx, title=f"{ctx.author.name}'s Items!", description=desc)
+            ctx=ctx, title=f"{ctx.author.name}'s Items!", description=desc
+        )
         await ctx.send(embed=embed)
 
-    def desc_parser(self, amount: typing.Union[bool, int], user: discord.Member, author: discord.Member) -> typing.Tuple[str, bool]:
+    def desc_parser(
+        self,
+        amount: typing.Union[bool, int],
+        user: discord.Member,
+        author: discord.Member,
+    ) -> typing.Tuple[str, bool]:
         if amount is False or amount == 0:
-            return f"Hm, {user.name} doesn't seem to have that item" if user != author else\
-                "Hm, you don't seem to have that item", False
+            return (
+                f"Hm, {user.name} doesn't seem to have that item"
+                if user != author
+                else "Hm, you don't seem to have that item",
+                False,
+            )
         else:
             return f"{user.name} has {amount}", True
 
@@ -164,8 +170,7 @@ class JojoStore(commands.Cog):
         if not items:
             return await ctx.send("Hm, you don't seem to have any items")
         items = "\n".join([f"**{k}:** {v}" for k, v in items.items()])
-        menu = JojoMenu(source=JojoPages(
-            data=list(pagify(items))))
+        menu = JojoMenu(source=JojoPages(data=list(pagify(items))))
         await menu.start(ctx=ctx, channel=ctx.channel)
 
     @item.command()
@@ -178,7 +183,9 @@ class JojoStore(commands.Cog):
             return await ctx.send("Hm, you don't seem to have that item")
         found -= 1
         items[item] = found
-        await ctx.send(f"*consuming noises* you used a {item.capitalize()}! You have {found} left!")
+        await ctx.send(
+            f"*consuming noises* you used a {item.capitalize()}! You have {found} left!"
+        )
         await self.config.member(ctx.author).items.set(items)
 
     async def cog_check(self, ctx: commands.Context):
@@ -189,9 +196,15 @@ class JojoStore(commands.Cog):
         return ctx.guild is not None
 
     def create_embed(
-        self, ctx: commands.Context, title: str = None, description: str = None,
-        colour: discord.Colour = None, author: str = None, author_url: str = None,
-        footer: str = None, footer_url: str = None
+        self,
+        ctx: commands.Context,
+        title: str = None,
+        description: str = None,
+        colour: discord.Colour = None,
+        author: str = None,
+        author_url: str = None,
+        footer: str = None,
+        footer_url: str = None,
     ) -> discord.Embed:
         r"""Create a custom Discord embed
 

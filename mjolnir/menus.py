@@ -16,11 +16,13 @@ class MjolnirPages(menus.ListPageSource):
         ctx = menu.ctx
         if ctx.channel.permissions_for(ctx.me).embed_links:
             embed = discord.Embed(
-                title=f"{bot.user.name} Menu", description=page,
-                colour=await ctx.embed_colour()
+                title=f"{bot.user.name} Menu",
+                description=page,
+                colour=await ctx.embed_colour(),
             )
             embed.set_footer(
-                text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
+                text=f"Page {menu.current_page + 1}/{self.get_max_pages()}"
+            )
             return embed
         else:
             return page
@@ -61,7 +63,7 @@ class MjolnirMenu(menus.MenuPages, inherit_buttons=False):
     @menus.button(
         "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE}",
         position=menus.First(0),
-        skip_if=_skip_double_triangle_buttons
+        skip_if=_skip_double_triangle_buttons,
     )
     async def go_to_first_page(self, payload):
         await self.show_checked_page(0)
@@ -69,7 +71,7 @@ class MjolnirMenu(menus.MenuPages, inherit_buttons=False):
     @menus.button(
         "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE}",
         position=menus.Last(1),
-        skip_if=_skip_double_triangle_buttons
+        skip_if=_skip_double_triangle_buttons,
     )
     async def go_to_last_page(self, payload):
         await self.show_checked_page(self._source.get_max_pages() - 1)
@@ -77,7 +79,7 @@ class MjolnirMenu(menus.MenuPages, inherit_buttons=False):
     @menus.button(
         "\N{LEFTWARDS BLACK ARROW}",
         position=menus.First(1),
-        skip_if=_skip_single_arrows
+        skip_if=_skip_single_arrows,
     )
     async def go_to_previous_page(self, payload):
         await self.show_checked_page(self.current_page - 1)
@@ -85,7 +87,7 @@ class MjolnirMenu(menus.MenuPages, inherit_buttons=False):
     @menus.button(
         "\N{BLACK RIGHTWARDS ARROW}",
         position=menus.Last(0),
-        skip_if=_skip_single_arrows
+        skip_if=_skip_single_arrows,
     )
     async def go_to_next_page(self, payload):
         await self.show_checked_page(self.current_page + 1)

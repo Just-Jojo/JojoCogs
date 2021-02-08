@@ -18,16 +18,14 @@ class TodoPages(menus.ListPageSource):
         bot: Red = menu.bot
         ctx: commands.Context = menu.ctx
         if ctx.channel.permissions_for(ctx.me).embed_links and self.use_embeds:
-            embed = discord.Embed(
-                title=f"Todo List",
-                colour=await ctx.embed_colour()
-            )
+            embed = discord.Embed(title=f"Todo List", colour=await ctx.embed_colour())
             if self.md:
                 embed.description = box(page, "md")
             else:
                 embed.description = page
             embed.set_footer(
-                text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
+                text=f"Page {menu.current_page + 1}/{self.get_max_pages()}"
+            )
             return embed
         else:
             if self.md:
@@ -39,13 +37,13 @@ class TodoPages(menus.ListPageSource):
 class TodoMenu(menus.MenuPages, inherit_buttons=False):
     _source: menus.ListPageSource
 
-    def __init__(
-        self, source: menus.ListPageSource, page_start: int = 0, **kwargs
-    ):
+    def __init__(self, source: menus.ListPageSource, page_start: int = 0, **kwargs):
         super().__init__(source=source, **kwargs)
         self.page_start = page_start
 
-    async def send_initial_message(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def send_initial_message(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
         self.current_page = self.page_start
         page = await self._source.get_page(self.page_start)
         kwargs = await self._get_kwargs_from_page(page)
@@ -86,7 +84,7 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):
     @menus.button(
         "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE}",
         position=menus.Last(1),
-        skip_if=_skip_double_triangle_buttons
+        skip_if=_skip_double_triangle_buttons,
     )
     async def go_to_last_page(self, payload):
         await self.show_checked_page(page_number=self._source.get_max_pages() - 1)
@@ -94,7 +92,7 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):
     @menus.button(
         "\N{LEFTWARDS BLACK ARROW}",
         position=menus.First(1),
-        skip_if=_skip_single_arrows
+        skip_if=_skip_single_arrows,
     )
     async def go_to_previous_page(self, payload):
         await self.show_checked_page(page_number=self.current_page - 1)
@@ -102,7 +100,7 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):
     @menus.button(
         "\N{BLACK RIGHTWARDS ARROW}",
         position=menus.Last(0),
-        skip_if=_skip_single_arrows
+        skip_if=_skip_single_arrows,
     )
     async def go_to_next_page(self, payload):
         await self.show_checked_page(self.current_page + 1)

@@ -33,24 +33,31 @@ class PluralDict(dict):
     """
 
     def __missing__(self, key):
-        if '(' in key and key.endswith(')'):
-            key, rest = key.split('(', 1)
+        if "(" in key and key.endswith(")"):
+            key, rest = key.split("(", 1)
             value = super().__getitem__(key)
-            suffix = rest.rstrip(')').split(',')
+            suffix = rest.rstrip(")").split(",")
             if len(suffix) == 1:
-                suffix.insert(0, '')
+                suffix.insert(0, "")
             return suffix[0] if value <= 1 else suffix[1]
         raise KeyError(key)
 
 
 class Brownies(commands.Cog):
     """Collector loves brownies, and will steal from others for you!"""
+
     __author__ = ["JJW", "Jojo#7791"]
     __version__ = "0.1.0"
 
     async def default_embed(
-        self, ctx: commands.Context, title: str = None, description: str = None,
-        thumbnail: str = None, image: str = None, footer: str = None, footer_url: str = None
+        self,
+        ctx: commands.Context,
+        title: str = None,
+        description: str = None,
+        thumbnail: str = None,
+        image: str = None,
+        footer: str = None,
+        footer_url: str = None,
     ) -> discord.Embed:
         """Get a default embed from context"""
         data = discord.Embed()
@@ -61,7 +68,8 @@ class Brownies(commands.Cog):
         elif description and len(description) > 2048:
             data.description = description[:2047]  # String splicing
             log.warning(
-                f"Descriptions length ({len(description)}) was larger than the character limit")
+                f"Descriptions length ({len(description)}) was larger than the character limit"
+            )
 
         if ctx.guild is not None:
             if str(ctx.author.colour) != "#000000":
@@ -85,8 +93,7 @@ class Brownies(commands.Cog):
                         if response.status == 200:
                             data.set_image(image)
                         else:
-                            log.warning(
-                                f"Image got a status code of {response.status}")
+                            log.warning(f"Image got a status code of {response.status}")
             except TypeError:
                 pass
         if footer is None:
@@ -101,20 +108,12 @@ class Brownies(commands.Cog):
         data.set_footer(text=footer, icon_url=footer_url)
         return data
 
-    default_guild_settings = {
-        "StealCD": 300,
-        "BrownieCD": 300
-    }
-    default_user_settings = {
-        "brownies": 0,
-        "StealCD": 5,
-        "BrownieCD": 5
-    }
+    default_guild_settings = {"StealCD": 300, "BrownieCD": 300}
+    default_user_settings = {"brownies": 0, "StealCD": 5, "BrownieCD": 5}
 
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(
-            self, 2287042090, force_registration=True)
+        self.config = Config.get_conf(self, 2287042090, force_registration=True)
         self.config.register_member(**self.default_user_settings)
         self.config.register_guild(**self.default_guild_settings)
 
@@ -122,7 +121,7 @@ class Brownies(commands.Cog):
         self,
         *,
         user: Literal["discord_deleted_user", "owner", "owner", "user", "user_strict"],
-        uid: int
+        uid: int,
     ):
         """Delete brownie data for a user"""
         all_members = await self.config.all_members()
@@ -152,7 +151,9 @@ class Brownies(commands.Cog):
         """Get the settings for Brownie and Steal cooldown"""
         settings = await self.config.guild(ctx.guild).get_raw()
         settings.pop("Players")
-        embed = await self.default_embed(ctx, title=f"{ctx.guild.name} Settings", thumbnail=ctx.guild.icon_url)
+        embed = await self.default_embed(
+            ctx, title=f"{ctx.guild.name} Settings", thumbnail=ctx.guild.icon_url
+        )
         for key, value in settings.items():
             embed.add_field(name=key, value=f"{value} seconds")
         await ctx.send(embed=embed)
@@ -242,7 +243,9 @@ class Brownies(commands.Cog):
         await asyncio.sleep(4)
         await ctx.send(msg)
 
-    async def steal_logic(self, ctx: commands.Context, user: discord.Member, author: discord.Member):
+    async def steal_logic(
+        self, ctx: commands.Context, user: discord.Member, author: discord.Member
+    ):
         """Logic for stealing brownies"""
         user_brownies = await self.config.member(user).brownies()
         author_brownies = await self.config.member(author).brownies()
@@ -260,10 +263,15 @@ class Brownies(commands.Cog):
         author_brownies += stolen
         await self.config.member(user).brownies.set(user_brownies)
         await self.config.member(author).brownies.set(author_brownies)
-        return f"{author.name} stole {stolen} brownies from {user.name}" if stolen > 1 else\
-            f"{author.name} stole 1 brownie from {user.name}"
+        return (
+            f"{author.name} stole {stolen} brownies from {user.name}"
+            if stolen > 1
+            else f"{author.name} stole 1 brownie from {user.name}"
+        )
 
-    async def check_cooldown(self, ctx: commands.Context, user: discord.Member, action: str) -> bool:
+    async def check_cooldown(
+        self, ctx: commands.Context, user: discord.Member, action: str
+    ) -> bool:
         """Check the cooldown for a member"""
         guild_cooldown = await self.config.guild(ctx.guild).get_raw(action)
         cooldown = await self.config.member(user).get_raw(action)
@@ -286,7 +294,10 @@ class Brownies(commands.Cog):
     def random_user(self, guild: discord.Guild, author: discord.Member):
         """Return a random, non-bot user"""
         clean_users = [
-            member for member in guild.members if not member.bot and not member == author]
+            member
+            for member in guild.members
+            if not member.bot and not member == author
+        ]
         user = random.choice(clean_users)
         return user
 
@@ -297,7 +308,7 @@ class Brownies(commands.Cog):
 
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
-        data = PluralDict({'hour': h, 'minute': m, 'second': s})
+        data = PluralDict({"hour": h, "minute": m, "second": s})
         if h > 0:
             fmt = "{hour} hour{hour(s)}"
             if data["minute"] > 0 and data["second"] > 0:
