@@ -22,6 +22,7 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 | JojoStore      | Buy items from the store and use them                  | Jojo#7791              | Fun      | X        |            |
 | ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        |            |
 | Invite         | A custom invite :D                                     | Jojo#7791              | Utility  | O        | Not ready  |
+| Version        | Check a Cog's version!                                 | Jojo#7791              | Utility  | X        |            |
 
 ## Pull requests
 If you want to make a pull request, first thank you for contributing (because I need help) and second follow this list
