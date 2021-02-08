@@ -1,12 +1,12 @@
 import asyncio
 import logging
-from typing import Literal
 
 import discord
 from redbot.core import Config, checks, commands
 from redbot.core.utils.predicates import MessagePredicate
 from redbot.core.utils.chat_formatting import pagify, box
 from . import menus
+import typing
 
 log = logging.getLogger("red.JojoCogs.todo")
 
@@ -34,7 +34,13 @@ class ToDo(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 19924714019, force_registration=True)
         self.config.register_user(
-            todos=[], use_md=True, detailed_pop=False, use_embeds=True
+            todos=[],
+            assign={},
+            use_md=True,
+            detailed_pop=False,
+            use_embeds=True,
+            autosort=False,
+            reverse_sort=False,
         )
 
     def format_help_for_context(self, ctx):
@@ -47,7 +53,7 @@ class ToDo(commands.Cog):
 
     async def red_delete_data_for_user(
         self,
-        requester: Literal["discord", "owner", "user", "user_strict"],
+        requester: typing.Literal["discord", "owner", "user", "user_strict"],
         user_id: int,
     ) -> None:
         await self.config.user_from_id(user_id).clear()
@@ -59,37 +65,36 @@ class ToDo(commands.Cog):
     @todoset.command()
     async def pop(self, ctx, toggle: bool):
         """Log popped todo reminders"""
-        logged = await self.config.user(ctx.author).detailed_pop()
-        toggled = "disabled!" if not toggle else "enabled!"
-        if logged == toggle:
-            await ctx.send(f"Logged todos are already {toggled}")
-        else:
-            await ctx.send(f"Logged todos are now {toggled}")
-            await self.config.user(ctx.author).detailed_pop.set(toggle)
+        await self._toggler(
+            ctx=ctx, item="Logging todos", key="detailed_pop", toggle=toggle
+        )
 
     @todoset.command()
     async def md(self, ctx, toggle: bool):
         """Toggle whether or not the list should use markdown"""
-        md = await self.config.user(ctx.author).use_md()
-        toggled = "disabled!" if toggle is False else "enabled!"
-        if md == toggle:
-            await ctx.send(f"Markdown is already {toggled}")
-        else:
-            await ctx.send(f"Markdown is now {toggled}")
-            await self.config.user(ctx.author).use_md.set(toggle)
+        await self._toggler(
+            ctx=ctx, item="Fancy todo listing", key="use_md", toggle=toggle
+        )
 
     @todoset.command(name="embed")
     async def use_embeds(self, ctx, toggle: bool):
         """Toggle whether or not to use embeds for todo lists"""
-        use_e = await self.config.user(ctx.author).use_embeds()
-        # I used three different ways to do the same thing
-        # LOL
+        await self._toggler(
+            ctx=ctx, item="Embedded todo listing", key="use_embeds", toggle=toggle
+        )
+
+    @todoset.command()
+    async def autosort(self, ctx, toggle: bool):
+        await self._toggler(ctx=ctx, item="Autosorting", key="autosort", toggle=toggle)
+
+    async def _toggler(self, ctx: commands.Context, item: str, key: str, toggle: bool):
         toggled = "enabled!" if toggle else "disabled!"
-        if use_e == toggle:
-            await ctx.send(f"Embeds are already {toggled}")
+        setting = await self.config.user(ctx.author).get_raw(key)
+        if setting == toggle:
+            await ctx.send(f"{item} is already {toggled}")
         else:
-            await ctx.send(f"Embeds are now {toggled}")
-            await self.config.user(ctx.author).use_embeds.set(toggle)
+            await ctx.send(f"{item} is now {toggled}")
+            await self.config.user(ctx.author).set_raw(key, value=toggle)
 
     @commands.group()
     async def todo(self, ctx):
@@ -107,6 +112,15 @@ class ToDo(commands.Cog):
                 await ctx.send(f"Added this as a todo reminder!\n`{todo}`")
             else:
                 await ctx.send("Added that todo reminder!")
+        await self._maybe_auto_sort(author=ctx.author)
+
+    async def _maybe_auto_sort(self, author: discord.Member):
+        autosort = await self.config.user(author).autosort()
+        if not autosort:
+            return
+        reversed = await self.config.user(author).reverse_sort()
+        async with self.config.user(author).todos() as todos:
+            todos.sort(reverse=reversed)  # Fairly simple
 
     # `pop` because you're basically using list.pop(index) :p
     @todo.command(aliases=["del", "delete", "pop"])
@@ -138,6 +152,7 @@ class ToDo(commands.Cog):
                     await ctx.send(content=f"Popped this todo reminder!\n`{popped}`")
                 else:
                     await ctx.send("Removed that todo!")
+        await self._maybe_auto_sort(author=ctx.author)
 
     @todo.command(name="list")  # Fuck you reserved keywords >:|
     async def todo_list(self, ctx):
@@ -167,6 +182,7 @@ class ToDo(commands.Cog):
             reverse = True
         else:
             reverse = pred.result
+        await self.config.user(ctx.author).reverse_sort.set(reverse)
         async with self.config.user(ctx.author).todos() as items:
             if not len(items):
                 await ctx.send("You don't have any todos!")
