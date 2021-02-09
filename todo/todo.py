@@ -151,7 +151,6 @@ class ToDo(commands.Cog):
             failed = []
             for to in todo:
                 try:
-                    log.info(to)
                     popped_todos.append(f"`{todos.pop(to)}`")
                 except IndexError:
                     await ctx.send("That was an invalid todo index!")
