@@ -10,6 +10,9 @@ import typing
 
 log = logging.getLogger("red.JojoCogs.todo")
 
+# f-strings cannot contain backslashes...
+_new_line = "\n"
+
 
 def positive_int(arg: str) -> int:
     """Returns a positive int"""
@@ -124,7 +127,7 @@ class ToDo(commands.Cog):
 
     # `pop` because you're basically using list.pop(index) :p
     @todo.command(aliases=["del", "delete", "pop"])
-    async def remove(self, ctx, todo: positive_int = None):
+    async def remove(self, ctx, *todo: positive_int):
         """Remove a todo reminder
 
         Example:
@@ -137,21 +140,48 @@ class ToDo(commands.Cog):
                         f"\nUse `{ctx.clean_prefix}todo add <todo>` to add one!"
                     )
                 )
-            if not todo:
+            if not len(todo):
                 sending = self.number(item=todos)
                 await self.page_logic(ctx, sending)
                 return
             else:
-                todo -= 1
-            try:
-                popped = todos.pop(todo)
-            except IndexError:
-                await ctx.send("That was an invalid todo index!")
+                todo = [val - 1 for val in todo]
+                todo.sort(reverse=True)
+            popped_todos = []
+            failed = []
+            for to in todo:
+                try:
+                    log.info(to)
+                    popped_todos.append(f"`{todos.pop(to)}`")
+                except IndexError:
+                    await ctx.send("That was an invalid todo index!")
+                    failed.append(f"`{to}`")
+            msg = ""
+            if await self.config.user(ctx.author).detailed_pop():
+                if len(popped_todos) > 1:
+                    popped_todos = "\n".join(popped_todos)
+                    msg += f"Removed these todo reminders!\n{popped_todos}"
+                # Since this is gonna be `1` I don't have to check for it
+                elif len(popped_todos):
+                    popped_todos = popped_todos[0]
+                    msg += f"Removed this todo reminder!\n`{popped_todos}`"
+                if len(failed) > 1:
+                    failed = "\n".join(failed)
+                    msg += f"\nCould not remove todos at these indexes\n{failed}"
+                elif len(failed):
+                    failed = failed[0]
+                    msg += f"\nCould not remove a todo at this index\n{failed}"
             else:
-                if await self.config.user(ctx.author).detailed_pop():
-                    await ctx.send(content=f"Popped this todo reminder!\n`{popped}`")
+                if len(popped_todos) > 1:
+                    msg += "Removed those todos!"
                 else:
-                    await ctx.send("Removed that todo!")
+                    msg += "Removed that todo!"
+                if len(failed):
+                    msg += "\nFailed to remove some todos!"
+        if msg:
+            await ctx.send(msg)
+        else:
+            await ctx.send("Hm, something went wrong")
         await self._maybe_auto_sort(author=ctx.author)
 
     @todo.command(name="list")  # Fuck you reserved keywords >:|
