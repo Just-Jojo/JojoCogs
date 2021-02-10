@@ -8,7 +8,7 @@
         8,
         0
     ],
-    "install_msg": "Thank you for installing `version`! If you have any questions, don't be afraid to ask!",
+    "install_msg": "Thank you for installing `version`! This cog allows you to check the version of a cog!",
     "description": "This cog allows you to check the version of any cog that has one",
     "end_user_data_statement": "This cog doesn't store any data on anyone, don't worry :D"
 }

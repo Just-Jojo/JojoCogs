@@ -8,6 +8,6 @@
         8,
         0
     ],
-    "install_msg": "Thank you for installing the ToDo tracker! This cog allows you to easily keep track of your projects/things you need to do.",
+    "install_msg": "A todo list designed for pinning messages for you to not forget!\n\nIf you see a bug please make an issue on my github page (https://github.com/Just-Jojo/JojoCogs)",
     "end_user_data_statement": "This cog doesn't store any data on anyone, don't worry :D"
 }
