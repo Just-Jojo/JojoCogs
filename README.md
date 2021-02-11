@@ -1,7 +1,7 @@
 A repo for some of the cogs I have built for Red - Discord bot
 
 ## Help
-For help you can either use a bug report issue, go to the [support server](discord.gg/JmCFyq7), or ask in Red's [cog support server](https://discord.gg/GET4DVk)
+For help you can either use a bug report issue, go to the [support server](discord.gg/JmCFyq7), or ask in Red's [cog support server](https://discord.gg/GET4DVk) in `#support_othercogs`
 
 ## Suggestions
 For suggestions you can either make an enhancement issue or ask/ping me in either the cog support server or my support server listed in `Help`
