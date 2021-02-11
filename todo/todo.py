@@ -12,6 +12,16 @@ log = logging.getLogger("red.JojoCogs.todo")
 
 # f-strings cannot contain backslashes...
 _new_line = "\n"
+_config_structure = {
+    "todos": [],
+    "assign": {},
+    "use_md": True,
+    "detailed_pop": False,
+    "use_embeds": True,
+    "autosort": False,
+    "reverse_sort": False,
+    "completed": [],
+}
 
 
 def positive_int(arg: str) -> int:
@@ -36,15 +46,7 @@ class ToDo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 19924714019, force_registration=True)
-        self.config.register_user(
-            todos=[],
-            assign={},
-            use_md=True,
-            detailed_pop=False,
-            use_embeds=True,
-            autosort=False,
-            reverse_sort=False,
-        )
+        self.config.register_user(**_config_structure)
 
     def format_help_for_context(self, ctx):
         """Thankie thankie Sinbad"""
@@ -60,6 +62,8 @@ class ToDo(commands.Cog):
         user_id: int,
     ) -> None:
         await self.config.user_from_id(user_id).clear()
+
+    ### Setting commands ###
 
     @commands.group()
     async def todoset(self, ctx):
@@ -99,9 +103,65 @@ class ToDo(commands.Cog):
             await ctx.send(f"{item} is now {toggled}")
             await self.config.user(ctx.author).set_raw(key, value=toggle)
 
+    ### Listing commands ###
+
     @commands.group()
     async def todo(self, ctx):
         """Base todo reminder command"""
+
+    @todo.group(
+        invoke_without_command=True
+    )  # TODO: Move this up to the other subcommands
+    async def complete(self, ctx, *indexes: positive_int):
+        """Complete todo reminders"""
+        # Thanks to Blackie#0001 on Red for the idea
+        # :D
+        if not len(indexes):
+            todos = await self.config.user(ctx.author).todos()
+            if len(todos):
+                return await self.page_logic(ctx, self.number(todos))
+            return await ctx.send("Hm, you don't have any todos!")
+        indexes = self.sort_lists(items=indexes)
+        passes = []
+        fails = []
+        completed = []
+        async with self.config.user(ctx.author).todos() as todos:
+            for index in indexes:
+                try:
+                    _ = todos.pop(index)
+                except IndexError:
+                    fails.append(f"`{index}`")
+                else:
+                    passes.append(f"`{index}`")
+                    completed.append(_)
+            msg = ""
+            detailed = await self.config.user(ctx.author).detailed_pop()
+            if len(passes):
+                if detailed:
+                    comp = [f"`{x}`" for x in completed]
+                    msg += f"Completed {len(passes)} todos:\n{', '.join(comp)}\n"
+                else:
+                    msg += f"Passed {len(passes)} todos\n"
+            if len(fails):
+                if detailed:
+                    msg += f"Failed to complete {len(fails)} times:\n{', '.join(fails)}"
+                else:
+                    msg += f"Failed to complete {len(fails)} times"
+            if not msg:
+                msg = "Hm, something went wrong"
+            await ctx.send(msg)
+        async with self.config.user(ctx.author).completed() as complete:
+            for item in completed:
+                complete.append(item)
+
+    @complete.command(name="list")
+    async def complete_list(self, ctx):
+        """List your completed todos!"""
+        if len((completed := await self.config.user(ctx.author).completed())):
+            await self.page_logic(ctx, self.number(completed), "Completed Todo List")
+            log.info(completed)
+        else:
+            await ctx.send("You don't have any completed todos yet!")
 
     @todo.command()
     async def add(self, ctx, *, todo: str):
@@ -145,8 +205,7 @@ class ToDo(commands.Cog):
                 await self.page_logic(ctx, sending)
                 return
             else:
-                todo = [val - 1 for val in todo]
-                todo.sort(reverse=True)
+                todo = self.sort_lists(todo)
             popped_todos = []
             failed = []
             for to in todo:
@@ -271,18 +330,30 @@ class ToDo(commands.Cog):
                 sending = todo
             await ctx.send(sending)
 
-    def number(self, item: list):
+    ### Utilities ###
+
+    def number(self, item: list) -> list:
         return [f"{num}. {act}" for num, act in enumerate(item, 1)]
 
-    async def page_logic(self, ctx: commands.Context, things: list):
+    async def page_logic(
+        self, ctx: commands.Context, things: list, title: str = "Todo List"
+    ):
         things = "\n".join(things)
         use_md = await self.config.user(ctx.author).use_md()
         use_embeds = await self.config.user(ctx.author).use_embeds()
         menu = menus.TodoMenu(
             source=menus.TodoPages(
-                data=list(pagify(things)), use_md=use_md, use_embeds=use_embeds
+                data=list(pagify(things)),
+                use_md=use_md,
+                use_embeds=use_embeds,
+                title=title,
             ),
             delete_message_after=False,
             clear_reactions_after=True,
         )
         await menu.start(ctx=ctx, channel=ctx.channel)
+
+    def sort_lists(self, items: typing.List[int]) -> list:
+        items = [v - 1 for v in items]
+        items.sort(reverse=True)
+        return items
