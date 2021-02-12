@@ -94,6 +94,7 @@ class ToDo(commands.Cog):
 
     @todoset.command()
     async def autosort(self, ctx, toggle: bool):
+        """Toggle if todos should be autosorted"""
         await self._toggler(ctx=ctx, item="Autosorting", key="autosort", toggle=toggle)
 
     async def _toggler(self, ctx: commands.Context, item: str, key: str, toggle: bool):
