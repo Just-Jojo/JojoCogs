@@ -174,6 +174,7 @@ class ToDo(commands.Cog):
         async with self.config.user(ctx.author).completed() as complete:
             for item in completed:
                 complete.append(item)
+        await self._maybe_auto_sort(ctx.author)
 
     @complete.command(name="list")
     async def complete_list(self, ctx):
@@ -205,6 +206,8 @@ class ToDo(commands.Cog):
         reversed = await self.config.user(author).reverse_sort()
         async with self.config.user(author).todos() as todos:
             todos.sort(reverse=reversed)  # Fairly simple
+        async with self.config.user(author).completed() as completed:
+            completed.sort(reverse=reversed)
 
     # `pop` because you're basically using list.pop(index) :p
     @todo.command(aliases=["del", "delete", "pop"])
@@ -273,9 +276,9 @@ class ToDo(commands.Cog):
         else:
             await ctx.send(
                 (
-                    f"You don't have any ToDo reminders!"
+                    f"You don't have any todos!"
                     f"\nYou can add one using "
-                    f"`{ctx.clean_prefix}todo add <name> <ToDo>`"
+                    f"`{ctx.clean_prefix}todo add <todo>`"
                 )
             )
 
