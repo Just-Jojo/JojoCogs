@@ -1,0 +1,16 @@
+{
+    "author": [
+        "Jojo#7791"
+    ],
+    "description": "Encrypt and decrypt messages with various ciphers",
+    "min_bot_version": "3.4.5",
+    "min_python_version": [
+        3,
+        8,
+        1
+    ],
+    "install_msg": "WLPLZFSLISGGCZXROPXLVQSARWSCEFTYHVRMVALZVGDEXZZVUCUSCHRUQSIFPYHKRVTYSALVKIANPAECO\n\n(use [p]devigenere depypher <this message>` to figure out what it means",
+    "requirements": [
+        "pycipher"
+    ]
+}
