@@ -7,6 +7,7 @@ from redbot.core.utils.predicates import MessagePredicate
 from redbot.core.utils.chat_formatting import pagify, box
 from . import menus
 import typing
+from itertools import cycle
 
 log = logging.getLogger("red.JojoCogs.todo")
 
@@ -68,6 +69,7 @@ class ToDo(commands.Cog):
     @commands.group()
     async def todoset(self, ctx):
         """Base settings command for customizing todo lists"""
+        pass  # Passing in subcommands isn't needed but okay
 
     @todoset.command()
     async def pop(self, ctx, toggle: bool):
@@ -103,15 +105,34 @@ class ToDo(commands.Cog):
             await ctx.send(f"{item} is now {toggled}")
             await self.config.user(ctx.author).set_raw(key, value=toggle)
 
+    @todoset.command()
+    async def showsettings(self, ctx):
+        """Show your todo settings"""
+        conf = self.config.user(ctx.author)
+        settings = {
+            "Markdown": await conf.use_md(),
+            "Embedded": await conf.use_embeds(),
+            "Detailed": await conf.detailed_pop(),
+            "Autosorting": await conf.autosort(),
+            "Reverse sort": await conf.reverse_sort(),
+        }
+        inline = cycle([True, True, False])
+        embed = discord.Embed(
+            title=f"{ctx.author.display_name}'s todo settings",
+            colour=await ctx.embed_colour(),
+        )
+        for key, value in settings.items():
+            embed.add_field(name=key, value=value, inline=next(inline))
+        await ctx.send(embed=embed)
+
     ### Listing commands ###
 
     @commands.group()
     async def todo(self, ctx):
         """Base todo reminder command"""
+        pass
 
-    @todo.group(
-        invoke_without_command=True
-    )  # TODO: Move this up to the other subcommands
+    @todo.group(invoke_without_command=True)
     async def complete(self, ctx, *indexes: positive_int):
         """Complete todo reminders"""
         # Thanks to Blackie#0001 on Red for the idea
