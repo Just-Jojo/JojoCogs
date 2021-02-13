@@ -1,7 +1,8 @@
+import typing
+
 import discord
 from redbot.core import commands
 from redbot.vendored.discord.ext import menus
-import typing
 
 __all__ = ["JojoPages", "JojoMenu"]
 

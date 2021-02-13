@@ -1,13 +1,14 @@
 import asyncio
 import logging
+import typing
+from itertools import cycle
 
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
-from redbot.core.utils.chat_formatting import pagify, box
+
 from . import menus
-import typing
-from itertools import cycle
 
 log = logging.getLogger("red.JojoCogs.todo")
 

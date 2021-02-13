@@ -1,5 +1,5 @@
-from redbot.core import commands
 from pycipher import pycipher
+from redbot.core import commands
 
 _caesar = pycipher.Caesar(key=4)
 _atbash = pycipher.Atbash()

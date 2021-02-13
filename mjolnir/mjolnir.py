@@ -1,14 +1,14 @@
-import discord
-import logging
 import asyncio
-import typing
+import logging
 import random
+import typing
 
-from . import menus
-
-from redbot.core import commands, Config
+import discord
+from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
+
+from . import menus
 
 log = logging.getLogger("red.JojoCogs.mjolnir")
 

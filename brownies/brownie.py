@@ -1,12 +1,12 @@
 import asyncio
+import logging
 import os
 import random
 import time
 from operator import itemgetter
 from typing import Literal, Optional
-import aiohttp
-import logging
 
+import aiohttp
 import discord
 from redbot.core import Config, commands
 from redbot.core.utils import AsyncIter

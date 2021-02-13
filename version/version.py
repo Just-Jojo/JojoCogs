@@ -1,6 +1,5 @@
-from redbot.core import commands
-
 import discord
+from redbot.core import commands
 
 
 class Version(commands.Cog):
