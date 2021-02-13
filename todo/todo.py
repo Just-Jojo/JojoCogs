@@ -147,29 +147,30 @@ class ToDo(commands.Cog):
         passes = 0
         fails = 0
         completed = []
-        async with self.config.user(ctx.author).todos() as todos:
-            for index in indexes:
-                try:
-                    _ = todos.pop(index)
-                except IndexError:
-                    fails += 1
+        async with ctx.typing():
+            async with self.config.user(ctx.author).todos() as todos:
+                for index in indexes:
+                    try:
+                        _ = todos.pop(index)
+                    except IndexError:
+                        fails += 1
+                    else:
+                        passes += 1
+                        completed.append(_)
+            # This stuff doesn't need to be in
+            # the `async with` part
+            msg = ""
+            detailed = await self.config.user(ctx.author).detailed_pop()
+            if passes:
+                if detailed:
+                    comp = [f"`{x}`" for x in completed]
+                    msg += f"Completed {passes} todos:\n{', '.join(comp)}\n"
                 else:
-                    passes += 1
-                    completed.append(_)
-        # This stuff doesn't need to be in
-        # the `async with` part
-        msg = ""
-        detailed = await self.config.user(ctx.author).detailed_pop()
-        if passes:
-            if detailed:
-                comp = [f"`{x}`" for x in completed]
-                msg += f"Completed {passes} todos:\n{', '.join(comp)}\n"
-            else:
-                msg += f"Completed {passes} todos\n"
-        if fails:
-            msg += f"Failed to complete {fails} todos"
-        if not msg:
-            msg = "Hm, something went wrong"
+                    msg += f"Completed {passes} todos\n"
+            if fails:
+                msg += f"Failed to complete {fails} todos"
+            if not msg:
+                msg = "Hm, something went wrong"
         await ctx.send(msg)
         async with self.config.user(ctx.author).completed() as complete:
             for item in completed:
@@ -216,50 +217,51 @@ class ToDo(commands.Cog):
 
         Example:
         `[p]todo del <number>`"""
-        async with self.config.user(ctx.author).todos() as todos:
-            if not len(todos):
-                return await ctx.send(
-                    (
-                        "You don't have any todos yet!"
-                        f"\nUse `{ctx.clean_prefix}todo add <todo>` to add one!"
+        async with ctx.typing():
+            async with self.config.user(ctx.author).todos() as todos:
+                if not len(todos):
+                    return await ctx.send(
+                        (
+                            "You don't have any todos yet!"
+                            f"\nUse `{ctx.clean_prefix}todo add <todo>` to add one!"
+                        )
                     )
-                )
-            if not len(to_del):
-                sending = self.number(item=todos)
-                await self.page_logic(ctx, sending)
-                return
+                if not len(to_del):
+                    sending = self.number(item=todos)
+                    await self.page_logic(ctx, sending)
+                    return
+                else:
+                    todo = self.sort_lists(to_del)
+                popped_todos = []
+                failed = []
+                for to in todo:
+                    try:
+                        popped_todos.append(f"`{todos.pop(to)}`")
+                    except IndexError:
+                        await ctx.send("That was an invalid todo index!")
+                        failed.append(f"`{to}`")
+            msg = ""
+            if await self.config.user(ctx.author).detailed_pop():
+                if len(popped_todos) > 1:
+                    popped_todos = "\n".join(popped_todos)
+                    msg += f"Removed these todo reminders!\n{popped_todos}"
+                # Since this is gonna be `1` I don't have to check for it
+                elif len(popped_todos):
+                    popped_todos = popped_todos[0]
+                    msg += f"Removed this todo reminder!\n`{popped_todos}`"
+                if len(failed) > 1:
+                    failed = "\n".join(failed)
+                    msg += f"\nCould not remove todos at these indexes\n{failed}"
+                elif len(failed):
+                    failed = failed[0]
+                    msg += f"\nCould not remove a todo at this index\n{failed}"
             else:
-                todo = self.sort_lists(to_del)
-            popped_todos = []
-            failed = []
-            for to in todo:
-                try:
-                    popped_todos.append(f"`{todos.pop(to)}`")
-                except IndexError:
-                    await ctx.send("That was an invalid todo index!")
-                    failed.append(f"`{to}`")
-        msg = ""
-        if await self.config.user(ctx.author).detailed_pop():
-            if len(popped_todos) > 1:
-                popped_todos = "\n".join(popped_todos)
-                msg += f"Removed these todo reminders!\n{popped_todos}"
-            # Since this is gonna be `1` I don't have to check for it
-            elif len(popped_todos):
-                popped_todos = popped_todos[0]
-                msg += f"Removed this todo reminder!\n`{popped_todos}`"
-            if len(failed) > 1:
-                failed = "\n".join(failed)
-                msg += f"\nCould not remove todos at these indexes\n{failed}"
-            elif len(failed):
-                failed = failed[0]
-                msg += f"\nCould not remove a todo at this index\n{failed}"
-        else:
-            if len(popped_todos) > 1:
-                msg += "Removed those todos!"
-            else:
-                msg += "Removed that todo!"
-            if len(failed):
-                msg += "\nFailed to remove some todos!"
+                if len(popped_todos) > 1:
+                    msg += "Removed those todos!"
+                else:
+                    msg += "Removed that todo!"
+                if len(failed):
+                    msg += "\nFailed to remove some todos!"
         if msg:
             await ctx.send(msg)
         else:
