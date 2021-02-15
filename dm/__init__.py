@@ -19,7 +19,7 @@ class DM(commands.Cog):
 
     @commands.Cog.listener("on_message_without_command")
     async def on_dm(self, msg):
-        if msg.guild:
+        if msg.guild or msg.author.bot:
             return
         if (channel := await self.config.get_raw("channel")) :
             channel = await self.bot.fetch_channel(channel)
