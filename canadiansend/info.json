@@ -1,0 +1,15 @@
+{
+    "author": [
+        "Jojo#7791",
+        "jack1142 (Jackenmen#6607)"
+    ],
+    "min_bot_version": "3.4.5",
+    "min_python_version": [
+        3,
+        8,
+        1
+    ],
+    "install_msg": "Thanks for installing CanadianSend! This is a slightly modified version of Jack's SmileySend which you can find here (<https://github.com/jack1142/WeirdUnsupportedCogsOfJack>). Thanks Jack!",
+    "description": "Make your bot Canadian!",
+    "short": "Canadian send, because why not?"
+}
