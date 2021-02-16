@@ -129,7 +129,7 @@ class ToDo(commands.Cog):
         )
         for key, value in settings.items():
             embed.add_field(name=key, value=value, inline=next(inline))
-        await ctx.reply(embed=embed)
+        await ctx.send(embed=embed)
 
     ### Listing commands ###
 
@@ -176,7 +176,7 @@ class ToDo(commands.Cog):
                 msg += f"Failed to complete {fails} todos"
             if not msg:
                 msg = "Hm, something went wrong"
-        await ctx.reply(msg)
+        await ctx.send(msg)
         async with self.config.user(ctx.author).completed() as complete:
             for item in completed:
                 complete.append(item)
