@@ -86,6 +86,7 @@ class CycleStatus(commands.Cog):
                 except IndexError:
                     pass
         await ctx.tick()
+        await self._update_status()
 
     @status.command(name="list")
     async def status_list(self, ctx):
@@ -104,11 +105,16 @@ class CycleStatus(commands.Cog):
             if add_help:
                 prefix = await self.bot.get_valid_prefixes()
                 for p in prefix:
-                    if not p == self.bot.user.mention:
+                    if p not in (
+                        f"<@!{self.bot.user.id}> ",
+                        f"<@{self.bot.user.id}> ",
+                        f"<@!{self.bot.user.id}>",
+                        f"<@{self.bot.user.id}>",
+                    ):
                         prefix = p
                         break
                 if isinstance(prefix, list):
-                    prefix = "@me "
+                    prefix = f"@{self.bot.user.name}"
                 msg += f" | {prefix}help"
             if game_type == "game":
                 ac = discord.Game(name=msg)
