@@ -102,7 +102,14 @@ class CycleStatus(commands.Cog):
             game_type = await self.config.type()
             msg = next(self.cy)
             if add_help:
-                msg += f" | {(await self.bot.get_valid_prefixes())[0]}help"
+                prefix = await self.bot.get_valid_prefixes()
+                for p in prefix:
+                    if not p == self.bot.user.mention:
+                        prefix = p
+                        break
+                if isinstance(prefix, list):
+                    prefix = "@me "
+                msg += f" | {prefix}help"
             if game_type == "game":
                 ac = discord.Game(name=msg)
             elif game_type == "listening":
