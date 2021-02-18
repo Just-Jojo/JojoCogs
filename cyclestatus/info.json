@@ -1,0 +1,17 @@
+{
+    "author": [
+        "Jojo#7791"
+    ],
+    "description": "Cycle your bot's status!",
+    "min_bot_version": "3.4.5",
+    "min_python_version": [
+        3,
+        8,
+        1
+    ],
+    "install_msg": "Thank you for installing Jojo's cycle status cog!\nIf you find a bug make an issue on my github!",
+    "tags": [
+        "status",
+        "utility"
+    ]
+}
