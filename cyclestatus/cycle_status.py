@@ -11,10 +11,13 @@ import logging
 
 log = logging.getLogger("red.JojoCogs.cyclestatus")
 
-_config_structure = {"statuses": []}
+_config_structure = {"statuses": [], "type": "game", "help": True}
 
 
 class CycleStatus(commands.Cog):
+    __version__ = "0.1.1"
+    __author__ = ["Jojo#7791"]
+
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 3213546583213654, True)
@@ -45,11 +48,29 @@ class CycleStatus(commands.Cog):
     async def status(self, ctx):
         """Base command for Status options"""
 
+    @status.group(name="set", invoke_without_command=True)
+    async def status_set(self, ctx, ac_type: str):
+        """Set the type of the status activity!"""
+        ac_type = ac_type.lower()
+        if ac_type not in ("game", "watching", "listening"):
+            return await ctx.send("That wasn't a valid type!")
+        await ctx.tick()
+        await self.config.type.set(ac_type)
+
+    @status_set.command(name="help")
+    async def status_set_help(self, ctx, toggle: bool):
+        if (s := await self.config.help()) == toggle:
+            await ctx.send(f"Help was already {'enabled' if toggle else 'disabled'}")
+        else:
+            await ctx.tick()
+            await self.config.help.set(toggle)
+
     @status.command(name="add")
     async def status_add(self, ctx, *, status: str):
         async with self.config.statuses() as stat:
             stat.append(status)
         await ctx.tick()
+        await self.update_status()
 
     @status.command(name="remove", aliases=["del", "delete"])
     async def status_remove(self, ctx, *indexes: int):
@@ -77,7 +98,18 @@ class CycleStatus(commands.Cog):
         if self.cy is None:
             pass
         else:
-            await self.bot.change_presence(activity=discord.Game(name=next(self.cy)))
+            add_help = await self.config.help()
+            game_type = await self.config.type()
+            msg = next(self.cy)
+            if add_help:
+                msg += f" | {(await self.bot.get_valid_prefixes())[0]}help"
+            if game_type == "game":
+                ac = discord.Game(name=msg)
+            elif game_type == "listening":
+                ac = discord.Activity(name=msg, type=discord.ActivityType.listening)
+            else:
+                ac = discord.Activity(name=msg, type=discord.ActivityType.watching)
+            await self.bot.change_presence(activity=ac)
 
     async def cog_check(self, ctx: commands.Context):
         return await self.bot.is_owner(ctx.author)
