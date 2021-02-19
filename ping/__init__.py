@@ -1,7 +1,7 @@
 from redbot.core.bot import Red
 from redbot.core.commands import command
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 @command()
