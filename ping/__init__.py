@@ -11,6 +11,7 @@ async def pingset(ctx):
 
     @command()
     async def ping(ctx):
+        """Pong"""
         await ctx.reply("Pong.", mention_author=False)
 
     bot.remove_command("ping")
