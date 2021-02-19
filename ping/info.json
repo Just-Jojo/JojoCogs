@@ -1,0 +1,13 @@
+{
+    "author": [
+        "Jojo#7791"
+    ],
+    "description": "Reset the ping to have mentions",
+    "min_bot_version": "3.4.6",
+    "min_python_version": [
+        3,
+        8,
+        1
+    ],
+    "install_msg": "Thanks for installing Jojo's ping!"
+}
