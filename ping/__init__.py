@@ -1,5 +1,5 @@
 from redbot.core.bot import Red
-from redbot.core.commands import command
+from redbot.core.commands import command, is_owner
 
 from typing import Optional
 
@@ -7,6 +7,7 @@ __version__ = "0.1.3"
 
 
 @command()
+@is_owner()
 async def pingset(ctx, mention: Optional[bool] = False, *, response: str = "Pong."):
     """Set the ping command to use replies"""
     bot = ctx.bot
