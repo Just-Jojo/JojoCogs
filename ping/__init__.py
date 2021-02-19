@@ -7,7 +7,7 @@ __version__ = "0.1.3"
 
 
 @command()
-async def pingset(ctx, mention: Optional[bool] = False, response: str = "Pong."):
+async def pingset(ctx, mention: Optional[bool] = False, *, response: str = "Pong."):
     """Set the ping command to use replies"""
     bot = ctx.bot
 
