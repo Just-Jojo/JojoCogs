@@ -6,6 +6,7 @@ __version__ = "0.1.0"
 
 @command()
 async def pingset(ctx):
+    """Set the ping command to use replies"""
     bot = ctx.bot
 
     @command()
@@ -14,6 +15,7 @@ async def pingset(ctx):
 
     bot.remove_command("ping")
     bot.add_command(ping)
+    await ctx.tick()
 
 
 def setup(bot: Red):
