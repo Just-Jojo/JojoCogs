@@ -369,6 +369,19 @@ class ToDo(commands.Cog):
             ctx=ctx, message=_about, title="About ToDo", footer="Jojo's Todo Cog"
         )
 
+    @todo.command()
+    async def version(self, ctx):
+        """Check what version ToDo is on!"""
+        embed = discord.Embed(
+            title="ToDo version",
+            description=f"ToDo\n**Author**: {', '.join(self.__author__)}\n**Running Version**: {self.__version__}",
+            colour=await ctx.embed_colour(),
+        )
+        await ctx.send(
+            content="This bot is outdated!\nCheck with the bot owner to have them update it!",
+            embed=embed,
+        )
+
     ### Utilities ###
 
     async def maybe_send_embed(
