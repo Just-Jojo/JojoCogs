@@ -330,7 +330,8 @@ class ToDo(commands.Cog):
                 await ctx.send("Hm, there doesn't seem to be a todo there")
             else:
                 items.insert(new_index, item)
-                await ctx.send(f"Moved todo reminder `{item}`")
+        await ctx.send(f"Moved todo reminder `{item}`")
+        await self.config.user(ctx.author).autosort.set(False)
 
     @todo.command()
     async def show(self, ctx, index: positive_int):
