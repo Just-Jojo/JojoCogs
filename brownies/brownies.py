@@ -12,11 +12,14 @@ from redbot.core import Config, commands
 from redbot.core.utils import AsyncIter
 
 log = logging.getLogger("red.mcoc-v3.brownies")
-
-# From redbot.cogs.cleanup.converters
+_config_structure = {
+    "user": {"brownies": 0, "StealCD": 5, "BrownieCD": 5},
+    "guild": {"StealCD": 300, "BrownieCD": 300},
+}
 
 
 def positive_int(arg: str) -> int:
+    # From redbot.cogs.cleanup.converters
     """Returns a positive int"""
     try:
         ret = int(arg)
@@ -60,6 +63,7 @@ class Brownies(commands.Cog):
         footer_url: str = None,
     ) -> discord.Embed:
         """Get a default embed from context"""
+        session = aiohttp.ClientSession()
         data = discord.Embed()
         if title:
             data.title = title
@@ -80,20 +84,18 @@ class Brownies(commands.Cog):
             data.colour = await ctx.embed_colour()
         if thumbnail is not None:
             try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(str(thumbnail)) as response:
-                        if response.status == 200:
-                            data.set_thumbnail(thumbnail)
+                async with session.get(str(thumbnail)) as response:
+                    if response.status == 200:
+                        data.set_thumbnail(thumbnail)
             except TypeError:
                 pass
         if image is not None:
             try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(str(image)) as response:
-                        if response.status == 200:
-                            data.set_image(image)
-                        else:
-                            log.warning(f"Image got a status code of {response.status}")
+                async with session.get(str(image)) as response:
+                    if response.status == 200:
+                        data.set_image(image)
+                    else:
+                        log.warning(f"Image got a status code of {response.status}")
             except TypeError:
                 pass
         if footer is None:
@@ -101,21 +103,25 @@ class Brownies(commands.Cog):
         if footer_url is None:
             footer_url = ctx.bot.user.avatar_url
         else:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(footer_url) as response:
-                    if response.status != 200:
-                        footer_url = ctx.bot.user.avatar_url
+            async with session.get(footer_url) as response:
+                if response.status != 200:
+                    footer_url = ctx.bot.user.avatar_url
         data.set_footer(text=footer, icon_url=footer_url)
+        await session.close()
         return data
-
-    default_guild_settings = {"StealCD": 300, "BrownieCD": 300}
-    default_user_settings = {"brownies": 0, "StealCD": 5, "BrownieCD": 5}
 
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2287042090, force_registration=True)
-        self.config.register_member(**self.default_user_settings)
-        self.config.register_guild(**self.default_guild_settings)
+        self.config.register_member(**_config_structure["user"])
+        self.config.register_guild(**_config_structure["guild"])
+
+    async def format_help_for_context(self, ctx):
+        return (
+            f"{super().format_help_for_context(ctx)}"
+            f"\n**__Version__**: {self.__version__}"
+            f"\n**__Authors__**: {', '.join(self.__author__)}"
+        )
 
     async def red_delete_data_for_user(
         self,
@@ -175,7 +181,7 @@ class Brownies(commands.Cog):
         """Get a random amount of brownies"""
         action = "BrownieCD"
         cd = await self.check_cooldown(ctx=ctx, user=ctx.author, action=action)
-        if cd is False:
+        if not cd:
             return  # I don't like huge if statements
         weighted_sample = [1] * 152 + [x for x in range(49) if x > 1]
         brownies = random.choice(weighted_sample)
@@ -217,7 +223,7 @@ class Brownies(commands.Cog):
     async def nom(self, ctx):
         """Nom nom nom..."""
         brownies = await self.config.member(ctx.author).brownies()
-        if brownies == 0:
+        if not brownies:
             return await ctx.send("There are no brownies to eat!")
         brownies -= 1
         if brownies == 0:
@@ -232,8 +238,7 @@ class Brownies(commands.Cog):
     @commands.command()
     async def steal(self, ctx, user: Optional[discord.Member] = None):
         """Steal brownies!"""
-        action = "StealCD"
-        cd = await self.check_cooldown(ctx, ctx.author, action)
+        cd = await self.check_cooldown(ctx, ctx.author, "StealCD")
         if cd is False:
             return
         if user is None:
@@ -245,8 +250,11 @@ class Brownies(commands.Cog):
 
     async def steal_logic(
         self, ctx: commands.Context, user: discord.Member, author: discord.Member
-    ):
-        """Logic for stealing brownies"""
+    ) -> str:
+        """|coro|
+
+        Logic for stealing brownies
+        """
         user_brownies = await self.config.member(user).brownies()
         author_brownies = await self.config.member(author).brownies()
 
@@ -257,8 +265,10 @@ class Brownies(commands.Cog):
             return "I could not find their brownie points"
         steal_b = int(user_brownies * 0.75)
         if steal_b < 1:
-            steal_b = 1
-        stolen = random.randint(1, steal_b)
+            stolen = 1
+        else:
+            # No need to generate a number between 1 and 1 LOL
+            stolen = random.randint(1, steal_b)
         user_brownies -= stolen
         author_brownies += stolen
         await self.config.member(user).brownies.set(user_brownies)
@@ -291,7 +301,9 @@ class Brownies(commands.Cog):
             await ctx.send(f"This action has a cooldown. You still have:\n{remaining}")
             return False
 
-    def random_user(self, guild: discord.Guild, author: discord.Member):
+    def random_user(
+        self, guild: discord.Guild, author: discord.Member
+    ) -> discord.Member:
         """Return a random, non-bot user"""
         clean_users = [
             member
@@ -301,11 +313,8 @@ class Brownies(commands.Cog):
         user = random.choice(clean_users)
         return user
 
-    async def cog_check(self, ctx: commands.Context):
-        return ctx.guild is not None  # Guild only commands
-
     def time_formatting(self, seconds) -> str:
-
+        """Format time for cooldown messages"""
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
         data = PluralDict({"hour": h, "minute": m, "second": s})
@@ -328,3 +337,6 @@ class Brownies(commands.Cog):
         elif m == 0 and h == 0 and s == 0:
             msg = "None"
         return msg
+
+    async def cog_check(self, ctx: commands.Context):
+        return ctx.guild is not None  # Guild only commands
