@@ -4,5 +4,4 @@
 .venv
 **\.tmp
 # Cogs and files that aren't ready yet
-embedder/
 todo/assigned.py
