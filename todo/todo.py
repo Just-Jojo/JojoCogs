@@ -23,6 +23,7 @@ _config_structure = {
     "autosort": False,
     "reverse_sort": False,
     "completed": [],
+    "replies": True,
 }
 _about = """ToDo is a cog designed by Jojo#7791 for keeping track of different tasks you need to do
 
@@ -102,6 +103,11 @@ class ToDo(commands.Cog):
         """Toggle if todos should be autosorted"""
         await self._toggler(ctx=ctx, item="Autosorting", key="autosort", toggle=toggle)
 
+    @todoset.command()
+    async def reply(self, ctx, toggle: bool):
+        """Toggle replies"""
+        await self._toggler(ctx=ctx, item="Replies", key="replies", toggle=toggle)
+
     async def _toggler(self, ctx: commands.Context, item: str, key: str, toggle: bool):
         toggled = "enabled!" if toggle else "disabled!"
         setting = await self.config.user(ctx.author).get_raw(key)
@@ -121,6 +127,7 @@ class ToDo(commands.Cog):
             "Detailed": await conf.detailed_pop(),
             "Autosorting": await conf.autosort(),
             "Reverse sort": await conf.reverse_sort(),
+            "Replies": await conf.replies(),
         }
         inline = cycle([True, True, False])
         embed = discord.Embed(
@@ -129,7 +136,7 @@ class ToDo(commands.Cog):
         )
         for key, value in settings.items():
             embed.add_field(name=key, value=value, inline=next(inline))
-        await ctx.reply(embed=embed, mention_author=False)
+        await self.maybe_reply(ctx, embed=embed)
 
     ### Listing commands ###
 
@@ -176,7 +183,7 @@ class ToDo(commands.Cog):
                 msg += f"Failed to complete {fails} todos"
             if not msg:
                 msg = "Hm, something went wrong"
-        await ctx.reply(msg, mention_author=False)
+        await self.maybe_reply(ctx, content=msg)
         async with self.config.user(ctx.author).completed() as complete:
             for item in completed:
                 complete.append(item)
@@ -398,6 +405,15 @@ class ToDo(commands.Cog):
                 footer = ""
             msg = f"{title}\n\n{message}\n{footer}"
             return await ctx.send(content=msg)
+
+    async def maybe_reply(
+        self, ctx: commands.Context, content: str = None, embed: discord.Embed = None
+    ) -> discord.Message:
+        mreply = await self.config.user(ctx.author).replies()
+        if mreply:
+            return await ctx.reply(content=content, embed=embed, mention_author=False)
+        else:
+            return await ctx.send(content=content, embed=embed)
 
     def number(self, item: list) -> list:
         return [f"{num}. {act}" for num, act in enumerate(item, 1)]
