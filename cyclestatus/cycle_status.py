@@ -42,6 +42,7 @@ class CycleStatus(commands.Cog):
             self.cy = cycle(stats)
             if self.removed:
                 self.removed = False
+        await self.update_status()
 
     @commands.group()
     async def status(self, ctx):
