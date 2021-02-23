@@ -431,6 +431,7 @@ class ToDo(commands.Cog):
                 use_embeds=use_embeds,
                 title=title,
             ),
+            timeout=15.0,
             delete_message_after=False,
             clear_reactions_after=True,
         )
