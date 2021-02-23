@@ -1,4 +1,4 @@
-A repo for some of the cogs I have built for Red - Discord bot
+# A repo for some of the cogs I have built for Red - Discord bot
 
 ## Help
 For help you can either use a bug report issue, go to the [support server](discord.gg/JmCFyq7), or ask in Red's [cog support server](https://discord.gg/GET4DVk) in `#support_othercogs`
