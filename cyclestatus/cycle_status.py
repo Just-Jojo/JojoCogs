@@ -31,7 +31,6 @@ class CycleStatus(commands.Cog):
     def cog_unload(self):
         self.update_status.cancel()
 
-    @tasks.loop(minutes=10)
     async def _update_status(self):
         stats = await self.config.statuses()
         if not len(stats):
