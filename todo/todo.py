@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import typing
-from itertools import cycle
 
 import discord
 from redbot.core import Config, checks, commands
@@ -129,13 +128,12 @@ class ToDo(commands.Cog):
             "Reverse sort": await conf.reverse_sort(),
             "Replies": await conf.replies(),
         }
-        inline = cycle([True, True, False])
         embed = discord.Embed(
             title=f"{ctx.author.display_name}'s todo settings",
             colour=await ctx.embed_colour(),
         )
         for key, value in settings.items():
-            embed.add_field(name=key, value=value, inline=next(inline))
+            embed.add_field(name=key, value=value, inline=True)
         await self.maybe_reply(ctx, embed=embed)
 
     ### Listing commands ###
