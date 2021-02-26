@@ -1,5 +1,6 @@
-from .cycle_status import CycleStatus
 from redbot.core.bot import Red
+
+from .cycle_status import CycleStatus
 
 
 async def setup(bot: Red):

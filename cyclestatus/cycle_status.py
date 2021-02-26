@@ -1,13 +1,11 @@
-import discord
-from discord.ext import tasks
-
-from redbot.core import commands, Config
-from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import humanize_list, box
-
+import logging
 from itertools import cycle
 
-import logging
+import discord
+from discord.ext import tasks
+from redbot.core import Config, commands
+from redbot.core.bot import Red
+from redbot.core.utils.chat_formatting import box, humanize_list
 
 log = logging.getLogger("red.JojoCogs.cyclestatus")
 
