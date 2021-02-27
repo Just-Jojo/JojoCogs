@@ -1,0 +1,20 @@
+{
+    "name": "Store",
+    "short": "A store with fun items to buy",
+    "description": "A store working with an economy system to allow guild members to buy items",
+    "end_user_data_statement": "This cog does not store end user data",
+    "install_msg": "Thank you for installing Jojo's store! If you have any issues please make an issue on my github page or join my support server (linked on my repo)",
+    "author": [
+        "Jojo#7791"
+    ],
+    "required_cogs": [],
+    "requirements": [],
+    "tags": [
+        "store",
+        "economy"
+    ],
+    "min_bot_version": "3.4.5",
+    "hidden": false,
+    "disabled": false,
+    "type": "COG"
+}
