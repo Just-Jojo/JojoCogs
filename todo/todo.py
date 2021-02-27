@@ -28,6 +28,7 @@ _about = """ToDo is a cog designed by Jojo#7791 for keeping track of different t
 
 It has a simple add, list, and complete to make sure your tasks get done!
 """
+_comic_link = "https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/data/todo_comic.jpg"
 
 
 def positive_int(arg: str) -> int:
@@ -44,7 +45,7 @@ def positive_int(arg: str) -> int:
 class ToDo(commands.Cog):
     """A simple, highly customizeable todo list for Discord"""
 
-    __version__ = "0.1.10"
+    __version__ = "0.1.11"
     __author__ = [
         "Jojo",
     ]
@@ -368,11 +369,22 @@ class ToDo(commands.Cog):
             await ctx.send(sending)
 
     @todo.command()
-    async def explain(self, ctx):
+    async def explain(self, ctx, comic: bool = False):
         """Explain what a todo is and why this cog exists!"""
-        await self.maybe_send_embed(
-            ctx=ctx, message=_about, title="About ToDo", footer="Jojo's Todo Cog"
-        )
+        if comic:
+            if await ctx.embed_requested():
+                embed = discord.Embed(
+                    title="About ToDo", colour=await ctx.embed_colour()
+                )
+                embed.set_footer(text="Jojo's ToDo Cog")
+                embed.set_image(url=_comic_link)
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send(content=_comic_link)
+        else:
+            await self.maybe_send_embed(
+                ctx=ctx, message=_about, title="About ToDo", footer="Jojo's Todo Cog"
+            )
 
     @todo.command()
     async def version(self, ctx):
