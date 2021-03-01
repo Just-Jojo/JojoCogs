@@ -9,7 +9,7 @@ __version__ = "0.1.3"
 @command()
 async def ping(ctx):
     """Pong"""
-    await ctx.reply(content="Ping.", mention_author=False)
+    await ctx.reply(content="Pong.", mention_author=False)
 
 
 def setup(bot: Red):
