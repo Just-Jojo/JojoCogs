@@ -301,12 +301,15 @@ class ToDo(commands.Cog):
         if len(todos) >= 1:
             todos = self.number(item=todos)
             if await self.config.user(ctx.author).combine_lists():
-                completed = await self.cross_list(
-                    await self.config.user(ctx.author).completed(),
-                    await self.config.user(ctx.author).use_md(),
-                )
-                completed.insert(0, "❎ Completed todos")
-                todos.extend(completed)
+                if not await self.config.user(ctx.author).completed():
+                    pass
+                else:
+                    completed = await self.cross_list(
+                        await self.config.user(ctx.author).completed(),
+                        await self.config.user(ctx.author).use_md(),
+                    )
+                    completed.insert(0, "❎ Completed todos")
+                    todos.extend(completed)
             await self.page_logic(ctx, todos)
         else:
             await ctx.send(
