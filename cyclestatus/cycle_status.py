@@ -124,3 +124,7 @@ class CycleStatus(commands.Cog):
 
     async def cog_check(self, ctx: commands.Context):
         return await self.bot.is_owner(ctx.author)
+
+    async def red_delete_data_for_user(self, *, requester, user_id):
+        """Nothing to delete"""
+        return

@@ -60,3 +60,7 @@ class Depypher(commands.Cog):
     async def deporta(self, ctx, keyword: str, *, cipher: str):
         """Decrypt a message with the Porta cipher!"""
         await ctx.send(_porta(key=keyword).decipher(string=cipher))
+
+    async def red_delete_data_for_user(self, *, requester, user_id):
+        """Nothing to delete"""
+        return
