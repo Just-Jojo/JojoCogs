@@ -202,9 +202,7 @@ class ToDo(commands.Cog):
     async def complete_list(self, ctx):
         """List your completed todos!"""
         if len((completed := await self.config.user(ctx.author).completed())):
-            completed = await self.cross_list(
-                data=completed, md=await self.config.user(ctx.author).use_md()
-            )
+            completed = await self.cross_list(data=completed)
             await self.page_logic(
                 ctx,
                 completed,
@@ -305,10 +303,7 @@ class ToDo(commands.Cog):
                 if not (comp := await self.config.user(ctx.author).completed()):
                     pass
                 else:
-                    completed = await self.cross_list(
-                        comp,
-                        await self.config.user(ctx.author).use_md(),
-                    )
+                    completed = await self.cross_list(comp)
                     completed.insert(0, "❎ Completed todos")
                     todos.extend(completed)
             await self.page_logic(ctx, todos)
@@ -478,13 +473,9 @@ class ToDo(commands.Cog):
         items.sort(reverse=True)
         return items
 
-    async def cross_list(self, data: list, md: bool = False) -> list:
+    async def cross_list(self, data: list) -> list:  # , md: bool = False) -> list:
         """|coro|
 
         Cross items in a list
         """
-        if md:
-            _char = "\u0336"
-            return [f"{_char.join(x)}{_char}" for x in data]
-        else:
-            return [f"~~{x}~~" for x in data]
+        return [f"~~{x}~~" for x in data]
