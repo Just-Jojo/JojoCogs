@@ -1,16 +1,22 @@
 {
+    "name": "depypher",
+    "short": "Decipher and encipher text using encriptions!",
+    "description": "Encript and decript text using ciphers like Caesar and Vigenere!",
+    "end_user_data_statement": "This cog does not store user data",
+    "install_msg": "Thank you for installing Jojos' depypher cog! LEZI JYR!",
     "author": [
         "Jojo#7791"
     ],
-    "description": "Encrypt and decrypt messages with various ciphers",
-    "min_bot_version": "3.4.5",
-    "min_python_version": [
-        3,
-        8,
-        1
-    ],
-    "install_msg": "WLPLZFSLISGGCZXROPXLVQSARWSCEFTYHVRMVALZVGDEXZZVUCUSCHRUQSIFPYHKRVTYSALVKIANPAECO\n\n(use [p]devigenere depypher <this message>` to figure out what it means",
+    "required_cogs": {},
     "requirements": [
         "pycipher"
-    ]
+    ],
+    "tags": [
+        "fun",
+        "cipher"
+    ],
+    "min_bot_version": "3.4.5",
+    "hidden": false,
+    "disabled": false,
+    "type": "COG"
 }

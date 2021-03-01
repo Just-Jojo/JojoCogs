@@ -1,17 +1,20 @@
 {
+    "name": "cyclestatus",
+    "short": "Cycle your bot's status",
+    "description": "Cycle the status on your bot so you don't have to update it constantly",
+    "end_user_data_statement": "This cog does not store user data",
+    "install_msg": "Thank you for installing Jojo's cycle status cog!",
     "author": [
         "Jojo#7791"
     ],
-    "description": "Cycle your bot's status!",
-    "min_bot_version": "3.4.5",
-    "min_python_version": [
-        3,
-        8,
-        1
-    ],
-    "install_msg": "Thank you for installing Jojo's cycle status cog!\nIf you find a bug make an issue on my github!",
+    "required_cogs": {},
+    "requirements": [],
     "tags": [
-        "status",
-        "utility"
-    ]
+        "utility",
+        "status"
+    ],
+    "min_bot_version": "3.4.5",
+    "hidden": false,
+    "disabled": false,
+    "type": "COG"
 }

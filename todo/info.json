@@ -1,13 +1,21 @@
 {
+    "name": "todo",
+    "short": "Customizable todo list!",
+    "description": "A simple, highly customizable todo list for keeping track of things to do",
+    "end_user_data_statement": "This cog does not store user data",
+    "install_msg": "Thankie for installing Jojo's ToDo cog!\nIf you would like to request a feature please make an issue on my github (<https://github.com/Just-Jojo/JojoCogs)\nUse `[p]todo explain` to see what the cog is about!",
     "author": [
         "Jojo#7791"
     ],
-    "min_bot_version": "3.4.0",
-    "min_python_version": [
-        3,
-        8,
-        0
+    "required_cogs": {},
+    "requirements": [],
+    "tags": [
+        "todo",
+        "utility",
+        "fun"
     ],
-    "install_msg": "A todo list designed for pinning messages for you to not forget!\n\nIf you see a bug please make an issue on my github page (https://github.com/Just-Jojo/JojoCogs)",
-    "end_user_data_statement": "This cog doesn't store any data on anyone, don't worry :D"
+    "min_bot_version": "3.4.5",
+    "hidden": false,
+    "disabled": false,
+    "type": "COG"
 }
