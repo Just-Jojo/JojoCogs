@@ -4,8 +4,3 @@
 .venv
 **\.tmp
 # Cogs and files that aren't ready yet
-jojostore/
-mjolnir/
-todo/
-version/
-collectables/
