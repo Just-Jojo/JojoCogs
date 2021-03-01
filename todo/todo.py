@@ -202,11 +202,12 @@ class ToDo(commands.Cog):
     async def complete_list(self, ctx):
         """List your completed todos!"""
         if len((completed := await self.config.user(ctx.author).completed())):
+            completed = await self.cross_list(
+                data=completed, md=await self.config.user(ctx.author).use_md()
+            )
             await self.page_logic(
                 ctx,
-                await self.cross_list(
-                    data=completed, md=await self.config.user(ctx.author).use_md()
-                ),
+                completed,
                 "Completed Todo List",
             )
         else:
@@ -301,11 +302,11 @@ class ToDo(commands.Cog):
         if len(todos) >= 1:
             todos = self.number(item=todos)
             if await self.config.user(ctx.author).combine_lists():
-                if not await self.config.user(ctx.author).completed():
+                if not (comp := await self.config.user(ctx.author).completed()):
                     pass
                 else:
                     completed = await self.cross_list(
-                        await self.config.user(ctx.author).completed(),
+                        comp,
                         await self.config.user(ctx.author).use_md(),
                     )
                     completed.insert(0, "❎ Completed todos")
