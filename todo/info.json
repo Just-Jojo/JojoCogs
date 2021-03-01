@@ -1,0 +1,21 @@
+{
+    "name": "todo",
+    "short": "A simple, custumizable todo list",
+    "description": "A simple todo list rewritten for older Red bot instances",
+    "end_user_data_statement": "This cog does not store user data",
+    "install_msg": "Thank you for installing Jojo's ToDo cog! This cog is made for older instances and should be removed as soon as you can update (original cog is on my master branch)",
+    "author": [
+        "Jojo#7791"
+    ],
+    "required_cogs": {},
+    "requirements": [],
+    "tags": [
+        "todo",
+        "utils"
+    ],
+    "min_bot_version": "3.4.0",
+    "max_bot_version": "3.4.5",
+    "hidden": false,
+    "disabled": false,
+    "type": "COG"
+}
