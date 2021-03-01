@@ -23,6 +23,7 @@ _config_structure = {
     "reverse_sort": False,
     "completed": [],
     "replies": True,
+    "combine_lists": False,
 }
 _about = """ToDo is a cog designed by Jojo#7791 for keeping track of different tasks you need to do
 
@@ -45,7 +46,7 @@ def positive_int(arg: str) -> int:
 class ToDo(commands.Cog):
     """A simple, highly customizeable todo list for Discord"""
 
-    __version__ = "0.1.11"
+    __version__ = "0.1.12"
     __author__ = [
         "Jojo",
     ]
@@ -108,6 +109,13 @@ class ToDo(commands.Cog):
         """Toggle replies"""
         await self._toggler(ctx=ctx, item="Replies", key="replies", toggle=toggle)
 
+    @todoset.command()
+    async def combine(self, ctx, toggle: bool):
+        """Toggle if the completed list and the todo list should be combined"""
+        await self._toggler(
+            ctx=ctx, item="Combining lists", key="combine_lists", toggle=toggle
+        )
+
     async def _toggler(self, ctx: commands.Context, item: str, key: str, toggle: bool):
         toggled = "enabled!" if toggle else "disabled!"
         setting = await self.config.user(ctx.author).get_raw(key)
@@ -128,6 +136,7 @@ class ToDo(commands.Cog):
             "Autosorting": await conf.autosort(),
             "Reverse sort": await conf.reverse_sort(),
             "Replies": await conf.replies(),
+            "Combined lists": await conf.combine_lists(),
         }
         embed = discord.Embed(
             title=f"{ctx.author.display_name}'s todo settings",
@@ -193,7 +202,13 @@ class ToDo(commands.Cog):
     async def complete_list(self, ctx):
         """List your completed todos!"""
         if len((completed := await self.config.user(ctx.author).completed())):
-            await self.page_logic(ctx, self.number(completed), "Completed Todo List")
+            await self.page_logic(
+                ctx,
+                await self.cross_list(
+                    data=completed, md=await self.config.user(ctx.author).use_md()
+                ),
+                "Completed Todo List",
+            )
         else:
             await ctx.send("You don't have any completed todos yet!")
 
@@ -285,6 +300,13 @@ class ToDo(commands.Cog):
         todos = await self.config.user(ctx.author).todos()
         if len(todos) >= 1:
             todos = self.number(item=todos)
+            if await self.config.user(ctx.author).combine_lists():
+                completed = await self.cross_list(
+                    await self.config.user(ctx.author).completed(),
+                    await self.config.user(ctx.author).use_md(),
+                )
+                completed.insert(0, "❎ Completed todos")
+                todos.extend(completed)
             await self.page_logic(ctx, todos)
         else:
             await ctx.send(
@@ -451,3 +473,14 @@ class ToDo(commands.Cog):
         items = [v - 1 for v in items]
         items.sort(reverse=True)
         return items
+
+    async def cross_list(self, data: list, md: bool = False) -> list:
+        """|coro|
+
+        Cross items in a list
+        """
+        if md:
+            _char = "\u0336"
+            return [f"{_char.join(x)}{_char}" for x in data]
+        else:
+            return [f"~~{x}~~" for x in data]
