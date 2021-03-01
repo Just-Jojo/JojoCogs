@@ -1,9 +1,7 @@
 from redbot.core.bot import Red
-from redbot.core.commands import command, is_owner
+from redbot.core.commands import command
 
-from typing import Optional
-
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 
 @command()
