@@ -1,15 +1,13 @@
 from redbot.core.bot import Red
-from redbot.core.commands import command, is_owner
+from redbot.core.commands import command
 
-from typing import Optional
-
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 
 @command()
 async def ping(ctx):
     """Pong"""
-    await ctx.reply(content="Ping.", mention_author=False)
+    await ctx.reply(content="Pong.", mention_author=False)
 
 
 def setup(bot: Red):
