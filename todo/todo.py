@@ -273,7 +273,7 @@ class ToDo(commands.Cog):
                 # Since this is gonna be `1` I don't have to check for it
                 elif len(popped_todos):
                     popped_todos = popped_todos[0]
-                    msg += f"Removed this todo reminder!\n`{popped_todos}`"
+                    msg += f"Removed this todo reminder!\n{popped_todos}"
                 if len(failed) > 1:
                     failed = "\n".join(failed)
                     msg += f"\nCould not remove todos at these indexes\n{failed}"
