@@ -283,7 +283,7 @@ class ToDo(commands.Cog):
             else:
                 if len(popped_todos) > 1:
                     msg += "Removed those todos!"
-                else:
+                elif len(popped_todos):
                     msg += "Removed that todo!"
                 if len(failed):
                     msg += "\nFailed to remove some todos!"
