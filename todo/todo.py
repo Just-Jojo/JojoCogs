@@ -44,7 +44,7 @@ def positive_int(arg: str) -> int:
 
 
 class ToDo(commands.Cog):
-    """A simple, highly customizeable todo list for Discord"""
+    """A simple, highly customizable todo list for Discord"""
 
     __version__ = "1.0.0"
     __author__ = [
@@ -412,7 +412,7 @@ class ToDo(commands.Cog):
         """Check what version ToDo is on!"""
         embed = discord.Embed(
             title="ToDo version",
-            description=f"ToDo\n**Author**: {', '.join(self.__author__)}\n**Current Version**: {self.__version__}",
+            description=f"Todo, {'a' + self.description[1:]}\n**Author**: {', '.join(self.__author__)}\n**Current Version**: {self.__version__}",
             colour=await ctx.embed_colour(),
         )
         await ctx.send(embed=embed)
