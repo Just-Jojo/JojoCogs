@@ -46,7 +46,7 @@ def positive_int(arg: str) -> int:
 class ToDo(commands.Cog):
     """A simple, highly customizeable todo list for Discord"""
 
-    __version__ = "0.1.12"
+    __version__ = "1.0.0"
     __author__ = [
         "Jojo",
     ]
