@@ -60,7 +60,7 @@ class ToDo(commands.Cog):
         """Thankie thankie Sinbad"""
         return (
             f"{super().format_help_for_context(ctx)}"
-            f"\n\n__Version:__ `{self.__version__}`\n"
+            f"\n\n__Current Version:__ `{self.__version__}`\n"
             f"__Author:__ `{', '.join(self.__author__)}`"
         )
 
@@ -412,7 +412,7 @@ class ToDo(commands.Cog):
         """Check what version ToDo is on!"""
         embed = discord.Embed(
             title="ToDo version",
-            description=f"ToDo\n**Author**: {', '.join(self.__author__)}\n**Running Version**: {self.__version__}",
+            description=f"ToDo\n**Author**: {', '.join(self.__author__)}\n**Current Version**: {self.__version__}",
             colour=await ctx.embed_colour(),
         )
         await ctx.send(embed=embed)
