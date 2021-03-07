@@ -54,9 +54,6 @@ class Store(commands.Cog):
         self.config.register_member(**_config_structure["member"])
         self.config.register_guild(**_config_structure["guild"])
 
-    async def init(self):
-        self.author_user = await self.bot.get_or_fetch_user(544974305445019651)
-
     async def red_delete_data_for_user(
         self,
         *,
@@ -128,9 +125,7 @@ class Store(commands.Cog):
             colour=await ctx.embed_colour(),
         )
         embed.set_thumbnail(url=ctx.guild.icon_url)
-        embed.set_author(
-            name=self.author_user.name, icon_url=self.author_user.avatar_url
-        )
+        embed.set_author(name="Jojo")
         for key, value in {
             "Shop": "Buy some items from Ol' Jo",
             "List": "Browse the store for some items ye may want",
@@ -161,9 +156,7 @@ class Store(commands.Cog):
             description="I have all these fine items for you",
             colour=await ctx.embed_colour(),
         )
-        embed.set_author(
-            name=self.author_user.name, icon_url=self.author_user.avatar_url
-        )
+        embed.set_author(name="Jojo")
         async with self.config.guild(ctx.guild).items() as items:
             for key, value in items.items():
                 embed.add_field(
