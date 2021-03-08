@@ -23,12 +23,14 @@ _config_structure = {
     "reverse_sort": False,
     "completed": [],
     "replies": True,
-    "combine_lists": False,
+    # "combine_lists": False,
 }
 _about = """ToDo is a cog designed by Jojo#7791 for keeping track of different tasks you need to do
 
 It has a simple add, list, and complete to make sure your tasks get done!
 """
+# This is... hard to read LOL
+# Read at your own peril
 _comic_link = "https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/data/todo_comic.jpg"
 
 
@@ -46,7 +48,7 @@ def positive_int(arg: str) -> int:
 class ToDo(commands.Cog):
     """A simple, highly customizable todo list for Discord"""
 
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
     __author__ = [
         "Jojo",
     ]
@@ -109,12 +111,12 @@ class ToDo(commands.Cog):
         """Toggle replies"""
         await self._toggler(ctx=ctx, item="Replies", key="replies", toggle=toggle)
 
-    @todoset.command()
-    async def combine(self, ctx, toggle: bool):
-        """Toggle if the completed list and the todo list should be combined"""
-        await self._toggler(
-            ctx=ctx, item="Combining lists", key="combine_lists", toggle=toggle
-        )
+    # @todoset.command()
+    # async def combine(self, ctx, toggle: bool):
+    #     """Toggle if the completed list and the todo list should be combined"""
+    #     await self._toggler(
+    #         ctx=ctx, item="Combining lists", key="combine_lists", toggle=toggle
+    #     )
 
     async def _toggler(self, ctx: commands.Context, item: str, key: str, toggle: bool):
         toggled = "enabled!" if toggle else "disabled!"
@@ -136,7 +138,7 @@ class ToDo(commands.Cog):
             "Autosorting": await conf.autosort(),
             "Reverse sort": await conf.reverse_sort(),
             "Replies": await conf.replies(),
-            "Combined lists": await conf.combine_lists(),
+            # "Combined lists": await conf.combine_lists(), # They're not done yet
         }
         embed = discord.Embed(
             title=f"{ctx.author.display_name}'s todo settings",
@@ -213,10 +215,7 @@ class ToDo(commands.Cog):
 
     @todo.command()
     async def add(self, ctx, *, todo: str):
-        """Add a todo reminder
-
-        Example:
-        `[p]todo add Walk the dog soon`"""
+        """Add a todo reminder!"""
         async with self.config.user(ctx.author).todos() as todos:
             todos.append(todo)
             if await self.config.user(ctx.author).detailed_pop():
@@ -287,13 +286,12 @@ class ToDo(commands.Cog):
                     msg += "Removed that todo!"
                 if len(failed):
                     msg += "\nFailed to remove some todos!"
-        if msg:
-            await ctx.send(msg)
-        else:
-            await ctx.send("Hm, something went wrong")
+        if not msg:
+            msg = "Hm, something went wrong"
+        await ctx.send(msg)
         await self._maybe_auto_sort(author=ctx.author)
 
-    @todo.command(name="list")  # Fuck you reserved keywords >:|
+    @todo.command(name="list")
     async def todo_list(self, ctx):
         """List your todo reminders"""
         todos = await self.config.user(ctx.author).todos()
@@ -381,13 +379,15 @@ class ToDo(commands.Cog):
                 sending.description = box(todo, lang="md")
             else:
                 sending.description = todo
-            await ctx.send(embed=sending)
+            key = "embed"
         else:
             if md:
                 sending = box(todo, lang="md")
             else:
                 sending = todo
-            await ctx.send(sending)
+            key = "content"
+        kwargs = {key: sending}
+        await ctx.send(**kwargs)
 
     @todo.command()
     async def explain(self, ctx, comic: bool = False):
@@ -399,9 +399,10 @@ class ToDo(commands.Cog):
                 )
                 embed.set_footer(text="Jojo's ToDo Cog")
                 embed.set_image(url=_comic_link)
-                await ctx.send(embed=embed)
+                kwargs = {"embed": embed}
             else:
-                await ctx.send(content=_comic_link)
+                kwargs = {"content": _comic_link}
+            await ctx.send(**kwargs)
         else:
             await self.maybe_send_embed(
                 ctx=ctx, message=_about, title="About ToDo", footer="Jojo's Todo Cog"
@@ -412,7 +413,7 @@ class ToDo(commands.Cog):
         """Check what version ToDo is on!"""
         embed = discord.Embed(
             title="ToDo version",
-            description=f"Todo, {'a' + self.description[1:]}\n**Author**: {', '.join(self.__author__)}\n**Current Version**: {self.__version__}",
+            description=f"Todo, a {self.description[1:]}\n**Author**: {', '.join(self.__author__)}\n**Current Version**: {self.__version__}",
             colour=await ctx.embed_colour(),
         )
         await ctx.send(embed=embed)
@@ -428,23 +429,23 @@ class ToDo(commands.Cog):
             )
             if footer:
                 embed.set_footer(text=footer)
-            return await ctx.send(embed=embed)
+            kwargs = {"embed": embed}
         else:
             if not title:
                 title = ""
             if not footer:
                 footer = ""
-            msg = f"{title}\n\n{message}\n{footer}"
-            return await ctx.send(content=msg)
+            kwargs = {"content": f"{title}\n\n{message}\n{footer}"}
+        return await ctx.send(**kwargs)
 
     async def maybe_reply(
         self, ctx: commands.Context, content: str = None, embed: discord.Embed = None
     ) -> discord.Message:
         mreply = await self.config.user(ctx.author).replies()
+        kwargs = {"content": content, "embed": embed}
         if mreply:
-            return await ctx.reply(content=content, embed=embed, mention_author=False)
-        else:
-            return await ctx.send(content=content, embed=embed)
+            kwargs["mention_author"] = False
+        return await ctx.send(**kwargs)
 
     def number(self, item: list) -> list:
         return [f"{num}. {act}" for num, act in enumerate(item, 1)]
@@ -473,9 +474,13 @@ class ToDo(commands.Cog):
         items.sort(reverse=True)
         return items
 
-    async def cross_list(self, data: list) -> list:  # , md: bool = False) -> list:
-        """|coro|
-
-        Cross items in a list
-        """
-        return [f"~~{x}~~" for x in data]
+    # For this I need some more work
+    # I need to figure out how to display crossed out
+    # or completed todos in a markdown block
+    # which is kinda tough >.<
+    #  async def cross_list(self, data: list) -> list:
+    #      """|coro|
+    #
+    #      Cross items in a list
+    #      """
+    #      return [f"~~{x}~~" for x in data]
