@@ -163,7 +163,7 @@ class ToDo(commands.Cog):
         if not len(indexes):
             todos = await self.config.user(ctx.author).todos()
             if len(todos):
-                return await self.page_logic(ctx, self.number(todos))
+                return await self.page_logic(ctx, await self.number(todos))
             return await ctx.send("Hm, you don't have any todos!")
         indexes = self.sort_lists(items=indexes)
         passes = 0
@@ -204,7 +204,7 @@ class ToDo(commands.Cog):
     async def complete_list(self, ctx):
         """List your completed todos!"""
         if len((completed := await self.config.user(ctx.author).completed())):
-            # completed = await self.cross_list(data=completed)
+            completed = await self.number(completed)
             await self.page_logic(
                 ctx,
                 completed,
@@ -251,7 +251,7 @@ class ToDo(commands.Cog):
                         )
                     )
                 if not len(to_del):
-                    sending = self.number(item=todos)
+                    sending = await self.number(item=todos)
                     await self.page_logic(ctx, sending)
                     return
                 else:
@@ -296,7 +296,7 @@ class ToDo(commands.Cog):
         """List your todo reminders"""
         todos = await self.config.user(ctx.author).todos()
         if len(todos) >= 1:
-            todos = self.number(item=todos)
+            todos = await self.number(item=todos)
             if await self.config.user(ctx.author).combine_lists():
                 if not (comp := await self.config.user(ctx.author).completed()):
                     pass
@@ -447,7 +447,7 @@ class ToDo(commands.Cog):
             kwargs["mention_author"] = False
         return await ctx.send(**kwargs)
 
-    def number(self, item: list) -> list:
+    async def number(self, item: list) -> list:
         return [f"{num}. {act}" for num, act in enumerate(item, 1)]
 
     async def page_logic(
