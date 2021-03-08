@@ -204,7 +204,7 @@ class ToDo(commands.Cog):
     async def complete_list(self, ctx):
         """List your completed todos!"""
         if len((completed := await self.config.user(ctx.author).completed())):
-            completed = await self.cross_list(data=completed)
+            # completed = await self.cross_list(data=completed)
             await self.page_logic(
                 ctx,
                 completed,
