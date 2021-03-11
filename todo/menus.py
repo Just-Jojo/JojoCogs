@@ -18,21 +18,17 @@ class TodoPages(menus.ListPageSource):
     async def format_page(self, menu, page):
         bot: Red = menu.bot
         ctx: commands.Context = menu.ctx
-        if ctx.channel.permissions_for(ctx.me).embed_links and self.use_embeds:
+        if self.md:
+            page = box(page, "md")
+        if await ctx.embed_requested() and self.use_embeds:
             embed = discord.Embed(title=self.title, colour=await ctx.embed_colour())
-            if self.md:
-                embed.description = box(page, "md")
-            else:
-                embed.description = page
+            embed.description = page
             embed.set_footer(
                 text=f"Page {menu.current_page + 1}/{self.get_max_pages()}"
             )
             return embed
         else:
-            if self.md:
-                return f"{box(page, 'md')}\nPage {menu.current_page + 1}/{self.get_max_pages()}"
-            else:
-                return page + f"\nPage {menu.current_page + 1}/{self.get_max_pages()}"
+            return page + f"\nPage {menu.current_page + 1}/{self.get_max_pages()}"
 
 
 class TodoMenu(menus.MenuPages, inherit_buttons=False):
