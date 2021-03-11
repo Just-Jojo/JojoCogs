@@ -23,7 +23,7 @@ _config_structure = {
     "reverse_sort": False,
     "completed": [],
     "replies": True,
-    # "combine_lists": False,
+    "combine_lists": False,
 }
 _about = """ToDo is a cog designed by Jojo#7791 for keeping track of different tasks you need to do
 
@@ -32,6 +32,7 @@ It has a simple add, list, and complete to make sure your tasks get done!
 # This is... hard to read LOL
 # Read at your own peril
 _comic_link = "https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/data/todo_comic.jpg"
+_ascii_cross = "\u0336"  # Character for crossing items in md
 
 
 def positive_int(arg: str) -> int:
@@ -48,7 +49,7 @@ def positive_int(arg: str) -> int:
 class ToDo(commands.Cog):
     """A simple, highly customizable todo list for Discord"""
 
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
     __author__ = [
         "Jojo",
     ]
@@ -111,12 +112,12 @@ class ToDo(commands.Cog):
         """Toggle replies"""
         await self._toggler(ctx=ctx, item="Replies", key="replies", toggle=toggle)
 
-    # @todoset.command()
-    # async def combine(self, ctx, toggle: bool):
-    #     """Toggle if the completed list and the todo list should be combined"""
-    #     await self._toggler(
-    #         ctx=ctx, item="Combining lists", key="combine_lists", toggle=toggle
-    #     )
+    @todoset.command()
+    async def combine(self, ctx, toggle: bool):
+        """Toggle if the completed list and the todo list should be combined"""
+        await self._toggler(
+            ctx=ctx, item="Combining lists", key="combine_lists", toggle=toggle
+        )
 
     async def _toggler(self, ctx: commands.Context, item: str, key: str, toggle: bool):
         toggled = "enabled!" if toggle else "disabled!"
@@ -138,7 +139,7 @@ class ToDo(commands.Cog):
             "Autosorting": await conf.autosort(),
             "Reverse sort": await conf.reverse_sort(),
             "Replies": await conf.replies(),
-            # "Combined lists": await conf.combine_lists(), # They're not done yet
+            "Combined lists": await conf.combine_lists(),
         }
         embed = discord.Embed(
             title=f"{ctx.author.display_name}'s todo settings",
@@ -204,7 +205,8 @@ class ToDo(commands.Cog):
     async def complete_list(self, ctx):
         """List your completed todos!"""
         if len((completed := await self.config.user(ctx.author).completed())):
-            completed = await self.number(completed)
+            md = await self.config.user(ctx.author).use_md()
+            completed = await self.number(await self.cross_lists(completed, md))
             await self.page_logic(
                 ctx,
                 completed,
@@ -225,8 +227,7 @@ class ToDo(commands.Cog):
         await self._maybe_auto_sort(author=ctx.author)
 
     async def _maybe_auto_sort(self, author: discord.Member):
-        autosort = await self.config.user(author).autosort()
-        if not autosort:
+        if not (autosort := await self.config.user(author).autosort()):
             return
         reversed = await self.config.user(author).reverse_sort()
         async with self.config.user(author).todos() as todos:
@@ -237,10 +238,7 @@ class ToDo(commands.Cog):
     # `pop` because you're basically using list.pop(index) :p
     @todo.command(aliases=["del", "delete", "pop"])
     async def remove(self, ctx, *to_del: positive_int):
-        """Remove a todo reminder
-
-        Example:
-        `[p]todo del <number>`"""
+        """Remove a todo reminder"""
         async with ctx.typing():
             async with self.config.user(ctx.author).todos() as todos:
                 if not len(todos):
@@ -295,13 +293,14 @@ class ToDo(commands.Cog):
     async def todo_list(self, ctx):
         """List your todo reminders"""
         todos = await self.config.user(ctx.author).todos()
-        if len(todos) >= 1:
+        md = await self.config.user(ctx.author).use_md()
+        if len(todos):
             todos = await self.number(item=todos)
             if await self.config.user(ctx.author).combine_lists():
                 if not (comp := await self.config.user(ctx.author).completed()):
                     pass
                 else:
-                    completed = await self.cross_list(comp)
+                    completed = await self.number(await self.cross_lists(comp, md))
                     completed.insert(0, "❎ Completed todos")
                     todos.extend(completed)
             await self.page_logic(ctx, todos)
@@ -317,6 +316,8 @@ class ToDo(commands.Cog):
     @todo.command()
     async def sort(self, ctx: commands.Context):
         """Sort your todos alphabetically"""
+        if not len(await self.config.user(ctx.author).todos()):
+            return await ctx.send("You don't have any todos!")
         msg = await ctx.send("Would you like to sort your todos in reverse?")
         try:
             pred = MessagePredicate.yes_or_no(ctx)
@@ -328,14 +329,11 @@ class ToDo(commands.Cog):
             reverse = pred.result
         await self.config.user(ctx.author).reverse_sort.set(reverse)
         async with self.config.user(ctx.author).todos() as items:
-            if not len(items):
-                await ctx.send("You don't have any todos!")
-            else:
-                items.sort(reverse=reverse)
-                await ctx.send("Okay! I've sorted your todos!")
-                await self.page_logic(
-                    ctx=ctx, things=[f"{num}. {i}" for num, i in enumerate(items, 1)]
-                )
+            items.sort(reverse=reverse)
+            await ctx.send("Okay! I've sorted your todos!")
+            await self.page_logic(
+                ctx=ctx, things=[f"{num}. {i}" for num, i in enumerate(items, 1)]
+            )
 
     @todo.command(
         aliases=[
@@ -362,32 +360,30 @@ class ToDo(commands.Cog):
     async def show(self, ctx, index: positive_int):
         """Show a todo reminder by index!"""
         act_index = index - 1
-        async with self.config.user(ctx.author).todos() as todos:
-            try:
-                todo = todos[act_index]
-            except IndexError:
-                return await ctx.send("Hm, that doesn't seem to be a todo!")
+        try:
+            todo = await self.config.user(ctx.author).todos()[act_index]
+        except IndexError:
+            return await ctx.send("Hm, that doesn't seem to be a todo!")
+
         todo = f"{index}. {todo}"
         md = await self.config.user(ctx.author).use_md()
         embedded = await self.config.user(ctx.author).use_embeds()
+
+        if md:
+            todo = box(todo, "md")
         if embedded:
             sending = discord.Embed(
-                title=f"{ctx.author.name}'s ToDos", colour=await ctx.embed_colour()
+                title=f"{ctx.author.name}'s ToDos",
+                description=todo,
+                colour=await ctx.embed_colour(),
             )
             sending.set_footer(text="ToDo list")
-            if md:
-                sending.description = box(todo, lang="md")
-            else:
-                sending.description = todo
             key = "embed"
         else:
-            if md:
-                sending = box(todo, lang="md")
-            else:
-                sending = todo
+            sending = todo
             key = "content"
-        kwargs = {key: sending}
-        await ctx.send(**kwargs)
+
+        await ctx.send(**{key: sending})
 
     @todo.command()
     async def explain(self, ctx, comic: bool = False):
@@ -447,9 +443,6 @@ class ToDo(commands.Cog):
             kwargs["mention_author"] = False
         return await ctx.send(**kwargs)
 
-    async def number(self, item: list) -> list:
-        return [f"{num}. {act}" for num, act in enumerate(item, 1)]
-
     async def page_logic(
         self, ctx: commands.Context, things: list, title: str = "Todo List"
     ):
@@ -469,18 +462,16 @@ class ToDo(commands.Cog):
         )
         await menu.start(ctx=ctx, channel=ctx.channel)
 
+    async def number(self, item: list) -> list:
+        return [f"{num}. {act}" for num, act in enumerate(item, 1)]
+
     def sort_lists(self, items: typing.List[int]) -> list:
         items = [v - 1 for v in items]
         items.sort(reverse=True)
         return items
 
-    # For this I need some more work
-    # I need to figure out how to display crossed out
-    # or completed todos in a markdown block
-    # which is kinda tough >.<
-    #  async def cross_list(self, data: list) -> list:
-    #      """|coro|
-    #
-    #      Cross items in a list
-    #      """
-    #      return [f"~~{x}~~" for x in data]
+    async def cross_lists(self, items: list, use_md: bool = False):
+        if use_md:
+            return [f"{_ascii_cross}{_ascii_cross.join(item)}" for item in items]
+        else:
+            return [f"~~{item}~~" for item in items]
