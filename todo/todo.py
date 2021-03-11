@@ -32,7 +32,6 @@ It has a simple add, list, and complete to make sure your tasks get done!
 # This is... hard to read LOL
 # Read at your own peril
 _comic_link = "https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/data/todo_comic.jpg"
-_ascii_cross = "\u0336"  # Character for crossing items in md
 
 
 def positive_int(arg: str) -> int:
@@ -205,8 +204,11 @@ class ToDo(commands.Cog):
     async def complete_list(self, ctx):
         """List your completed todos!"""
         if len((completed := await self.config.user(ctx.author).completed())):
+            # await ctx.send(content="Preparing list...", delete_after=15.0)
             md = await self.config.user(ctx.author).use_md()
-            completed = await self.number(await self.cross_lists(completed, md))
+            if not md:
+                completed = await self.cross_lists(completed)
+            completed = await self.number(completed)
             await self.page_logic(
                 ctx,
                 completed,
@@ -300,7 +302,9 @@ class ToDo(commands.Cog):
                 if not (comp := await self.config.user(ctx.author).completed()):
                     pass
                 else:
-                    completed = await self.number(await self.cross_lists(comp, md))
+                    if not md:
+                        comp = self.cross_lists(items=comp)
+                    completed = await self.number(comp)
                     completed.insert(0, "❎ Completed todos")
                     todos.extend(completed)
             await self.page_logic(ctx, todos)
@@ -407,12 +411,9 @@ class ToDo(commands.Cog):
     @todo.command()
     async def version(self, ctx):
         """Check what version ToDo is on!"""
-        embed = discord.Embed(
-            title="ToDo version",
-            description=f"Todo, a {self.description[1:]}\n**Author**: {', '.join(self.__author__)}\n**Current Version**: {self.__version__}",
-            colour=await ctx.embed_colour(),
-        )
-        await ctx.send(embed=embed)
+        title = "ToDo Version"
+        description = f"Todo, a {self.description[1:]}\n**Author**: {', '.join(self.__author__)}\n**Current Version**: {self.__version__}"
+        await self.maybe_send_embed(ctx, description, title)
 
     ### Utilities ###
 
@@ -451,7 +452,7 @@ class ToDo(commands.Cog):
         use_embeds = await self.config.user(ctx.author).use_embeds()
         menu = menus.TodoMenu(
             source=menus.TodoPages(
-                data=list(pagify(things)),
+                data=list(pagify(things, page_length=400)),
                 use_md=use_md,
                 use_embeds=use_embeds,
                 title=title,
@@ -470,8 +471,5 @@ class ToDo(commands.Cog):
         items.sort(reverse=True)
         return items
 
-    async def cross_lists(self, items: list, use_md: bool = False):
-        if use_md:
-            return [f"{_ascii_cross}{_ascii_cross.join(item)}" for item in items]
-        else:
-            return [f"~~{item}~~" for item in items]
+    async def cross_lists(self, items: list) -> list:
+        return [f"~~{item}~~" for item in items]
