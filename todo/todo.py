@@ -303,7 +303,7 @@ class ToDo(commands.Cog):
                     pass
                 else:
                     if not md:
-                        comp = self.cross_lists(items=comp)
+                        comp = await self.cross_lists(items=comp)
                     completed = await self.number(comp)
                     completed.insert(0, "❎ Completed todos")
                     todos.extend(completed)
