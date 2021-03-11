@@ -11,3 +11,5 @@ Added replies for moving todos to different indexes
 ### Release!
 - 1.0.0
 Nothing changed here really, I just decided to version bump to v1
+- 1.0.2
+Added combining lists, meaning that you can view your completed and pending todos
