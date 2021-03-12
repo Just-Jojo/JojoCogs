@@ -24,6 +24,7 @@ _config_structure = {
     "completed": [],
     "replies": True,
     "combine_lists": False,
+    "private": False,
 }
 _about = """ToDo is a cog designed by Jojo#7791 for keeping track of different tasks you need to do
 
@@ -118,6 +119,25 @@ class ToDo(commands.Cog):
             ctx=ctx, item="Combining lists", key="combine_lists", toggle=toggle
         )
 
+    @todoset.command()
+    async def private(self, ctx, toggle: bool):
+        """Toggle if the todo lists should be DMd to you or not"""
+        if toggle is False:
+            if await self.config.user(ctx.author).private() is False:
+                return await ctx.send("Public todo listing is already enabled!")
+        try:
+            if ctx.channel.permissions_for(ctx.me).add_reactions:
+                await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+            else:
+                await ctx.author.send(
+                    "Testing if I can dm you. Apologies!", delete_after=5.0
+                )
+        except discord.Forbidden:
+            await ctx.send("I can't dm you!'")
+        else:
+            await ctx.author.create_dm()
+            await self._toggler(ctx, "Private listing", "private", toggle)
+
     async def _toggler(self, ctx: commands.Context, item: str, key: str, toggle: bool):
         toggled = "enabled!" if toggle else "disabled!"
         setting = await self.config.user(ctx.author).get_raw(key)
@@ -139,6 +159,7 @@ class ToDo(commands.Cog):
             "Reverse sort": await conf.reverse_sort(),
             "Replies": await conf.replies(),
             "Combined lists": await conf.combine_lists(),
+            "Private lists": await conf.private(),
         }
         embed = discord.Embed(
             title=f"{ctx.author.display_name}'s todo settings",
@@ -166,8 +187,7 @@ class ToDo(commands.Cog):
                 return await self.page_logic(ctx, await self.number(todos))
             return await ctx.send("Hm, you don't have any todos!")
         indexes = self.sort_lists(items=indexes)
-        passes = 0
-        fails = 0
+        passes, fails = 0, 0
         completed = []
         async with ctx.typing():
             async with self.config.user(ctx.author).todos() as todos:
@@ -204,7 +224,6 @@ class ToDo(commands.Cog):
     async def complete_list(self, ctx):
         """List your completed todos!"""
         if len((completed := await self.config.user(ctx.author).completed())):
-            # await ctx.send(content="Preparing list...", delete_after=15.0)
             md = await self.config.user(ctx.author).use_md()
             if not md:
                 completed = await self.cross_lists(completed)
@@ -222,10 +241,10 @@ class ToDo(commands.Cog):
         """Add a todo reminder!"""
         async with self.config.user(ctx.author).todos() as todos:
             todos.append(todo)
-            if await self.config.user(ctx.author).detailed_pop():
-                await ctx.send(f"Added this as a todo reminder!\n`{todo}`")
-            else:
-                await ctx.send("Added that todo reminder!")
+        if await self.config.user(ctx.author).detailed_pop():
+            await ctx.send(f"Added this as a todo reminder!\n`{todo}`")
+        else:
+            await ctx.send("Added that todo reminder!")
         await self._maybe_auto_sort(author=ctx.author)
 
     async def _maybe_auto_sort(self, author: discord.Member):
@@ -264,28 +283,28 @@ class ToDo(commands.Cog):
                     except IndexError:
                         await ctx.send("That was an invalid todo index!")
                         failed.append(f"`{to}`")
-            msg = ""
-            if await self.config.user(ctx.author).detailed_pop():
-                if len(popped_todos) > 1:
-                    popped_todos = "\n".join(popped_todos)
-                    msg += f"Removed these todo reminders!\n{popped_todos}"
-                # Since this is gonna be `1` I don't have to check for it
-                elif len(popped_todos):
-                    popped_todos = popped_todos[0]
-                    msg += f"Removed this todo reminder!\n{popped_todos}"
-                if len(failed) > 1:
-                    failed = "\n".join(failed)
-                    msg += f"\nCould not remove todos at these indexes\n{failed}"
-                elif len(failed):
-                    failed = failed[0]
-                    msg += f"\nCould not remove a todo at this index\n{failed}"
-            else:
-                if len(popped_todos) > 1:
-                    msg += "Removed those todos!"
-                elif len(popped_todos):
-                    msg += "Removed that todo!"
-                if len(failed):
-                    msg += "\nFailed to remove some todos!"
+        msg = ""
+        if await self.config.user(ctx.author).detailed_pop():
+            if len(popped_todos) > 1:
+                popped_todos = "\n".join(popped_todos)
+                msg += f"Removed these todo reminders!\n{popped_todos}"
+            # Since this is gonna be `1` I don't have to check for it
+            elif len(popped_todos):
+                popped_todos = popped_todos[0]
+                msg += f"Removed this todo reminder!\n{popped_todos}"
+            if len(failed) > 1:
+                failed = "\n".join(failed)
+                msg += f"\nCould not remove todos at these indexes\n{failed}"
+            elif len(failed):
+                failed = failed[0]
+                msg += f"\nCould not remove a todo at this index\n{failed}"
+        else:
+            if len(popped_todos) > 1:
+                msg += "Removed those todos!"
+            elif len(popped_todos):
+                msg += "Removed that todo!"
+            if len(failed):
+                msg += "\nFailed to remove some todos!"
         if not msg:
             msg = "Hm, something went wrong"
         await ctx.send(msg)
@@ -386,8 +405,8 @@ class ToDo(commands.Cog):
         else:
             sending = todo
             key = "content"
-
-        await ctx.send(**{key: sending})
+        channel = await self.get_destination(ctx)
+        await channel.send(**{key: sending})
 
     @todo.command()
     async def explain(self, ctx, comic: bool = False):
@@ -433,16 +452,23 @@ class ToDo(commands.Cog):
             if not footer:
                 footer = ""
             kwargs = {"content": f"{title}\n\n{message}\n{footer}"}
+
         return await ctx.send(**kwargs)
 
     async def maybe_reply(
         self, ctx: commands.Context, content: str = None, embed: discord.Embed = None
     ) -> discord.Message:
         mreply = await self.config.user(ctx.author).replies()
+        channel = await self.get_destination(ctx)
         kwargs = {"content": content, "embed": embed}
         if mreply:
             kwargs["mention_author"] = False
-        return await ctx.send(**kwargs)
+        return await channel.send(**kwargs)
+
+    async def get_destination(self, ctx: commands.Context):
+        if await self.config.user(ctx.author).private():
+            return user.dm_channel
+        return ctx.channel
 
     async def page_logic(
         self, ctx: commands.Context, things: list, title: str = "Todo List"
@@ -461,7 +487,8 @@ class ToDo(commands.Cog):
             delete_message_after=False,
             clear_reactions_after=True,
         )
-        await menu.start(ctx=ctx, channel=ctx.channel)
+        channel = await self.get_destination(ctx)
+        await menu.start(ctx=ctx, channel=channel)
 
     async def number(self, item: list) -> list:
         return [f"{num}. {act}" for num, act in enumerate(item, 1)]
