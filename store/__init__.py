@@ -1,5 +1,6 @@
-from .store import Store
 from redbot.core.bot import Red
+
+from .store import Store
 
 
 def setup(bot: Red):

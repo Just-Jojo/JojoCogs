@@ -23,14 +23,13 @@ SOFTWARE.
 """
 
 import logging
+import typing
 
 import discord
-from redbot.core import bank, commands, Config
+from redbot.core import Config, bank, commands
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import pagify
-
-import typing
 
 from .utils import JojoMenu, JojoPages, lowercase_str, positive_int
 
