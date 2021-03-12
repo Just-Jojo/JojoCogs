@@ -467,7 +467,7 @@ class ToDo(commands.Cog):
 
     async def get_destination(self, ctx: commands.Context):
         if await self.config.user(ctx.author).private():
-            return user.dm_channel
+            return ctx.author.dm_channel
         return ctx.channel
 
     async def page_logic(
