@@ -27,7 +27,7 @@ import logging
 import typing
 
 import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
@@ -206,10 +206,7 @@ class ToDo(commands.Cog):
         # Thanks to Blackie#0001 on Red for the idea
         # :D
         if not len(indexes):
-            todos = await self.config.user(ctx.author).todos()
-            if len(todos):
-                return await self.page_logic(ctx, await self.number(todos))
-            return await ctx.send("Hm, you don't have any todos!")
+            return await ctx.send_help(ctx.command)
         indexes = self.sort_lists(items=indexes)
         passes, fails = 0, 0
         completed = []
