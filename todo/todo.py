@@ -220,6 +220,25 @@ class ToDo(commands.Cog):
         if details:
             msg += f"\n'{discord.utils.escape_markdown(todo)}'"
         await ctx.send(content=msg)
+        await self._maybe_autosort(ctx)
+
+    @todo.command()
+    async def sort(self, ctx):
+        """Sort your todos"""
+        await ctx.send("Would you like to sort your todos in reverse? (y/n)")
+        pred = MessagePredicate.yes_or_no(ctx)
+        try:
+            await self.bot.wait_for("message", check=pred)
+        except asyncio.TimeoutError:
+            await ctx.send("Okay, I won't sort your todos in reverse")
+            result = False
+        else:
+            result = pred.result
+        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+        await self.config.user(ctx.author).reverse_sort.set(result)
+        async with self.config.user(ctx.author).todos() as todos:
+            todos.sort(reverse=result)
+        await self.config.user(ctx.author).autosort.set(True)
 
     @todo.command()
     async def remove(self, ctx, *indexes: positive_int):
@@ -249,6 +268,7 @@ class ToDo(commands.Cog):
                 if failed:
                     msg += f"\nFailed to remove: {failed} {'todos' if failed > 1 else 'todo'}"
             await ctx.send(msg)
+            await self._maybe_autosort(ctx)
 
     @todo.command(aliases=["delall"])
     async def removeall(self, ctx):
@@ -313,6 +333,24 @@ class ToDo(commands.Cog):
                 if failed:
                     msg += f"\nFailed to complete: {failed} {'todos' if failed > 1 else 'todo'}"
             await ctx.send(msg)
+            await self._maybe_autosort(ctx)
+
+    @complete.command(name="sort")
+    async def complete_sort(self, ctx):
+        """Sort your todos"""
+        await ctx.send("Would you like to sort your completed todos in reverse? (y/n)")
+        pred = MessagePredicate.yes_or_no(ctx)
+        try:
+            await self.bot.wait_for("message", check=pred)
+        except asyncio.TimeoutError:
+            await ctx.send("Okay, I won't sort them in reverse")
+            result = False
+        else:
+            result = pred.result
+        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+        await self.config.user(ctx.author).reverse_sort.set(result)
+        async with self.config.user(ctx.author).completed() as todos:
+            todos.sort(reverse=result)
 
     @complete.command(name="list")
     async def complete_list(self, ctx):
@@ -353,6 +391,7 @@ class ToDo(commands.Cog):
                 if failed:
                     msg += f"\nFailed to remove: {failed} {'todos' if failed > 1 else 'todo'}"
             await ctx.send(msg)
+            await self._maybe_autosort(ctx)
 
     @complete.command(name="removeall", aliases=["delall", "rma"])
     async def complete_removeall(self, ctx):
@@ -406,6 +445,15 @@ class ToDo(commands.Cog):
 
     def _pagified_list(self, data: list):
         return list(pagify("\n".join(data), page_length=500))
+
+    async def _maybe_autosort(self, ctx: commands.Context):
+        if not await self.config.user(ctx.author).autosort():
+            return
+        reverse = await self.config.user(ctx.author).reverse_sort()
+        async with self.config.user(ctx.author).todos() as todos:
+            todos.sort(reverse=reverse)
+        async with self.config.user(ctx.author).completed() as completed:
+            completed.sort(reverse=reverse)
 
     # async def _get_destination(self, ctx: commands.Context):
     #     priv = await self.config.user(ctx.author).private()
