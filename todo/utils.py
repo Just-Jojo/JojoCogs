@@ -29,6 +29,9 @@ from redbot.core.utils.chat_formatting import box
 from redbot.vendored.discord.ext import menus
 
 
+__all__ = ["TodoPages", "TodoMenu", "positive_int"]
+
+
 class TodoPages(menus.ListPageSource):
     def __init__(self, data, use_md: bool, use_embeds: bool, title: str):
         super().__init__(data, per_page=1)
@@ -58,8 +61,9 @@ class TodoPages(menus.ListPageSource):
 class TodoMenu(menus.MenuPages, inherit_buttons=False):
     _source: menus.ListPageSource
 
-    def __init__(self, source: menus.ListPageSource, page_start: int = 0, **kwargs):
+    def __init__(self, source: menus.ListPageSource, page_start: int = 0, reply: bool = False, **kwargs):
         super().__init__(source=source, **kwargs)
+        self.reply = reply
         self.page_start = page_start
 
     async def send_initial_message(
@@ -68,6 +72,9 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):
         self.current_page = self.page_start
         page = await self._source.get_page(self.page_start)
         kwargs = await self._get_kwargs_from_page(page)
+        if self.reply:
+            kwargs["mention_author"] = False
+            return await ctx.reply(**kwargs)
         return await channel.send(**kwargs)
 
     def _skip_double_triangle_buttons(self):
@@ -130,3 +137,13 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):
     async def stop_pages(self, payload):
         self.stop()
         await self.message.delete()
+
+def positive_int(arg: str) -> int:
+    """Type hint for positive ints"""
+    try:
+        ret = int(arg)
+    except ValueError: # Isn't an int
+        raise commands.BadArgument(f"{arg} is not an integer")
+    if ret <= 0:
+        raise commands.BadArgument(f"{arg} is not a positive integer")
+    return ret
