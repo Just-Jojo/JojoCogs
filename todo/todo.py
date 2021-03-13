@@ -106,10 +106,13 @@ class ToDo(commands.Cog):
         pass  # Passing in subcommands isn't needed but okay
 
     @todoset.command()
-    async def pop(self, ctx, toggle: bool):
+    async def detailed(self, ctx, toggle: bool):
         """Log popped todo reminders"""
         await self._toggler(
-            ctx=ctx, item="Logging todos", key="detailed_pop", toggle=toggle
+            ctx=ctx,
+            item="Detailed creation/removing",
+            key="detailed_pop",
+            toggle=toggle,
         )
 
     @todoset.command()
