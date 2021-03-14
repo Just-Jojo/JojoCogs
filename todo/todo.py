@@ -78,6 +78,7 @@ class ToDo(commands.Cog):
         self.config.register_user(**_config_structure)
 
     def format_help_for_context(self, ctx: commands.Context):
+        """Thankie thankie Sinbad"""
         return (
             f"{super().format_help_for_context(ctx)}"
             f"\n\n**Current Version:** `{self.__version__}`"
@@ -94,12 +95,7 @@ class ToDo(commands.Cog):
     @todoset.command()
     async def detailed(self, ctx, toggle: bool):
         """Have a more detailed adding, removing, and completing message"""
-        if toggle:
-            ed = "enabled"
-        else:
-            ed = "disabled"
-
-        msg = f"Extra details are now {ed}!"
+        msg = f"Extra details are now {'enabled' if toggle else 'disabled'}!"
         await self._setting_toggle(
             ctx=ctx, toggle=toggle, setting="detailed_pop", msg=msg
         )
@@ -209,7 +205,7 @@ class ToDo(commands.Cog):
         details = await self.config.user(ctx.author).detailed_pop()
         if details:
             msg += f"\n'{discord.utils.escape_markdown(todo)}'"
-        await ctx.send(content=msg)
+        await ctx.send(msg)
         await self._maybe_autosort(ctx)
 
     @todo.command()
@@ -272,7 +268,7 @@ class ToDo(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send("Okay, I won't delete your todos")
         else:
-            if pred.result is False:
+            if not pred.result:
                 await ctx.send("Okay, I won't delete your todos")
             else:
                 await self.config.user(ctx.author).todos.clear()
@@ -287,7 +283,7 @@ class ToDo(commands.Cog):
         else:
             todos = await self._number_lists(todos)
             if await self.config.user(ctx.author).combined_lists():
-                if (c := await self.config.user(ctx.author).completed()) :
+                if (c := await self.config.user(ctx.author).completed()):
                     if not await self.config.user(ctx.author).use_md():
                         c = await self._cross_lists(c)
                     c = await self._number_lists(c)
@@ -361,8 +357,8 @@ class ToDo(commands.Cog):
         if not indexes:
             return await ctx.send_help(ctx.command)
         indexes = [x - 1 for x in indexes]
-        _ = await self.config.user(ctx.author).completed()
-        if not _:
+        completed = await self.config.user(ctx.author).completed()
+        if not completed:
             return await ctx.send(_no_completed_message.format(prefix=ctx.clean_prefix))
         else:
             removed, failed = 0, 0
@@ -396,7 +392,7 @@ class ToDo(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send("Okay, I won't delete your completed todos")
         else:
-            if pred.result is False:
+            if not pred.result:
                 await ctx.send("Okay, I won't delete your completed todos")
             else:
                 await self.config.user(ctx.author).completed.clear()
