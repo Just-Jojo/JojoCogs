@@ -46,7 +46,6 @@ _config_structure = {
     "use_embeds": True,
     "autosort": False,
     "reverse_sort": False,
-    "replies": False,
     "combined_lists": False,
     "private": False,
 }
@@ -123,13 +122,6 @@ class ToDo(commands.Cog):
             ctx=ctx, toggle=toggle, setting="use_embeds", msg=msg
         )
 
-    @todoset.command(aliases=["reply"])
-    async def replies(self, ctx, toggle: bool):
-        """Have the bot reply to you"""
-        ed = "enabled" if toggle else "disabled"
-        msg = f"Replies are now {ed}!"
-        await self._setting_toggle(ctx=ctx, toggle=toggle, setting="replies", msg=msg)
-
     @todoset.command()
     async def autosort(self, ctx, toggle: bool):
         """Autosort your lists whenever you add or remove from it"""
@@ -146,20 +138,20 @@ class ToDo(commands.Cog):
             ctx=ctx, toggle=toggle, setting="combined_lists", msg=msg
         )
 
-    # @todoset.command()
-    # async def private(self, ctx, toggle: bool):
-    #     """Make the list private"""
-    #     if toggle:
-    #         if not isinstance(ctx.channel, discord.DMChannel):
-    #             try:
-    #                 await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-    #                 await ctx.author.send(
-    #                     "Hey, I'm sending you a message to see if I can dm you!"
-    #                 )
-    #             except discord.Forbidden:
-    #                 return await ctx.send("I can't dm you!")
-    #     msg = f"Private lists are now {'enabled' if toggle else 'disabled'}!"
-    #     await self._setting_toggle(ctx=ctx, toggle=toggle, setting="private", msg=msg)
+    @todoset.command()
+    async def private(self, ctx, toggle: bool):
+        """Make the list private"""
+        if toggle is True:
+            if not isinstance(ctx.channel, discord.DMChannel):
+                try:
+                    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+                    await ctx.author.send(
+                        "Hey, I'm sending you a message to see if I can dm you!"
+                    )
+                except discord.Forbidden:
+                    return await ctx.send("I can't dm you!")
+        msg = f"Private lists are now {'enabled' if toggle else 'disabled'}!"
+        await self._setting_toggle(ctx=ctx, toggle=toggle, setting="private", msg=msg)
 
     async def _setting_toggle(
         self, *, ctx: commands.Context, toggle: bool, setting: str, msg: str
@@ -183,9 +175,8 @@ class ToDo(commands.Cog):
             "Detailed": await conf.detailed_pop(),
             "Autosorting": await conf.autosort(),
             "Reverse Sort": await conf.reverse_sort(),
-            "Replies": await conf.replies(),
             "Combined lists": await conf.combined_lists(),
-            # "Private lists": await conf.private(),
+            "Private lists": await conf.private(),
         }
         if await ctx.embed_requested():
             embed = discord.Embed(
@@ -200,7 +191,7 @@ class ToDo(commands.Cog):
             for key, value in settings.items():
                 ret += f"\n**{key}:** {value}"
             kwargs = {"content": ret}
-        await self.maybe_reply(ctx, **kwargs)  # TODO maybe reply
+        await ctx.send(**kwargs)
 
     ### Listing commands ###
 
@@ -315,21 +306,22 @@ class ToDo(commands.Cog):
         if not todos:
             await ctx.send(_no_todo_message.format(prefix=ctx.clean_prefix))
         else:
-            comp, failed = 0, 0
+            completed, failed = 0, 0
             async with ctx.typing():
                 async with self.config.user(ctx.author).todos() as todos:
-                    for index in indexes:
-                        try:
-                            todos.pop(index)
-                        except IndexError:
-                            failed += 1
-                        else:
-                            comp += 1
+                    async with self.config.user(ctx.author).completed() as comp:
+                        for index in indexes:
+                            try:
+                                comp.append(todos.pop(index))
+                            except IndexError:
+                                failed += 1
+                            else:
+                                completed += 1
             msg = "Done."
             detail = await self.config.user(ctx.author).detailed_pop()
             if detail:
                 if comp:
-                    msg += f"\nCompleted: {comp} {'todos' if comp > 1 else 'todo'}"
+                    msg += f"\nCompleted: {completed} {'todos' if completed > 1 else 'todo'}"
                 if failed:
                     msg += f"\nFailed to complete: {failed} {'todos' if failed > 1 else 'todo'}"
             await ctx.send(msg)
@@ -427,18 +419,10 @@ class ToDo(commands.Cog):
         )
         await TodoMenu(
             source=source,
-            reply=reply,
             delete_message_after=False,
             clear_reactions_after=True,
             timeout=15.0,
-        ).start(ctx, channel=ctx.channel, wait=False)
-
-    async def maybe_reply(self, ctx: commands.Context, **kwargs) -> discord.Message:
-        """Maybe reply to a message"""
-        if await self.config.user(ctx.author).replies():
-            kwargs["mention_author"] = False
-            return await ctx.reply(**kwargs)
-        return await ctx.send(**kwargs)
+        ).start(ctx, channel=await self._get_destination(ctx), wait=False)
 
     async def _number_lists(self, data: list):
         return [f"{num}. {x}" for num, x in enumerate(data, 1)]
@@ -455,11 +439,10 @@ class ToDo(commands.Cog):
         async with self.config.user(ctx.author).completed() as completed:
             completed.sort(reverse=reverse)
 
-    # async def _get_destination(self, ctx: commands.Context):
-    #     priv = await self.config.user(ctx.author).private()
-    #     if priv:
-    #         return ctx.author.dm_channel
-    #     return ctx.channel
+    async def _get_destination(self, ctx: commands.Context):
+        if await self.config.user(ctx.author).private():
+            return ctx.author.dm_channel
+        return ctx.channel
 
     async def _sort_indexes(self, index: typing.List[int]) -> typing.List[int]:
         index.sort(reverse=True)

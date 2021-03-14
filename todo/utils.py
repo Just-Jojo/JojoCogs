@@ -61,9 +61,8 @@ class TodoPages(menus.ListPageSource):
 class TodoMenu(menus.MenuPages, inherit_buttons=False):
     _source: menus.ListPageSource
 
-    def __init__(self, source: menus.ListPageSource, page_start: int = 0, reply: bool = False, **kwargs):
+    def __init__(self, source: menus.ListPageSource, page_start: int = 0, **kwargs):
         super().__init__(source=source, **kwargs)
-        self.reply = reply
         self.page_start = page_start
 
     async def send_initial_message(
@@ -72,9 +71,6 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):
         self.current_page = self.page_start
         page = await self._source.get_page(self.page_start)
         kwargs = await self._get_kwargs_from_page(page)
-        if self.reply:
-            kwargs["mention_author"] = False
-            return await ctx.reply(**kwargs)
         return await channel.send(**kwargs)
 
     def _skip_double_triangle_buttons(self):
