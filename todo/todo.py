@@ -37,7 +37,6 @@ from .utils import *
 log = logging.getLogger("red.JojoCogs.todo")
 
 
-_new_lines = "\n"
 _config_structure = {
     "todos": [],
     "completed": [],
@@ -438,12 +437,48 @@ class ToDo(commands.Cog):
         ).start(ctx, channel=await self._get_destination(ctx), wait=False)
 
     async def _number_lists(self, data: list):
+        """|coro|
+
+        Number lists. Eg. a list with the value ["One", "Two", "Three"] would become
+        ["1. One", "2. Two", "3. Three"].
+
+        Parameters
+        ----------
+        data: :class:`list`
+            List to iterate and number
+
+        Returns
+        -------
+        :class:`list`
+            Numbered list
+        """
         return [f"{num}. {x}" for num, x in enumerate(data, 1)]
 
     def _pagified_list(self, data: list):
+        """Pagifies a list using Red's :func:`pagify`
+
+        Parameters
+        ----------
+        data: :class:`list`
+            Data to pagify.
+
+        Returns
+        -------
+        List[:class:`str`]
+            The pagified items converted to a list
+        """
         return list(pagify("\n".join(data), page_length=500))
 
     async def _maybe_autosort(self, ctx: commands.Context):
+        """|coro|
+
+        Checks if a user's todo list can be sorted, and attempts to do so
+
+        Parameters
+        ----------
+        ctx: :class:`Context`
+            Context of the command to get settings for
+        """
         if not await self.config.user(ctx.author).autosort():
             return
         reverse = await self.config.user(ctx.author).reverse_sort()
@@ -453,13 +488,55 @@ class ToDo(commands.Cog):
             completed.sort(reverse=reverse)
 
     async def _get_destination(self, ctx: commands.Context):
+        """|coro|
+
+        Gets the channel for lists
+
+        Parameters
+        ----------
+        ctx: :class:`Context`
+            Context of the command for getting settings
+
+        Returns
+        -------
+        Union[:class:`TextChannel`, :class:`DMChannel`]
+            The channel to send messages to
+        """
         if await self.config.user(ctx.author).private():
             return ctx.author.dm_channel
         return ctx.channel
 
     async def _sort_indexes(self, index: typing.List[int]) -> typing.List[int]:
+        """|coro|
+
+        Sorts a list of ints in descending order
+
+        Parameters
+        ----------
+        index: List[:class:`int`]
+            The list of integers to sort
+
+        Returns
+        -------
+        List[:class:`int`]
+            The sorted list
+        """
         index.sort(reverse=True)
         return index
 
     async def _cross_lists(self, data: list):
+        """|coro|
+
+        Crosses out items in a list
+
+        Parameters
+        ----------
+        data: :class:`list`
+            List of items to cross out
+
+        Returns
+        -------
+        :class:`list`
+            The list with items crossed out
+        """
         return [f"~~{x}~~" for x in data]
