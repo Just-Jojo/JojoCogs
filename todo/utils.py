@@ -25,7 +25,7 @@ SOFTWARE.
 import discord
 from redbot.core import commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import box
+from redbot.core.utils.chat_formatting import box, bold
 from redbot.vendored.discord.ext import menus
 
 
@@ -55,7 +55,11 @@ class TodoPages(menus.ListPageSource):
             )
             return embed
         else:
-            return page + f"\nPage {menu.current_page + 1}/{self.get_max_pages()}"
+            return (
+                f"{bold(self.title)}\n"
+                + page
+                + f"\nPage {menu.current_page + 1}/{self.get_max_pages()}"
+            )
 
 
 class TodoMenu(menus.MenuPages, inherit_buttons=False):
@@ -134,11 +138,12 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):
         self.stop()
         await self.message.delete()
 
+
 def positive_int(arg: str) -> int:
     """Type hint for positive ints"""
     try:
         ret = int(arg)
-    except ValueError: # Isn't an int
+    except ValueError:  # Isn't an int
         raise commands.BadArgument(f"{arg} is not an integer")
     if ret <= 0:
         raise commands.BadArgument(f"{arg} is not a positive integer")

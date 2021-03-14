@@ -296,7 +296,7 @@ class ToDo(commands.Cog):
                     todos.extend(c)
             await self.page_logic(ctx, todos, "Todos")
 
-    @todo.group(invoke_without_command=True)
+    @todo.group(invoke_without_command=True, aliases=["c"])  # `c` is easy to type
     async def complete(self, ctx, *indexes: positive_int):
         """Complete some todos!"""
         if not indexes:
@@ -406,7 +406,20 @@ class ToDo(commands.Cog):
     ### Utility methods ###
 
     async def page_logic(self, ctx: commands.Context, data: list, title: str):
-        """Page logic, because rewriting is boring"""
+        """|coro|
+
+        Creates a menu with the given data.
+
+        Parameters
+        ----------
+        ctx: :class:`Context`
+            Command's context for sending the message and getting settings
+        data: :class:`list`
+            The data to send in a menu
+        title: :class:`str`
+            Title of the menu. If it can use embeds it will be the embed's title.
+            Otherwise it will be combined with the page string
+        """
         data = self._pagified_list(data)
         use_md = await self.config.user(ctx.author).use_md()
         use_embeds = await self.config.user(ctx.author).use_embeds()
