@@ -246,9 +246,9 @@ class ToDo(commands.Cog):
             todos.sort(reverse=result)
         await self.config.user(ctx.author).autosort.set(True)
 
-    @todo.command()
+    @todo.command(aliases=["rm", "del"])
     async def remove(self, ctx, *indexes: positive_int):
-        """Delete todos"""
+        """Remove some todos from your list"""
         if not indexes:
             return await ctx.send_help(ctx.command)
         todos = await self.config.user(ctx.author).todos()
