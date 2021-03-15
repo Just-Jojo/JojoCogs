@@ -195,6 +195,26 @@ class ToDo(commands.Cog):
         """Base command for adding, removing, and completing todos"""
         pass
 
+    @todo.command()
+    async def explain(self, ctx, comic: bool = False):
+        """Explain a bit about this cog"""
+        if (em := await ctx.embed_requested()) :
+            embed = discord.Embed(title="About Todo", colour=await ctx.embed_colour())
+            kwargs = {"embed": embed}
+        else:
+            kwargs = {"content": None}
+        if comic:
+            if em:
+                embed.set_image(url=_comic_link)
+            else:
+                kwargs["content"] = _comic_link
+        else:
+            if em:
+                embed.description = _about
+            else:
+                kwargs["content"] = _about
+        await ctx.send(**kwargs)
+
     @todo.command(name="add")
     async def todo_add(self, ctx, *, todo: str):
         """Add a todo to your list"""
@@ -283,7 +303,7 @@ class ToDo(commands.Cog):
         else:
             todos = await self._number_lists(todos)
             if await self.config.user(ctx.author).combined_lists():
-                if (c := await self.config.user(ctx.author).completed()):
+                if (c := await self.config.user(ctx.author).completed()) :
                     if not await self.config.user(ctx.author).use_md():
                         c = await self._cross_lists(c)
                     c = await self._number_lists(c)
