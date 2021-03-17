@@ -47,19 +47,19 @@ class TodoPages(menus.ListPageSource):
         ctx: commands.Context = menu.ctx
         if self.md:
             page = box(page, "md")
-        if await ctx.embed_requested() and self.use_embeds:
-            embed = discord.Embed(title=self.title, colour=await ctx.embed_colour())
-            embed.description = page
-            embed.set_footer(
-                text=f"Page {menu.current_page + 1}/{self.get_max_pages()}"
-            )
-            return embed
-        else:
+        if not await ctx.embed_requested() or not self.use_embeds:
             return (
                 f"{bold(self.title)}\n"
                 + page
                 + f"\nPage {menu.current_page + 1}/{self.get_max_pages()}"
             )
+
+        embed = discord.Embed(title=self.title, colour=await ctx.embed_colour())
+        embed.description = page
+        embed.set_footer(
+            text=f"Page {menu.current_page + 1}/{self.get_max_pages()}"
+        )
+        return embed
 
 
 class TodoMenu(menus.MenuPages, inherit_buttons=False):
@@ -96,7 +96,7 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):
                 await self.show_page(page_number)
             elif page_number >= max_pages:
                 await self.show_page(0)
-            elif page_number < 0:
+            else:
                 await self.show_page(max_pages - 1)
         except IndexError:
             pass

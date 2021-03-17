@@ -222,9 +222,7 @@ class Store(commands.Cog):
 
     async def _check_item(self, ctx: Context, item: str) -> bool:
         items = await self.config.guild(ctx.guild).items()
-        if items.get(item, None) is not None:
-            return True
-        return False
+        return items.get(item, None) is not None
 
     async def _check_cost(self, ctx: Context, cost: int) -> int:
         default = await self.config.guild(ctx.guild).base_cost()

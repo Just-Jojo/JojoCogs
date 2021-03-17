@@ -136,15 +136,14 @@ class ToDo(commands.Cog):
     @todoset.command()
     async def private(self, ctx, toggle: bool):
         """Make the list private"""
-        if toggle is True:
-            if not isinstance(ctx.channel, discord.DMChannel):
-                try:
-                    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-                    await ctx.author.send(
-                        "Hey, I'm sending you a message to see if I can dm you!"
-                    )
-                except discord.Forbidden:
-                    return await ctx.send("I can't dm you!")
+        if toggle and not isinstance(ctx.channel, discord.DMChannel):
+            try:
+                await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+                await ctx.author.send(
+                    "Hey, I'm sending you a message to see if I can dm you!"
+                )
+            except discord.Forbidden:
+                return await ctx.send("I can't dm you!")
         msg = f"Private lists are now {'enabled' if toggle else 'disabled'}!"
         await self._setting_toggle(ctx=ctx, toggle=toggle, setting="private", msg=msg)
 
@@ -255,26 +254,27 @@ class ToDo(commands.Cog):
         indexes = [x - 1 for x in indexes]
         if not todos:
             return await ctx.send(_no_todo_message.format(prefix=ctx.clean_prefix))
-        else:
-            removed, failed = 0, 0
-            async with ctx.typing():
-                async with self.config.user(ctx.author).todos() as todos:
-                    for index in indexes:
-                        try:
-                            todos.pop(index)
-                        except IndexError:
-                            failed += 1
-                        else:
-                            removed += 1
-            msg = "Done."
-            detailed = await self.config.user(ctx.author).detailed_pop()
-            if detailed:
-                if removed:
-                    msg += f"\nRemoved: {removed} {'todos' if removed > 1 else 'todo'}"
-                if failed:
-                    msg += f"\nFailed to remove: {failed} {'todos' if failed > 1 else 'todo'}"
-            await ctx.send(msg)
-            await self._maybe_autosort(ctx)
+        removed, failed = 0, 0
+        async with ctx.typing():
+            async with self.config.user(ctx.author).todos() as todos:
+                for index in indexes:
+                    try:
+                        todos.pop(index)
+                    except IndexError:
+                        failed += 1
+                    else:
+                        removed += 1
+        msg = "Done."
+        detailed = await self.config.user(ctx.author).detailed_pop()
+        if detailed:
+            if removed:
+                msg += f"\nRemoved: {removed} {'todos' if removed > 1 else 'todo'}"
+            if failed:
+                msg += (
+                    f"\nFailed to remove: {failed} {'todos' if failed > 1 else 'todo'}"
+                )
+        await ctx.send(msg)
+        await self._maybe_autosort(ctx)
 
     @todo.command(aliases=["delall"])
     async def removeall(self, ctx):
@@ -380,25 +380,26 @@ class ToDo(commands.Cog):
         completed = await self.config.user(ctx.author).completed()
         if not completed:
             return await ctx.send(_no_completed_message.format(prefix=ctx.clean_prefix))
-        else:
-            removed, failed = 0, 0
-            async with ctx.typing():
-                async with self.config.user(ctx.author).completed() as comp:
-                    for index in indexes:
-                        try:
-                            comp.pop(index)
-                        except IndexError:
-                            failed += 1
-                        else:
-                            removed += 1
-            msg = "Done."
-            if await self.config.user(ctx.author).detailed_pop():
-                if removed:
-                    msg += f"\nRemoved: {removed} {'todos' if removed > 1 else 'todo'}"
-                if failed:
-                    msg += f"\nFailed to remove: {failed} {'todos' if failed > 1 else 'todo'}"
-            await ctx.send(msg)
-            await self._maybe_autosort(ctx)
+        removed, failed = 0, 0
+        async with ctx.typing():
+            async with self.config.user(ctx.author).completed() as comp:
+                for index in indexes:
+                    try:
+                        comp.pop(index)
+                    except IndexError:
+                        failed += 1
+                    else:
+                        removed += 1
+        msg = "Done."
+        if await self.config.user(ctx.author).detailed_pop():
+            if removed:
+                msg += f"\nRemoved: {removed} {'todos' if removed > 1 else 'todo'}"
+            if failed:
+                msg += (
+                    f"\nFailed to remove: {failed} {'todos' if failed > 1 else 'todo'}"
+                )
+        await ctx.send(msg)
+        await self._maybe_autosort(ctx)
 
     @complete.command(name="removeall", aliases=["delall", "rma"])
     async def complete_removeall(self, ctx):

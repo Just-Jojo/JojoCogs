@@ -91,19 +91,17 @@ class Brownies(commands.Cog):
         data = discord.Embed()
         if title:
             data.title = title
-        if description and len(description) < 2048:
-            data.description = description
-        elif description and len(description) > 2048:
-            data.description = description[:2047]  # String splicing
-            log.warning(
-                f"Descriptions length ({len(description)}) was larger than the character limit"
-            )
+        if description:
+            if len(description) < 2048:
+                data.description = description
+            elif len(description) > 2048:
+                data.description = description[:2047]  # String splicing
+                log.warning(
+                    f"Descriptions length ({len(description)}) was larger than the character limit"
+                )
 
-        if ctx.guild is not None:
-            if str(ctx.author.colour) != "#000000":
-                data.colour = ctx.author.colour
-            else:
-                data.colour = await ctx.embed_colour()
+        if ctx.guild is not None and str(ctx.author.colour) != "#000000":
+            data.colour = ctx.author.colour
         else:
             data.colour = await ctx.embed_colour()
         if thumbnail is not None:
@@ -329,12 +327,9 @@ class Brownies(commands.Cog):
     ) -> discord.Member:
         """Return a random, non-bot user"""
         clean_users = [
-            member
-            for member in guild.members
-            if not member.bot and not member == author
+            member for member in guild.members if not member.bot and member != author
         ]
-        user = random.choice(clean_users)
-        return user
+        return random.choice(clean_users)
 
     def time_formatting(self, seconds) -> str:
         """Format time for cooldown messages"""
