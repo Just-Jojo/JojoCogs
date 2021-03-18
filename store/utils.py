@@ -39,18 +39,18 @@ class JojoPages(menus.ListPageSource):
         return True
 
     async def format_page(self, menu, page):
-        if menu.ctx.channel.permissions_for(menu.ctx.me).embed_links:
-            embed = discord.Embed(
-                title=f"{menu.bot.user.name} Pages",
-                description=page,
-                colour=await menu.ctx.embed_colour(),
-            )
-            embed.set_footer(
-                text=f"Page {menu.current_page + 1}/{self.get_max_pages()}"
-            )
-            return embed
-        else:
+        if not menu.ctx.channel.permissions_for(menu.ctx.me).embed_links:
             return page
+
+        embed = discord.Embed(
+            title=f"{menu.bot.user.name} Pages",
+            description=page,
+            colour=await menu.ctx.embed_colour(),
+        )
+        embed.set_footer(
+            text=f"Page {menu.current_page + 1}/{self.get_max_pages()}"
+        )
+        return embed
 
 
 class JojoMenu(menus.MenuPages, inherit_buttons=False):
@@ -88,7 +88,7 @@ class JojoMenu(menus.MenuPages, inherit_buttons=False):
             await self.show_page(page_number)
         elif page_number >= max_pages:
             await self.show_page(0)
-        elif page_number < 0:
+        else:
             await self.show_page(max_pages - 1)
 
     def _skip_single_arrows(self):

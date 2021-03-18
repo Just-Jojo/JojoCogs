@@ -113,38 +113,38 @@ class CycleStatus(commands.Cog):
     @status.command(name="list")
     async def status_list(self, ctx):
         msg = await self.config.statuses()
-        msg = "\n".join([f"{num}. {x}" for num, x in enumerate(msg, 1)])
+        msg = "\n".join(f"{num}. {x}" for num, x in enumerate(msg, 1))
         await ctx.send(box(msg, "md"))
 
     @tasks.loop(minutes=5)
     async def update_status(self):
         if self.cy is None:
-            pass
+            return
+
+        add_help = await self.config.help()
+        game_type = await self.config.type()
+        msg = next(self.cy)
+        if add_help:
+            prefix = await self.bot.get_valid_prefixes()
+            for p in prefix:
+                if p not in (
+                    f"<@!{self.bot.user.id}> ",
+                    f"<@{self.bot.user.id}> ",
+                    f"<@!{self.bot.user.id}>",
+                    f"<@{self.bot.user.id}>",
+                ):
+                    prefix = p
+                    break
+            if isinstance(prefix, list):
+                prefix = f"@{self.bot.user.name}"
+            msg += f" | {prefix}help"
+        if game_type == "game":
+            ac = discord.Game(name=msg)
+        elif game_type == "listening":
+            ac = discord.Activity(name=msg, type=discord.ActivityType.listening)
         else:
-            add_help = await self.config.help()
-            game_type = await self.config.type()
-            msg = next(self.cy)
-            if add_help:
-                prefix = await self.bot.get_valid_prefixes()
-                for p in prefix:
-                    if p not in (
-                        f"<@!{self.bot.user.id}> ",
-                        f"<@{self.bot.user.id}> ",
-                        f"<@!{self.bot.user.id}>",
-                        f"<@{self.bot.user.id}>",
-                    ):
-                        prefix = p
-                        break
-                if isinstance(prefix, list):
-                    prefix = f"@{self.bot.user.name}"
-                msg += f" | {prefix}help"
-            if game_type == "game":
-                ac = discord.Game(name=msg)
-            elif game_type == "listening":
-                ac = discord.Activity(name=msg, type=discord.ActivityType.listening)
-            else:
-                ac = discord.Activity(name=msg, type=discord.ActivityType.watching)
-            await self.bot.change_presence(activity=ac)
+            ac = discord.Activity(name=msg, type=discord.ActivityType.watching)
+        await self.bot.change_presence(activity=ac)
 
     async def cog_check(self, ctx: commands.Context):
         return await self.bot.is_owner(ctx.author)

@@ -218,7 +218,7 @@ class Store(commands.Cog):
         await menu.start(ctx=ctx, channel=ctx.channel, wait=False)
 
     def _capitalize_all(self, data: str):
-        return " ".join([x.capitalize() for x in data.split()])
+        return " ".join(x.capitalize() for x in data.split())
 
     async def _check_item(self, ctx: Context, item: str) -> bool:
         items = await self.config.guild(ctx.guild).items()
