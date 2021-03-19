@@ -439,7 +439,6 @@ class ToDo(commands.Cog):
         data = self._pagified_list(data)
         use_md = await self.config.user(ctx.author).use_md()
         use_embeds = await self.config.user(ctx.author).use_embeds()
-        reply = await self.config.user(ctx.author).replies()
         source = TodoPages(
             data=data,
             use_md=use_md,
