@@ -13,3 +13,7 @@ Added replies for moving todos to different indexes
 Nothing changed here really, I just decided to version bump to v1
 - 1.0.2
 Added combining lists, meaning that you can view your completed and pending todos
+- 1.1.0
+Refactor of the Todo cog adding addtional QOL changes
+- 1.1.1
+Fix of a bug with the todo list >.>

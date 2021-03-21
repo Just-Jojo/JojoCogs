@@ -67,7 +67,7 @@ _no_completed_message = (
 class ToDo(commands.Cog):
     """A simple and highly customizable todo list for Discord"""
 
-    __version__ = "1.1.0"
+    __version__ = "1.1.1"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
