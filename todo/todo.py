@@ -298,11 +298,14 @@ class ToDo(commands.Cog):
     async def todo_list(self, ctx):
         """List your current todos!"""
         todos = await self.config.user(ctx.author).todos()
-        if not todos:
+        comb = await self.config.user(ctx.author).combined_lists()
+        if not todos and not comb:
             await ctx.send(_no_todo_message.format(prefix=ctx.clean_prefix))
+        elif comb:
+            await self._complete_list(ctx=ctx)
         else:
             todos = await self._number_lists(todos)
-            if await self.config.user(ctx.author).combined_lists():
+            if comb:
                 if (c := await self.config.user(ctx.author).completed()) :
                     if not await self.config.user(ctx.author).use_md():
                         c = await self._cross_lists(c)
@@ -420,6 +423,21 @@ class ToDo(commands.Cog):
                 await ctx.send("Removed your completed todos.")
 
     ### Utility methods ###
+
+    async def _complete_list(self, ctx: commands.Context):
+        """|coro|
+
+        Logic for complete list... for todo list?
+        """
+        user_conf = self.config.user(ctx.author)
+        completed = await user_conf.completed()
+        if not completed:
+            return
+        if not await user_conf.use_md():
+            completed = await self._cross_lists(completed)
+        completed = await self._number_lists(completed)
+        completed.insert(0, "\N{WHITE HEAVY CHECK MARK} Completed")
+        await self.page_logic(ctx=ctx, data=completed, title="Todos")
 
     async def page_logic(self, ctx: commands.Context, data: list, title: str):
         """|coro|
