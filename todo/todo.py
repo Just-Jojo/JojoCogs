@@ -301,7 +301,7 @@ class ToDo(commands.Cog):
         comb = await self.config.user(ctx.author).combined_lists()
         if not todos and not comb:
             await ctx.send(_no_todo_message.format(prefix=ctx.clean_prefix))
-        elif comb:
+        elif not todos and comb:
             await self._complete_list(ctx=ctx)
         else:
             todos = await self._number_lists(todos)
