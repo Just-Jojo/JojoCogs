@@ -81,6 +81,7 @@ class CycleStatus(commands.Cog):
 
     @status_set.command(name="help")
     async def status_set_help(self, ctx, toggle: bool):
+        """Appends `[p]help` to the end of the status"""
         if (s := await self.config.help()) == toggle:
             await ctx.send(f"Help was already {'enabled' if toggle else 'disabled'}")
         else:
@@ -89,6 +90,7 @@ class CycleStatus(commands.Cog):
 
     @status.command(name="add")
     async def status_add(self, ctx, *, status: str):
+        """Add a status to the list"""
         async with self.config.statuses() as stat:
             stat.append(status)
         await ctx.tick()
@@ -96,6 +98,7 @@ class CycleStatus(commands.Cog):
 
     @status.command(name="remove", aliases=["del", "delete"])
     async def status_remove(self, ctx, *indexes: int):
+        """Remove a status from the list"""
         if not len(indexes):
             msg = await self.config.statuses()
             msg = "\n".join([f"{num}. {x}" for num, x in enumerate(msg, 1)])
@@ -112,6 +115,7 @@ class CycleStatus(commands.Cog):
 
     @status.command(name="list")
     async def status_list(self, ctx):
+        """List the statuses your bot has"""
         msg = await self.config.statuses()
         msg = "\n".join(f"{num}. {x}" for num, x in enumerate(msg, 1))
         await ctx.send(box(msg, "md"))
