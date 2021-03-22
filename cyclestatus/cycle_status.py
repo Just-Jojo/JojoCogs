@@ -117,6 +117,8 @@ class CycleStatus(commands.Cog):
     async def status_list(self, ctx):
         """List the statuses your bot has"""
         msg = await self.config.statuses()
+        if not msg:
+            await ctx.send("You don't have any statuses!")
         msg = "\n".join(f"{num}. {x}" for num, x in enumerate(msg, 1))
         await ctx.send(box(msg, "md"))
 
