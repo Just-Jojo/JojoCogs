@@ -70,7 +70,7 @@ class CycleStatus(commands.Cog):
     async def status(self, ctx):
         """Base command for Status options"""
 
-    @status.group(name="set", invoke_without_command=True)
+    @status.group(name="set", invoke_without_command=True, usage="<activity type>")
     async def status_set(self, ctx, ac_type: str):
         """Set the type of the status activity!"""
         ac_type = ac_type.lower()
