@@ -150,7 +150,7 @@ class CycleStatus(commands.Cog):
             prefix = (await self.bot.get_valid_prefixes())[0]
             prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
             msg += f" | {prefix}help"
-        game = discord.Activity(name=msg, type=discord.ActivityType.listening)
+        game = discord.Game(name=msg)
         await self.bot.change_presence(activity=game)
         if len(statuses) - 1 == nl:
             nl = 0
