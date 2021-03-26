@@ -33,6 +33,7 @@ from typing import Literal, Optional
 import aiohttp
 import discord
 from redbot.core import Config, commands
+from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 
 log = logging.getLogger("red.mcoc-v3.brownies")
@@ -71,9 +72,9 @@ class PluralDict(dict):
 
 
 class Brownies(commands.Cog):
-    """Collector loves brownies, and will steal from others for you!"""
+    """[bot] loves brownies, and will steal from others for you!"""
 
-    __author__ = ["JJW", "Jojo#7791"]
+    __author__ = ["JJW (V2)", "Jojo#7791"]
     __version__ = "0.1.0"
 
     async def default_embed(
@@ -132,13 +133,13 @@ class Brownies(commands.Cog):
         await session.close()
         return data
 
-    def __init__(self, bot):
+    def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 2287042090, force_registration=True)
         self.config.register_member(**_config_structure["user"])
         self.config.register_guild(**_config_structure["guild"])
 
-    async def format_help_for_context(self, ctx):
+    def format_help_for_context(self, ctx):
         return (
             f"{super().format_help_for_context(ctx)}"
             f"\n**__Version__**: {self.__version__}"

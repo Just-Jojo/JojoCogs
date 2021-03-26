@@ -25,9 +25,8 @@ SOFTWARE.
 import discord
 from redbot.core import commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import box, bold
+from redbot.core.utils.chat_formatting import bold, box
 from redbot.vendored.discord.ext import menus
-
 
 __all__ = ["TodoPages", "TodoMenu", "positive_int"]
 
@@ -56,9 +55,7 @@ class TodoPages(menus.ListPageSource):
 
         embed = discord.Embed(title=self.title, colour=await ctx.embed_colour())
         embed.description = page
-        embed.set_footer(
-            text=f"Page {menu.current_page + 1}/{self.get_max_pages()}"
-        )
+        embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
         return embed
 
 

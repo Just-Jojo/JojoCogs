@@ -148,7 +148,9 @@ class CycleStatus(commands.Cog):
         msg = statuses[(nl := await self.config.next_iter())]
         if await self.config.use_help():
             prefix = (await self.bot.get_valid_prefixes())[0]
-            prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
+            prefix = re.sub(
+                rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix
+            )
             msg += f" | {prefix}help"
         game = discord.Game(name=msg)
         await self.bot.change_presence(activity=game)
