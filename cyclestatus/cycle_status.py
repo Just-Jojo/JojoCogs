@@ -24,6 +24,7 @@ SOFTWARE.
 
 import asyncio
 import logging
+import re
 from itertools import cycle
 from typing import List
 
@@ -147,8 +148,7 @@ class CycleStatus(commands.Cog):
         msg = statuses[(nl := await self.config.next_iter())]
         if await self.config.use_help():
             prefix = (await self.bot.get_valid_prefixes())[0]
-            if prefix == str(self.bot.user.mention):
-                prefix = f"@{self.bot.user.name}"
+            prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
             msg += f" | {prefix}help"
         game = discord.Activity(name=msg, type=discord.ActivityType.listening)
         await self.bot.change_presence(activity=game)
