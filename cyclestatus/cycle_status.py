@@ -22,19 +22,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import asyncio
 import logging
+from itertools import cycle
+from typing import List
 
 import discord
 from discord.ext import tasks
-
-from redbot.core import commands, Config
+from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
-from itertools import cycle
+from redbot.core.utils.predicates import MessagePredicate
 
-from .menus import Pages, Menu
-
-from typing import List
+from .menus import Menu, Pages
 
 log = logging.getLogger("red.JojoCogs.cyclestatus")
 _config_structure = {
@@ -121,6 +121,23 @@ class CycleStatus(commands.Cog):
         if not (status := await self.config.statuses()):
             return await ctx.send("There are no statuses")
         await self._show_statuses(ctx=ctx, statuses=status)
+
+    @status.command(name="clear")
+    async def status_clear(self, ctx):
+        """Clear all of the statuses"""
+        msg = await ctx.send("Would you like to clear all of your statuses? (y/n)")
+        pred = MessagePredicate.yes_or_no()
+        try:
+            await self.bot.wait_for("message", check=pred)
+        except asyncio.TimeoutError:
+            pred.result = False
+        await msg.delete()
+        if not pred.result:
+            return await ctx.send("Okay! I won't remove your statuses")
+
+        await self.config.statuses.set([])
+        await self.bot.change_presence()
+        await ctx.tick()
 
     @tasks.loop(minutes=1)
     async def main_task(self):

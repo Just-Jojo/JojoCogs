@@ -25,12 +25,10 @@ SOFTWARE.
 from typing import List, Union
 
 import discord
-
 from redbot.core import commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box
 from redbot.vendored.discord.ext import menus
-
 
 __all__ = ["Pages", "Menu"]
 
