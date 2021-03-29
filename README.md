@@ -10,6 +10,8 @@ For suggestions you can either make an enhancement issue or ask/ping me in eithe
 Forks are great! 🍴
 If you would like to contribute, make personal edits, or just about anything just fork this repo (just don't blame me for the bad code)
 
+Also, read the `CONTRIBUTING.md` file (:
+
 ## Cogs
 Here are some of the cogs I've written. Anything marked `X` in the approved section has been approved by me to be pretty much working as intended
 Anything marked with `O`, however, is either not working or hasn't been finished
