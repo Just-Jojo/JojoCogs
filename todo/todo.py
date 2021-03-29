@@ -32,7 +32,7 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
-from .utils import *
+from .utils import TodoMenu, TodoPages, positive_int
 
 log = logging.getLogger("red.JojoCogs.todo")
 
@@ -54,10 +54,10 @@ _about = (
     " adding, and completing for you to work with, and is highly"
     " customizable so you get the best out of it"
 )
-_comic_link = "https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/data/todo_comic.jpg"
-_no_todo_message = (
-    "You don't have any todos!" " Add one using `{prefix}todo add <todo>`!"
+_comic_link = (
+    "https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/data/todo_comic.jpg"
 )
+_no_todo_message = "You don't have any todos!" " Add one using `{prefix}todo add <todo>`!"
 _no_completed_message = (
     "You don't have any completed todos!"
     " You can complete a todo using `{prefix}todo complete <indexes...>`!"
@@ -79,10 +79,13 @@ class ToDo(commands.Cog):
 
     def format_help_for_context(self, ctx: commands.Context):
         """Thankie thankie Sinbad"""
+        plural = ""
+        if len(__author__) > 1:
+            plural = "s"
         return (
             f"{super().format_help_for_context(ctx)}"
-            f"\n\n**Current Version:** `{self.__version__}`"
-            f"\n**Author:** `{', '.join(self.__author__)}`"
+            f"\n\nCurrent Version: `{self.__version__}`"
+            f"\nAuthor{plural}: `{', '.join(self.__author__)}`"
         )
 
     ### Setting commands ###
@@ -113,9 +116,7 @@ class ToDo(commands.Cog):
         ed = "enabled" if toggle else "disabled"
 
         msg = f"Embedded lists are now {ed}!"
-        await self._setting_toggle(
-            ctx=ctx, toggle=toggle, setting="use_embeds", msg=msg
-        )
+        await self._setting_toggle(ctx=ctx, toggle=toggle, setting="use_embeds", msg=msg)
 
     @todoset.command()
     async def autosort(self, ctx, toggle: bool):
@@ -251,28 +252,34 @@ class ToDo(commands.Cog):
         if not indexes:
             return await ctx.send_help(ctx.command)
         todos = await self.config.user(ctx.author).todos()
-        indexes = [x - 1 for x in indexes]
         if not todos:
             return await ctx.send(_no_todo_message.format(prefix=ctx.clean_prefix))
-        removed, failed = 0, 0
         async with ctx.typing():
             async with self.config.user(ctx.author).todos() as todos:
+                indexes = [x - 1 for x in indexes]
+                removed, failed, rm, fails = 0, 0, [], []
                 for index in indexes:
                     try:
-                        todos.pop(index)
+                        rm.append(todos.pop(index))
                     except IndexError:
                         failed += 1
+                        fails.append(index)
                     else:
                         removed += 1
+
         msg = "Done."
         detailed = await self.config.user(ctx.author).detailed_pop()
-        if detailed:
-            if removed:
-                msg += f"\nRemoved: {removed} {'todos' if removed > 1 else 'todo'}"
-            if failed:
-                msg += (
-                    f"\nFailed to remove: {failed} {'todos' if failed > 1 else 'todo'}"
-                )
+
+        if removed:
+            remove_plural = "" if removed == 1 else "s"
+            msg += f"\nRemoved: {removed} todo{remove_plural}"
+            if detailed:
+                msg += "\n" + "\n".join(f"`{x}`" for x in rm)
+        if failed:
+            fail_plural = "" if failed == 1 else "s"
+            msg += f"\nFailed to remove: {failed} todo{fail_plural}"
+            if detailed:
+                msg += "\n" + "\n".join(f"`{x}`" for x in fails)
         await ctx.send(msg)
         await self._maybe_autosort(ctx)
 
@@ -299,7 +306,8 @@ class ToDo(commands.Cog):
         """List your current todos!"""
         todos = await self.config.user(ctx.author).todos()
         comb = await self.config.user(ctx.author).combined_lists()
-        if not todos and not comb:
+        completed = await self.config.user(ctx.author).completed()
+        if not todos and not comb or not todos and not completed:
             await ctx.send(_no_todo_message.format(prefix=ctx.clean_prefix))
         elif not todos and comb:
             await self._complete_list(ctx=ctx)
@@ -319,31 +327,38 @@ class ToDo(commands.Cog):
         """Complete some todos!"""
         if not indexes:
             return await ctx.send_help(ctx.command)
-        indexes = [x - 1 for x in indexes]
         todos = await self.config.user(ctx.author).todos()
         if not todos:
-            await ctx.send(_no_todo_message.format(prefix=ctx.clean_prefix))
-        else:
-            completed, failed = 0, 0
-            async with ctx.typing():
-                async with self.config.user(ctx.author).todos() as todos:
-                    async with self.config.user(ctx.author).completed() as comp:
-                        for index in indexes:
-                            try:
-                                comp.append(todos.pop(index))
-                            except IndexError:
-                                failed += 1
-                            else:
-                                completed += 1
-            msg = "Done."
-            detail = await self.config.user(ctx.author).detailed_pop()
+            return await ctx.send(_no_todo_message.format(prefix=ctx.clean_prefix))
+        async with ctx.typing():
+            async with self.config.user(ctx.author).todos() as todos:
+                async with self.config.user(ctx.author).completed() as comp:
+                    indexes = [x - 1 for x in indexes]
+                    completed, failed, comped, fails = 0, 0, [], []
+                    for index in indexes:
+                        try:
+                            rmd = todos.pop(index)
+                        except IndexError:
+                            failed += 1
+                            fails.append(index)
+                        else:
+                            completed += 1
+                            comped.append(rmd)
+                            comp.append(rmd)
+        msg = "Done."
+        detail = await self.config.user(ctx.author).detailed_pop()
+        if comp:
+            plural = "" if completed == 1 else "s"
+            msg += f"\nCompleted: {completed} todo{plural}"
             if detail:
-                if comp:
-                    msg += f"\nCompleted: {completed} {'todos' if completed > 1 else 'todo'}"
-                if failed:
-                    msg += f"\nFailed to complete: {failed} {'todos' if failed > 1 else 'todo'}"
-            await ctx.send(msg)
-            await self._maybe_autosort(ctx)
+                msg += "\n" + "\n".join(f"`{x}`" for x in comped)
+        if failed:
+            plural = "" if failed == 1 else "s"
+            msg += f"\nFailed to remove: {failed} todo{plural}"
+            if detail:
+                msg += "\n" + "\n".join(f"`{x}`" for x in fails)
+        await ctx.send(msg)
+        await self._maybe_autosort(ctx)
 
     @complete.command(name="sort")
     async def complete_sort(self, ctx):
@@ -379,28 +394,33 @@ class ToDo(commands.Cog):
         """Remove compeleted todos"""
         if not indexes:
             return await ctx.send_help(ctx.command)
-        indexes = [x - 1 for x in indexes]
         completed = await self.config.user(ctx.author).completed()
         if not completed:
             return await ctx.send(_no_completed_message.format(prefix=ctx.clean_prefix))
-        removed, failed = 0, 0
         async with ctx.typing():
             async with self.config.user(ctx.author).completed() as comp:
+                indexes = [x - 1 for x in indexes]
+                removed, failed, rmd, fails = 0, 0, [], []
                 for index in indexes:
                     try:
-                        comp.pop(index)
+                        rmd.append(comp.pop(index))
                     except IndexError:
                         failed += 1
+                        fails.append(index)
                     else:
                         removed += 1
         msg = "Done."
-        if await self.config.user(ctx.author).detailed_pop():
-            if removed:
-                msg += f"\nRemoved: {removed} {'todos' if removed > 1 else 'todo'}"
-            if failed:
-                msg += (
-                    f"\nFailed to remove: {failed} {'todos' if failed > 1 else 'todo'}"
-                )
+        details = await self.config.user(ctx.author).detailed_pop()
+        if removed:
+            plural = "" if removed == 1 else "s"
+            msg += f"\nRemoved: {removed} todo{plural}"
+            if details:
+                msg += "\n" + "\n".join(f"`{x}`" for x in rmd)
+        if failed:
+            plural = "" if failed == 1 else "s"
+            msg += f"\nFailed to remove: {failed} todo{plural}"
+            if details:
+                msg += "\n" + "\n".join(f"`{x}`" for x in fails)
         await ctx.send(msg)
         await self._maybe_autosort(ctx)
 
