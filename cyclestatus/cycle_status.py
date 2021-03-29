@@ -60,19 +60,23 @@ def positive_int(arg: str) -> int:
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 115849, True)
         self.config.register_global(**_config_structure["global"])
+        self.task: asyncio.Task = self.bot.loop.create_task(self.init())
 
     async def init(self):
         await self.bot.wait_until_red_ready()
         self.main_task.start()
 
     def cog_unload(self):
+        if not self.task.done():
+            self.task.cancel()
+            return  # Worst case :/
         self.main_task.cancel()
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -145,19 +149,20 @@ class CycleStatus(commands.Cog):
         statuses = await self.config.statuses()
         if not statuses:
             return
-        msg = statuses[(nl := await self.config.next_iter())]
+        try:
+            # So, sometimes this gets larger than the list of the statuses
+            # so, if this raises an `IndexError` we need to reset the next iter
+            msg = statuses[(nl := await self.config.next_iter())]
+        except IndexError:
+            nl = 0  # Hard reset
+            msg = statuses[0]
         if await self.config.use_help():
             prefix = (await self.bot.get_valid_prefixes())[0]
-            prefix = re.sub(
-                rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix
-            )
+            prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
             msg += f" | {prefix}help"
         game = discord.Game(name=msg)
         await self.bot.change_presence(activity=game)
-        if len(statuses) - 1 == nl:
-            nl = 0
-        else:
-            nl += 1
+        nl = 0 if len(statuses) - 1 == nl else nl + 1
         await self.config.next_iter.set(nl)
 
     async def _num_lists(self, data: List[str]) -> List[str]:
