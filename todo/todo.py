@@ -27,14 +27,14 @@ import logging
 import typing
 
 import discord
+from abc import ABC
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from .utils import TodoMenu, TodoPages, positive_int
-
-log = logging.getLogger("red.JojoCogs.todo")
+from .commands import Examples, Settings, Deleting, CompositeMetaclass
 
 
 _config_structure = {
@@ -57,17 +57,19 @@ _about = (
 _comic_link = (
     "https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/data/todo_comic.jpg"
 )
-_no_todo_message = "You don't have any todos!" " Add one using `{prefix}todo add <todo>`!"
-_no_completed_message = (
-    "You don't have any completed todos!"
-    " You can complete a todo using `{prefix}todo complete <indexes...>`!"
-)
 
 
-class ToDo(commands.Cog):
+class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetaclass):
     """A simple and highly customizable todo list for Discord"""
 
-    __version__ = "1.1.1"
+    _no_completed_message = (
+        "You don't have any completed todos!"
+        " You can complete a todo using `{prefix}todo complete <indexes...>`!"
+    )
+    _no_todo_message = (
+        "You don't have any todos! Add one using `{prefix}todo add <todo>`!"
+    )
+    __version__ = "1.2.0"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -76,6 +78,7 @@ class ToDo(commands.Cog):
             cog_instance=self, identifier=19924714019, force_registration=True
         )
         self.config.register_user(**_config_structure)
+        self.log = logging.getLogger("red.JojoCogs.todo")
 
     def format_help_for_context(self, ctx: commands.Context):
         """Thankie thankie Sinbad"""
@@ -88,112 +91,53 @@ class ToDo(commands.Cog):
             f"\nAuthor{plural}: `{', '.join(self.__author__)}`"
         )
 
-    ### Setting commands ###
-
-    @commands.group()
-    async def todoset(self, ctx):
-        """Base settings command for customizing your todo list"""
-        pass
-
-    @todoset.command()
-    async def detailed(self, ctx, toggle: bool):
-        """Have a more detailed adding, removing, and completing message"""
-        msg = f"Extra details are now {'enabled' if toggle else 'disabled'}!"
-        await self._setting_toggle(
-            ctx=ctx, toggle=toggle, setting="detailed_pop", msg=msg
-        )
-
-    @todoset.command(aliases=["md"])
-    async def usemd(self, ctx, toggle: bool):
-        """Have the lists use a markdown block"""
-        ed = "enabled" if toggle else "disabled"
-        msg = f"Markdown blocks are now {ed}!"
-        await self._setting_toggle(ctx=ctx, toggle=toggle, setting="use_md", msg=msg)
-
-    @todoset.command(aliases=["embed"])
-    async def useembeds(self, ctx, toggle: bool):
-        """Have the lists be embedded (this requires the bot to have embed links permissions in the channel)"""
-        ed = "enabled" if toggle else "disabled"
-
-        msg = f"Embedded lists are now {ed}!"
-        await self._setting_toggle(ctx=ctx, toggle=toggle, setting="use_embeds", msg=msg)
-
-    @todoset.command()
-    async def autosort(self, ctx, toggle: bool):
-        """Autosort your lists whenever you add or remove from it"""
-        ed = "enabled" if toggle else "disabled"
-        msg = f"Autosorting is now {ed}!"
-        await self._setting_toggle(ctx=ctx, toggle=toggle, setting="autosort", msg=msg)
-
-    @todoset.command()
-    async def combine(self, ctx, toggle: bool):
-        """Combine the todo and complete list"""
-        ed = "enabled" if toggle else "disabled"
-        msg = f"Combined lists are now {ed}!"
-        await self._setting_toggle(
-            ctx=ctx, toggle=toggle, setting="combined_lists", msg=msg
-        )
-
-    @todoset.command()
-    async def private(self, ctx, toggle: bool):
-        """Make the list private"""
-        if toggle and not isinstance(ctx.channel, discord.DMChannel):
-            try:
-                await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-                await ctx.author.send(
-                    "Hey, I'm sending you a message to see if I can dm you!"
-                )
-            except discord.Forbidden:
-                return await ctx.send("I can't dm you!")
-        msg = f"Private lists are now {'enabled' if toggle else 'disabled'}!"
-        await self._setting_toggle(ctx=ctx, toggle=toggle, setting="private", msg=msg)
-
-    async def _setting_toggle(
-        self, *, ctx: commands.Context, toggle: bool, setting: str, msg: str
-    ):
-        """Toggle logic for setting commands"""
-        current = await self.config.user(ctx.author).get_raw(setting)
-        if current == toggle:
-            return await ctx.send(
-                f"That setting is already {'enabled' if toggle else 'disabled'}!"
-            )
-        await ctx.send(content=msg)
-        await self.config.user(ctx.author).set_raw(setting, value=toggle)
-
-    @todoset.command()
-    async def showsettings(self, ctx):
-        """Show your todo settings"""
-        conf = self.config.user(ctx.author)
-        settings = {
-            "Markdown": await conf.use_md(),
-            "Embedded": await conf.use_embeds(),
-            "Detailed": await conf.detailed_pop(),
-            "Autosorting": await conf.autosort(),
-            "Reverse Sort": await conf.reverse_sort(),
-            "Combined lists": await conf.combined_lists(),
-            "Private lists": await conf.private(),
-        }
-        if await ctx.embed_requested():
-            embed = discord.Embed(
-                title=f"{ctx.author.display_name}'s todo settings",
-                colour=await ctx.embed_colour(),
-            )
-            for key, value in settings.items():
-                embed.add_field(name=key, value=value, inline=True)
-            kwargs = {"embed": embed}
-        else:
-            ret = f"{ctx.author.display_name}'s todo settings"
-            for key, value in settings.items():
-                ret += f"\n**{key}:** {value}"
-            kwargs = {"content": ret}
-        await ctx.send(**kwargs)
-
     ### Listing commands ###
 
     @commands.group()
     async def todo(self, ctx):
-        """Base command for adding, removing, and completing todos"""
+        """Todo commands
+
+        Add a todo to your list and manage your tasks
+        """
         pass
+
+    @todo.group(
+        invoke_without_command=True, aliases=["c"], require_var_positional=True
+    )  # `c` is easy to type
+    async def complete(self, ctx, *indexes: positive_int):
+        """Commands having to do with completed todos!"""
+        if not await self.config.user(ctx.author).todos():
+            return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+        async with ctx.typing():
+            async with self.config.user(ctx.author).todos() as todos:
+                async with self.config.user(ctx.author).completed() as completed:
+                    indexes = [x - 1 for x in indexes]  # Remove 1 from each item...
+                    indexes.sort(reverse=True)  # and sort the list
+                    fails, failed, comp, compled = 0, [], 0, []
+                    for index in indexes:
+                        try:
+                            rmd = todos.pop(index)
+                        except IndexError:
+                            fails += 1
+                            failed.append(f"`{index}`")
+                        else:
+                            comp += 1
+                            compled.append(f"`{rmd}`")
+                            completed.append(f"`{rmd}`")
+        msg = "Done."
+        details = await self.config.user(ctx.author).detailed_pop()
+        if comp:
+            plural = "" if comp == 1 else "s"
+            msg += f"Completed {comp} todo{plural}"
+            if details:
+                msg += "\n" + "\n".join(compled)
+        if fails:
+            plural = "" if fails == 1 else "s"
+            msg += f"Failed to complete {fails} todo{plural}"
+            if details:
+                msg += "\n" + "\n".join(failed)
+        await ctx.send(msg)
+        await self._maybe_autosort(ctx)
 
     @todo.command()
     async def explain(self, ctx, comic: bool = False):
@@ -213,6 +157,30 @@ class ToDo(commands.Cog):
                 embed.description = _about
             else:
                 kwargs["content"] = _about
+        await ctx.send(**kwargs)
+
+    @todo.command()
+    async def suggestions(self, ctx):
+        """See how you could add suggestions!"""
+        msg = (
+            "Thanks for reading this! I made this cog for managing my tasks, "
+            "however I realised that this would be helpful for a lot of people "
+            "and I added the ability to customize your todo list!\nHowever, "
+            "I can add more things, I just don't know what I should add, "
+            "you can help by going to my GitHub repo (<https://github.com/Just-Jojo/JojoCogs>), "
+            "go to the `issues` tab, click on `Todo suggestions`, and leave a comment! "
+            "(here's the issue link <https://github.com/Just-Jojo/JojoCogs/issues/15> :) )"
+        )
+        if await ctx.embed_requested():
+            kwargs = {
+                "embed": discord.Embed(
+                    title="Todo suggestions",
+                    description=msg,
+                    colour=await ctx.embed_colour(),
+                ),
+            }
+        else:
+            kwargs = {"content": msg}
         await ctx.send(**kwargs)
 
     @todo.command(name="add")
@@ -246,61 +214,6 @@ class ToDo(commands.Cog):
             todos.sort(reverse=result)
         await self.config.user(ctx.author).autosort.set(True)
 
-    @todo.command(aliases=["rm", "del"])
-    async def remove(self, ctx, *indexes: positive_int):
-        """Remove some todos from your list"""
-        if not indexes:
-            return await ctx.send_help(ctx.command)
-        todos = await self.config.user(ctx.author).todos()
-        if not todos:
-            return await ctx.send(_no_todo_message.format(prefix=ctx.clean_prefix))
-        async with ctx.typing():
-            async with self.config.user(ctx.author).todos() as todos:
-                indexes = [x - 1 for x in indexes]
-                removed, failed, rm, fails = 0, 0, [], []
-                for index in indexes:
-                    try:
-                        rm.append(todos.pop(index))
-                    except IndexError:
-                        failed += 1
-                        fails.append(index)
-                    else:
-                        removed += 1
-
-        msg = "Done."
-        detailed = await self.config.user(ctx.author).detailed_pop()
-
-        if removed:
-            remove_plural = "" if removed == 1 else "s"
-            msg += f"\nRemoved: {removed} todo{remove_plural}"
-            if detailed:
-                msg += "\n" + "\n".join(f"`{x}`" for x in rm)
-        if failed:
-            fail_plural = "" if failed == 1 else "s"
-            msg += f"\nFailed to remove: {failed} todo{fail_plural}"
-            if detailed:
-                msg += "\n" + "\n".join(f"`{x}`" for x in fails)
-        await ctx.send(msg)
-        await self._maybe_autosort(ctx)
-
-    @todo.command(aliases=["delall"])
-    async def removeall(self, ctx):
-        """Remove all of your todos"""
-        await ctx.send(
-            "WARNING, this will remove **ALL** of your todos. Would you like to remove your todos? (y/n)"
-        )
-        pred = MessagePredicate.yes_or_no(ctx)
-        try:
-            await self.bot.wait_for("message", check=pred)
-        except asyncio.TimeoutError:
-            await ctx.send("Okay, I won't delete your todos")
-        else:
-            if not pred.result:
-                await ctx.send("Okay, I won't delete your todos")
-            else:
-                await self.config.user(ctx.author).todos.clear()
-                await ctx.send("Removed your todos.")
-
     @todo.command(name="list")
     async def todo_list(self, ctx):
         """List your current todos!"""
@@ -321,44 +234,6 @@ class ToDo(commands.Cog):
                     c.insert(0, "\N{WHITE HEAVY CHECK MARK} Completed todos")
                     todos.extend(c)
             await self.page_logic(ctx, todos, "Todos")
-
-    @todo.group(invoke_without_command=True, aliases=["c"])  # `c` is easy to type
-    async def complete(self, ctx, *indexes: positive_int):
-        """Complete some todos!"""
-        if not indexes:
-            return await ctx.send_help(ctx.command)
-        todos = await self.config.user(ctx.author).todos()
-        if not todos:
-            return await ctx.send(_no_todo_message.format(prefix=ctx.clean_prefix))
-        async with ctx.typing():
-            async with self.config.user(ctx.author).todos() as todos:
-                async with self.config.user(ctx.author).completed() as comp:
-                    indexes = [x - 1 for x in indexes]
-                    completed, failed, comped, fails = 0, 0, [], []
-                    for index in indexes:
-                        try:
-                            rmd = todos.pop(index)
-                        except IndexError:
-                            failed += 1
-                            fails.append(index)
-                        else:
-                            completed += 1
-                            comped.append(rmd)
-                            comp.append(rmd)
-        msg = "Done."
-        detail = await self.config.user(ctx.author).detailed_pop()
-        if comp:
-            plural = "" if completed == 1 else "s"
-            msg += f"\nCompleted: {completed} todo{plural}"
-            if detail:
-                msg += "\n" + "\n".join(f"`{x}`" for x in comped)
-        if failed:
-            plural = "" if failed == 1 else "s"
-            msg += f"\nFailed to remove: {failed} todo{plural}"
-            if detail:
-                msg += "\n" + "\n".join(f"`{x}`" for x in fails)
-        await ctx.send(msg)
-        await self._maybe_autosort(ctx)
 
     @complete.command(name="sort")
     async def complete_sort(self, ctx):
@@ -388,59 +263,6 @@ class ToDo(commands.Cog):
                 completed = await self._cross_lists(completed)
             completed = await self._number_lists(completed)
             await self.page_logic(ctx, completed, "Completed todos")
-
-    @complete.command(name="remove", aliases=["del", "rm"])
-    async def complete_remove(self, ctx, *indexes: positive_int):
-        """Remove compeleted todos"""
-        if not indexes:
-            return await ctx.send_help(ctx.command)
-        completed = await self.config.user(ctx.author).completed()
-        if not completed:
-            return await ctx.send(_no_completed_message.format(prefix=ctx.clean_prefix))
-        async with ctx.typing():
-            async with self.config.user(ctx.author).completed() as comp:
-                indexes = [x - 1 for x in indexes]
-                removed, failed, rmd, fails = 0, 0, [], []
-                for index in indexes:
-                    try:
-                        rmd.append(comp.pop(index))
-                    except IndexError:
-                        failed += 1
-                        fails.append(index)
-                    else:
-                        removed += 1
-        msg = "Done."
-        details = await self.config.user(ctx.author).detailed_pop()
-        if removed:
-            plural = "" if removed == 1 else "s"
-            msg += f"\nRemoved: {removed} todo{plural}"
-            if details:
-                msg += "\n" + "\n".join(f"`{x}`" for x in rmd)
-        if failed:
-            plural = "" if failed == 1 else "s"
-            msg += f"\nFailed to remove: {failed} todo{plural}"
-            if details:
-                msg += "\n" + "\n".join(f"`{x}`" for x in fails)
-        await ctx.send(msg)
-        await self._maybe_autosort(ctx)
-
-    @complete.command(name="removeall", aliases=["delall", "rma"])
-    async def complete_removeall(self, ctx):
-        """Remove all of your completed todos"""
-        await ctx.send(
-            "WARNING, this will remove **ALL** of your completed todos. Would you like to remove them? (y/n)"
-        )
-        pred = MessagePredicate.yes_or_no(ctx)
-        try:
-            await self.bot.wait_for("message", check=pred)
-        except asyncio.TimeoutError:
-            await ctx.send("Okay, I won't delete your completed todos")
-        else:
-            if not pred.result:
-                await ctx.send("Okay, I won't delete your completed todos")
-            else:
-                await self.config.user(ctx.author).completed.clear()
-                await ctx.send("Removed your completed todos.")
 
     ### Utility methods ###
 
