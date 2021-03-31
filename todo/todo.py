@@ -83,7 +83,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     def format_help_for_context(self, ctx: commands.Context):
         """Thankie thankie Sinbad"""
         plural = ""
-        if len(__author__) > 1:
+        if len(self.__author__) > 1:
             plural = "s"
         return (
             f"{super().format_help_for_context(ctx)}"
