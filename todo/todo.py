@@ -69,7 +69,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     _no_todo_message = (
         "You don't have any todos! Add one using `{prefix}todo add <todo>`!"
     )
-    __version__ = "1.2.0"
+    __version__ = "1.2.1"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):

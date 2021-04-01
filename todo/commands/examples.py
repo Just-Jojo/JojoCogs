@@ -35,8 +35,9 @@ _examples = {
         "2. Write a script for turning off my lights :D\n"
         "3. Theater practice"
     ),
-    "completed": ("1. Get a puppy :)" "2. JavaScript for my website!"),
+    "completed": "1. Get a puppy :)\n2. JavaScript for my website!",
 }
+_check_mark = "\N{WHITE HEAVY CHECK MARK}"
 
 
 class Examples(ToDoMixin):
@@ -57,16 +58,64 @@ class Examples(ToDoMixin):
         combined = await self.config.user(ctx.author).combined_lists()
         msg = "Here is an example of how your todo list would look like!"
         act_todos = box(_examples["todos"], "md") if use_md else _examples["todos"]
+        embed = False
 
         if use_embeds and await ctx.embed_requested():
             todo_embed = discord.Embed(
-                title="Todo Example",
+                title="Todo example",
                 colour=await ctx.embed_colour(),
                 description=act_todos,
             )
             todo_embed.set_footer(text="Page 1/1")
-            kwargs = {"content": msg, "embed": todo_embed}
+            if not combined:
+                completed_embed = discord.Embed(
+                    title="Completed todo example",
+                    colour=await ctx.embed_colour(),
+                    description=box(_examples["completed"], "md")
+                    if use_md
+                    else _examples["completed"],
+                )
+                completed_embed.set_footer(text="Page 1/1")
+                return await self._send_embedded_completed_todo(
+                    ctx, todo_embed, completed_embed
+                )
+            if use_md:
+                todo_embed.description = (
+                    todo_embed.description[:-3]
+                    + f"{_check_mark} Completed todos\n{_examples['completed']}```"
+                )
+            else:
+                todo_embed.description = (
+                    f"{_check_mark} Completed todos\n{_examples['completed']}"
+                )
+            embed = True
         else:
-            msg += f"\n\n**Todo Example**\n{act_todos}\nPage 1/1"
-            kwargs = {"content": msg}
+            msg += f"\n\n**Todo Example**\n{act_todos}"
+            completed = _examples["completed"]
+            if combined:
+                if use_md:
+                    msg = msg[:-3]
+                    completed += "```"
+                msg += f"{_check_mark} Completed todos\n{completed}"
+            else:
+                if use_md:
+                    completed = box(completed, "md")
+                msg += (
+                    f"\nAnd here's what your completed list would look like!\n{completed}"
+                )
+            msg += "\nPage 1/1"
+        kwargs = {"content": msg}
+        if embed:
+            kwargs["embed"] = todo_embed
         await ctx.send(**kwargs)
+
+    async def _send_embedded_completed_todo(
+        self,
+        ctx: commands.Context,
+        todo_embed: discord.Embed,
+        completed_embed: discord.Embed,
+    ):
+        await ctx.send("This is what your todo list would look like!", embed=todo_embed)
+        await ctx.send(
+            "And this is what your completed list would look like!", embed=completed_embed
+        )

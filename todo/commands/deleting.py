@@ -57,7 +57,7 @@ class Deleting(ToDoMixin):
                 fails, failed, comp, completed = 0, [], 0, []
                 for index in indexes:
                     try:
-                        completed.append(f"`{todo.pop(index)}`")
+                        completed.append(f"`{todos.pop(index)}`")
                     except IndexError:
                         fails += 1
                         failed.append(f"`{index}`")
