@@ -257,7 +257,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         """List your completed todos"""
         completed = await self.config.user(ctx.author).completed()
         if not completed:
-            await ctx.send(_no_completed_message.format(prefix=ctx.clean_prefix))
+            await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
         else:
             if not await self.config.user(ctx.author).use_md():
                 completed = await self._cross_lists(completed)
