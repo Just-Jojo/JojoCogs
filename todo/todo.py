@@ -69,7 +69,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     _no_todo_message = (
         "You don't have any todos! Add one using `{prefix}todo add <todo>`!"
     )
-    __version__ = "1.2.1"
+    __version__ = "1.2.2"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -221,7 +221,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         comb = await self.config.user(ctx.author).combined_lists()
         completed = await self.config.user(ctx.author).completed()
         if not todos and not comb or not todos and not completed:
-            await ctx.send(_no_todo_message.format(prefix=ctx.clean_prefix))
+            await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         elif not todos and comb:
             await self._complete_list(ctx=ctx)
         else:
