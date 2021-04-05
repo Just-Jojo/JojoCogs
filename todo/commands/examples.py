@@ -79,24 +79,20 @@ class Examples(ToDoMixin):
                 return await self._send_embedded_completed_todo(
                     ctx, todo_embed, completed_embed
                 )
+            to_add = f"\n{_check_mark} Completed todos\n{_examples['completed']}"
             if use_md:
-                todo_embed.description = (
-                    todo_embed.description[:-3]
-                    + f"{_check_mark} Completed todos\n{_examples['completed']}```"
-                )
+                todo_embed.description = todo_embed.description[:-4] + f"{to_add}```"
             else:
-                todo_embed.description = (
-                    f"{_check_mark} Completed todos\n{_examples['completed']}"
-                )
+                todo_embed.description += to_add
             embed = True
         else:
             msg += f"\n\n**Todo Example**\n{act_todos}"
             completed = _examples["completed"]
             if combined:
                 if use_md:
-                    msg = msg[:-3]
+                    msg = msg[:-4]
                     completed += "```"
-                msg += f"{_check_mark} Completed todos\n{completed}"
+                msg += f"\n{_check_mark} Completed todos\n{completed}"
             else:
                 if use_md:
                     completed = box(completed, "md")
@@ -115,7 +111,14 @@ class Examples(ToDoMixin):
         todo_embed: discord.Embed,
         completed_embed: discord.Embed,
     ):
-        await ctx.send("This is what your todo list would look like!", embed=todo_embed)
-        await ctx.send(
-            "And this is what your completed list would look like!", embed=completed_embed
-        )
+        msgs = [
+            {
+                "content": "This is what your todo list would look like!",
+                "embed": todo_embed,
+            },
+            {
+                "content": "And this is what your completed list would look like!",
+                "embed": completed_embed,
+            },
+        ]
+        [await ctx.send(**k) for k in msgs]
