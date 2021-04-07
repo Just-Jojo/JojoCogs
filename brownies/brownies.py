@@ -88,7 +88,6 @@ class Brownies(commands.Cog):
         footer_url: str = None,
     ) -> discord.Embed:
         """Get a default embed from context"""
-        session = aiohttp.ClientSession()
         data = discord.Embed()
         if title:
             data.title = title
@@ -107,30 +106,28 @@ class Brownies(commands.Cog):
             data.colour = await ctx.embed_colour()
         if thumbnail is not None:
             try:
-                async with session.get(str(thumbnail)) as response:
+                async with self.session.get(str(thumbnail)) as response:
                     if response.status == 200:
                         data.set_thumbnail(thumbnail)
             except TypeError:
                 pass
         if image is not None:
             try:
-                async with session.get(str(image)) as response:
+                async with self.session.get(str(image)) as response:
                     if response.status == 200:
                         data.set_image(image)
                     else:
                         log.warning(f"Image got a status code of {response.status}")
             except TypeError:
                 pass
-        if footer is None:
-            footer = f"{ctx.bot.user.name} Embed"
+        footer = footer or f"{ctx.bot.user.name} Embed"
         if footer_url is None:
             footer_url = ctx.bot.user.avatar_url
         else:
-            async with session.get(footer_url) as response:
+            async with self.session.get(footer_url) as response:
                 if response.status != 200:
                     footer_url = ctx.bot.user.avatar_url
         data.set_footer(text=footer, icon_url=footer_url)
-        await session.close()
         return data
 
     def __init__(self, bot: Red):
@@ -138,6 +135,10 @@ class Brownies(commands.Cog):
         self.config = Config.get_conf(self, 2287042090, force_registration=True)
         self.config.register_member(**_config_structure["user"])
         self.config.register_guild(**_config_structure["guild"])
+        self.session = aiohttp.ClientSession()
+
+    def cog_unload(self):
+        self.bot.loop.create_task(self.session.close())
 
     def format_help_for_context(self, ctx):
         return (
@@ -216,16 +217,6 @@ class Brownies(commands.Cog):
             msg = f"{ctx.author.name} found 1 brownie!"
         await ctx.send(msg)
 
-    @commands.command()
-    async def brownies(self, ctx):
-        """Check your brownies!"""
-        brownies = await self.config.member(ctx.author).brownies()
-        if brownies > 1:
-            msg = f"You have {brownies} brownies!"
-        else:
-            msg = "You have 1 brownie!"
-        await ctx.send(msg)  # might at some point make it a user check...
-
     @commands.command(aliases=("giveb", "gib"))
     async def givebrownies(self, ctx, user: discord.Member, brownies: positive_int):
         """Give a user brownies!"""
@@ -269,6 +260,10 @@ class Brownies(commands.Cog):
         await ctx.send(f"{ctx.author.name} is on the prowl for brownies...")
         await asyncio.sleep(4)
         await ctx.send(msg)
+
+    @commands.command()
+    async def brownieversion(self, ctx):
+        await ctx.send("Idk")
 
     async def steal_logic(
         self, ctx: commands.Context, user: discord.Member, author: discord.Member
@@ -323,9 +318,7 @@ class Brownies(commands.Cog):
             await ctx.send(f"This action has a cooldown. You still have:\n{remaining}")
             return False
 
-    def random_user(
-        self, guild: discord.Guild, author: discord.Member
-    ) -> discord.Member:
+    def random_user(self, guild: discord.Guild, author: discord.Member) -> discord.Member:
         """Return a random, non-bot user"""
         clean_users = [
             member for member in guild.members if not member.bot and member != author
