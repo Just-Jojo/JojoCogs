@@ -17,12 +17,14 @@ Here are some of the cogs I've written. Anything marked `X` in the approved sect
 Anything marked with `O`, however, is either not working or hasn't been finished
 
 
-| Name           | Description                                            | Author                 | Type     | Approved | Notes      |
-|----------------|--------------------------------------------------------|------------------------|----------|----------|------------|
-| Brownies       | Brownie based economy system                           | Jojo#7791, JJW         | Fun      | X        |            |
-| Mjolnir        | Try to lift Thor's mighty hammer                       | Jojo#7791              | Fun      | X        |            |
-| JojoStore      | Buy items from the store and use them                  | Jojo#7791              | Fun      | X        |            |
-| ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        |            |
+| Name           | Description                                            | Author                 | Type     | Approved | Notes                    |
+|----------------|--------------------------------------------------------|------------------------|----------|----------|--------------------------|
+| Brownies       | Brownie based economy system                           | Jojo#7791, JJW(v2)     | Fun      | X        |                          |
+| CycleStatus    | Cycles the bot's status                                | Jojo#7791              | Utility  | X        |                          |
+| Depypher       | Encipher and Decipher codes and messages               | Jojo#7791              | Fun      | O        | Eh, it doesn't have much |
+| Store          | Buy items from the store and use them                  | Jojo#7791              | Fun      | X        |                          |
+| Mjolnir        | Try to lift Thor's mighty hammer                       | Jojo#7791              | Fun      | X        |                          |
+| ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        | Why did I make it dynamic, oh god why                 |
 
 ## Pull requests
 If you want to make a pull request, first thank you for contributing (because I need help) and second follow this list
