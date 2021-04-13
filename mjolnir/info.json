@@ -15,6 +15,6 @@
     ],
     "min_bot_version": "3.4.6",
     "hidden": false,
-    "disabled": false,
+    "disabled": true,
     "type": "COG"
 }

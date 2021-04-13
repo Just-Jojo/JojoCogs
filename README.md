@@ -23,7 +23,7 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 | CycleStatus    | Cycles the bot's status                                | Jojo#7791              | Utility  | X        |                          |
 | Depypher       | Encipher and Decipher codes and messages               | Jojo#7791              | Fun      | O        | Eh, it doesn't have much |
 | Store          | Buy items from the store and use them                  | Jojo#7791              | Fun      | X        |                          |
-| Mjolnir        | Try to lift Thor's mighty hammer                       | Jojo#7791              | Fun      | X        |                          |
+| Mjolnir        | Try to lift Thor's mighty hammer                       | Jojo#7791              | Fun      | Gone     | This cog has a new home in [Kreusada's cogs](https://github.com/Kreusada/Kreusada-Cogs) :D |
 | ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        | Why did I make it dynamic, oh god why                 |
 
 ## Pull requests
@@ -32,3 +32,11 @@ If you want to make a pull request, first thank you for contributing (because I 
 2. Make your edits on that fork
 3. Test your changes (really rather not merge broken code)
 4. Make a pull request with the changes listed
+
+## Extra thanks to...
+- JJW for kickstarting my interest in discord bots
+- Kreusada for helping me figure stuff out
+- OofChair for also helping me figure stuff out
+- Everyone who has suggested stuff for my cogs or have installed my cogs
+
+### Thanks!
