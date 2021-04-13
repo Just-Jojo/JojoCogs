@@ -128,12 +128,12 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         details = await self.config.user(ctx.author).detailed_pop()
         if comp:
             plural = "" if comp == 1 else "s"
-            msg += f"Completed {comp} todo{plural}"
+            msg += f"\nCompleted {comp} todo{plural}"
             if details:
                 msg += "\n" + "\n".join(compled)
         if fails:
             plural = "" if fails == 1 else "s"
-            msg += f"Failed to complete {fails} todo{plural}"
+            msg += f"\nFailed to complete {fails} todo{plural}"
             if details:
                 msg += "\n" + "\n".join(failed)
         await ctx.send(msg)
