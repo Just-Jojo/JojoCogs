@@ -24,6 +24,7 @@ SOFTWARE.
 
 import discord
 from redbot.core import commands
+from typing import Dict
 
 from .abc import ToDoMixin
 
@@ -34,6 +35,8 @@ def get_toggle(setting: bool) -> str:
 
 class Settings(ToDoMixin):
     """Settings for todo!"""
+
+    _embed_title = "{0.author.name}'s settings"
 
     @commands.group("todoset")
     async def todo_set(self, ctx):
@@ -50,9 +53,7 @@ class Settings(ToDoMixin):
         toggled = get_toggle(toggle)
         msg = f"Embeds are now {toggled}"
         already_set = f"Embeds are already {toggled}"
-        await self._toggler(
-            ctx, toggle, "use_embeds", msg, already_set
-        )  # TODO _toggler method
+        await self._toggler(ctx, toggle, "use_embeds", msg, already_set)
 
     @todo_set.command(usage="<use markdown blocks>", aliases=["usemd"])
     async def md(self, ctx, toggle: bool):
@@ -98,18 +99,24 @@ class Settings(ToDoMixin):
     async def showsettings(self, ctx):
         """Show your settings"""
         conf = self.config.user(ctx.author)
+        embedded = await conf.use_embeds()
+        private = await conf.private()
         settings = {
             "Markdown blocks": get_toggle(await conf.use_md()).capitalize(),
-            "Embeds": get_toggle(await conf.use_embeds()).capitalize(),
-            "Private lists": get_toggle(await conf.private()).capitalize(),
+            "Embeds": get_toggle(embedded).capitalize(),
+            "Private lists": get_toggle(private).capitalize(),
             "Autosorting": get_toggle(await conf.autosort()).capitalize(),
             "Reverse sorting": get_toggle(await conf.reverse_sort()).capitalize(),
             "Combined lists": get_toggle(await conf.combined_lists()).capitalize(),
             "Extra details": get_toggle(await conf.detailed_pop()).capitalize(),
         }
-        if await ctx.embed_requested():
+        if private:
+            return await self._private_send_settings(
+                ctx, embed=embedded, settings=settings
+            )
+        if await ctx.embed_requested() and embedded:
             embed = discord.Embed(
-                title=f"{ctx.author.name}'s todo settings",
+                title=self._embed_title.format(ctx),
                 colour=await ctx.embed_colour(),
             )
             [
@@ -118,8 +125,10 @@ class Settings(ToDoMixin):
             ]
             kwargs = {"embed": embed}
         else:
-            msg = f"**{ctx.author.name}'s todo settings**"
-            msg += "\n".join(f"**{key}:** `{value}`" for key, value in settings.items())
+            humanized_settings = "\n".join(
+                f"**{key}** {value}" for key, value in settings.items()
+            )
+            msg = f"{self._embed_title.format(ctx)}\n\n{humanized_settings}"
             kwargs = {"content": msg}
         await ctx.send(**kwargs)
 
@@ -132,3 +141,34 @@ class Settings(ToDoMixin):
             return await ctx.send(content=already_set)
         await ctx.send(content=msg)
         await self.config.user(ctx.author).set_raw(key, value=toggle)
+
+    async def _private_send_settings(
+        self, ctx: commands.Context, embed: bool, settings: Dict[str, str]
+    ):
+        """I never said I was good at naming methods"""
+        title = self._embed_title.format(ctx)
+        humanized_settings = "\n".join(
+            f"**{key}** {value}" for key, value in settings.items()
+        )
+        if embed:
+            embed = discord.Embed(title=title, colour=await ctx.embed_colour())
+            [
+                embed.add_field(name=key, value=value, inline=True)
+                for key, value in settings.items()
+            ]
+            kwargs = {"embed": embed}
+        else:
+            kwargs = {"content": f"{title}\n\n{humanized_settings}"}
+        try:
+            await ctx.author.send(**kwargs)
+        except discord.Forbidden:
+            await ctx.send(
+                "I can't dm you! If you would like to use private lists, please allow me to dm you"
+            )
+            await self.config.user(ctx.author).private.set(False)
+        else:
+            return
+        if await ctx.embed_requested() and embed:
+            await ctx.send(**kwargs)
+        else:
+            await ctx.send(content=f"{title}\n\n{humanized_settings}")
