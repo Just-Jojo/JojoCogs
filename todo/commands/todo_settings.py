@@ -29,7 +29,7 @@ from .abc import ToDoMixin
 
 
 def get_toggle(setting: bool) -> str:
-    return "enabled!" if setting else "disabled!"
+    return "enabled" if setting else "disabled"
 
 
 class Settings(ToDoMixin):
@@ -37,16 +37,16 @@ class Settings(ToDoMixin):
 
     @commands.group("todoset")
     async def todo_set(self, ctx):
-        """Configure how you would like your todo lists to look like!
+        """Configure how you would like your todo lists to look like
 
-        I am always looking for new ways to customize your lists!
-        If you have an idea use `[p]todo suggestions` and follow the instructions! :D
+        I am always looking for new ways to customize your lists
+        If you have an idea use `[p]todo suggestions` and follow the instructions :D
         """
         pass
 
     @todo_set.command(usage="<use embeds>", aliases=["useembeds"])
     async def embed(self, ctx, toggle: bool):
-        """Set your list to be embedded!"""
+        """Set your list to be embedded"""
         toggled = get_toggle(toggle)
         msg = f"Embeds are now {toggled}"
         already_set = f"Embeds are already {toggled}"
@@ -56,7 +56,7 @@ class Settings(ToDoMixin):
 
     @todo_set.command(usage="<use markdown blocks>", aliases=["usemd"])
     async def md(self, ctx, toggle: bool):
-        """Set your lists to use markdown blocks!"""
+        """Set your lists to use markdown blocks"""
         toggled = get_toggle(toggle)
         msg = f"Markdown is now {toggled}"
         already_set = f"Markdown is already {toggled}"
@@ -64,7 +64,7 @@ class Settings(ToDoMixin):
 
     @todo_set.command(usage="<autosort todo lists>", aliases=["doautosort"])
     async def autosort(self, ctx, toggle: bool):
-        """Set your list to autosort!"""
+        """Set your list to autosort"""
         toggled = get_toggle(toggle)
         msg = f"Autosorting is now {toggled}"
         already_set = f"Autosorting is already {toggled}"
@@ -72,7 +72,7 @@ class Settings(ToDoMixin):
 
     @todo_set.command(usage="<combine lists>")
     async def combine(self, ctx, toggle: bool):
-        """Set your lists to be combined!"""
+        """Set your lists to be combined"""
         toggled = get_toggle(toggle)
         msg = f"Combined lists are now {toggled}"
         already_set = f"Combined lists are already {toggled}"
@@ -80,7 +80,7 @@ class Settings(ToDoMixin):
 
     @todo_set.command(usage="<give more details>")
     async def details(self, ctx, toggle: bool):
-        """Set your lists to give you extra details when adding and removing them!"""
+        """Set your lists to give you extra details when adding and removing them"""
         toggled = get_toggle(toggle)
         msg = f"Extra details is now {toggled}"
         already_set = f"Extra details is already {toggled}"
@@ -88,7 +88,7 @@ class Settings(ToDoMixin):
 
     @todo_set.command()
     async def private(self, ctx, toggle: bool):
-        """Set your lists to be private!"""
+        """Set your lists to be private"""
         toggled = get_toggle(toggle)
         msg = f"Private lists are now {toggled}"
         already_set = f"Private lists are already {toggled}"
@@ -96,7 +96,7 @@ class Settings(ToDoMixin):
 
     @todo_set.command(aliases=["settings"])
     async def showsettings(self, ctx):
-        """Show your settings!"""
+        """Show your settings"""
         conf = self.config.user(ctx.author)
         settings = {
             "Markdown blocks": get_toggle(await conf.use_md()).capitalize(),
@@ -109,7 +109,7 @@ class Settings(ToDoMixin):
         }
         if await ctx.embed_requested():
             embed = discord.Embed(
-                title=f"{ctx.author.name}'s todo settings!",
+                title=f"{ctx.author.name}'s todo settings",
                 colour=await ctx.embed_colour(),
             )
             [
@@ -118,7 +118,7 @@ class Settings(ToDoMixin):
             ]
             kwargs = {"embed": embed}
         else:
-            msg = f"**{ctx.author.name}'s todo settings!**"
+            msg = f"**{ctx.author.name}'s todo settings**"
             msg += "\n".join(f"**{key}:** `{value}`" for key, value in settings.items())
             kwargs = {"content": msg}
         await ctx.send(**kwargs)

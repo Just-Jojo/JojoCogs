@@ -56,7 +56,7 @@ class Examples(ToDoMixin):
         use_md = await self.config.user(ctx.author).use_md()
         use_embeds = await self.config.user(ctx.author).use_embeds()
         combined = await self.config.user(ctx.author).combined_lists()
-        msg = "Here is an example of how your todo list would look like!"
+        msg = "Here is an example of how your todo list would look like"
         act_todos = box(_examples["todos"], "md") if use_md else _examples["todos"]
         embed = False
 
@@ -97,7 +97,7 @@ class Examples(ToDoMixin):
                 if use_md:
                     completed = box(completed, "md")
                 msg += (
-                    f"\nAnd here's what your completed list would look like!\n{completed}"
+                    f"\nAnd here's what your completed list would look like\n{completed}"
                 )
             msg += "\nPage 1/1"
         kwargs = {"content": msg}
@@ -113,11 +113,11 @@ class Examples(ToDoMixin):
     ):
         msgs = [
             {
-                "content": "This is what your todo list would look like!",
+                "content": "This is what your todo list would look like",
                 "embed": todo_embed,
             },
             {
-                "content": "And this is what your completed list would look like!",
+                "content": "And this is what your completed list would look like",
                 "embed": completed_embed,
             },
         ]

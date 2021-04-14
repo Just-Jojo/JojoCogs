@@ -64,12 +64,10 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
 
     _no_completed_message = (
         "You don't have any completed todos!"
-        " You can complete a todo using `{prefix}todo complete <indexes...>`!"
+        " You can complete a todo using `{prefix}todo complete <indexes...>`"
     )
-    _no_todo_message = (
-        "You don't have any todos! Add one using `{prefix}todo add <todo>`!"
-    )
-    __version__ = "1.2.2"
+    _no_todo_message = "You don't have any todos! Add one using `{prefix}todo add <todo>`"
+    __version__ = "1.2.3"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -105,7 +103,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         invoke_without_command=True, aliases=["c"], require_var_positional=True
     )  # `c` is easy to type
     async def complete(self, ctx, *indexes: positive_int):
-        """Commands having to do with completed todos!"""
+        """Commands having to do with completed todos"""
         if not await self.config.user(ctx.author).todos():
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         async with ctx.typing():
@@ -189,7 +187,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         async with self.config.user(ctx.author).todos() as todos:
             todos.append(todo)
 
-        msg = "Added that as a todo!"
+        msg = "Added that as a todo"
         details = await self.config.user(ctx.author).detailed_pop()
         if details:
             msg += f"\n'{discord.utils.escape_markdown(todo)}'"
@@ -220,6 +218,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         todos = await self.config.user(ctx.author).todos()
         comb = await self.config.user(ctx.author).combined_lists()
         completed = await self.config.user(ctx.author).completed()
+
         if not todos and not comb or not todos and not completed:
             await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         elif not todos and comb:
@@ -267,10 +266,6 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     ### Utility methods ###
 
     async def _complete_list(self, ctx: commands.Context):
-        """|coro|
-
-        Logic for complete list... for todo list?
-        """
         user_conf = self.config.user(ctx.author)
         completed = await user_conf.completed()
         if not completed:
@@ -282,20 +277,6 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         await self.page_logic(ctx=ctx, data=completed, title="Todos")
 
     async def page_logic(self, ctx: commands.Context, data: list, title: str):
-        """|coro|
-
-        Creates a menu with the given data.
-
-        Parameters
-        ----------
-        ctx: :class:`Context`
-            Command's context for sending the message and getting settings
-        data: :class:`list`
-            The data to send in a menu
-        title: :class:`str`
-            Title of the menu. If it can use embeds it will be the embed's title.
-            Otherwise it will be combined with the page string
-        """
         data = self._pagified_list(data)
         use_md = await self.config.user(ctx.author).use_md()
         use_embeds = await self.config.user(ctx.author).use_embeds()
@@ -313,48 +294,12 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         ).start(ctx, channel=await self._get_destination(ctx), wait=False)
 
     async def _number_lists(self, data: list):
-        """|coro|
-
-        Number lists. Eg. a list with the value ["One", "Two", "Three"] would become
-        ["1. One", "2. Two", "3. Three"].
-
-        Parameters
-        ----------
-        data: :class:`list`
-            List to iterate and number
-
-        Returns
-        -------
-        :class:`list`
-            Numbered list
-        """
         return [f"{num}. {x}" for num, x in enumerate(data, 1)]
 
     def _pagified_list(self, data: list):
-        """Pagifies a list using Red's :func:`pagify`
-
-        Parameters
-        ----------
-        data: :class:`list`
-            Data to pagify.
-
-        Returns
-        -------
-        List[:class:`str`]
-            The pagified items converted to a list
-        """
         return list(pagify("\n".join(data), page_length=500))
 
     async def _maybe_autosort(self, ctx: commands.Context):
-        """|coro|
-
-        Checks if a user's todo list can be sorted, and attempts to do so
-
-        Parameters
-        ----------
-        ctx: :class:`Context`
-            Context of the command to get settings for
-        """
         if not await self.config.user(ctx.author).autosort():
             return
         reverse = await self.config.user(ctx.author).reverse_sort()
@@ -364,55 +309,15 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
             completed.sort(reverse=reverse)
 
     async def _get_destination(self, ctx: commands.Context):
-        """|coro|
-
-        Gets the channel for lists
-
-        Parameters
-        ----------
-        ctx: :class:`Context`
-            Context of the command for getting settings
-
-        Returns
-        -------
-        Union[:class:`TextChannel`, :class:`DMChannel`]
-            The channel to send messages to
-        """
         if await self.config.user(ctx.author).private():
+            if ctx.author.dm_channel is None:
+                await ctx.author.create_dm()
             return ctx.author.dm_channel
         return ctx.channel
 
     async def _sort_indexes(self, index: typing.List[int]) -> typing.List[int]:
-        """|coro|
-
-        Sorts a list of ints in descending order
-
-        Parameters
-        ----------
-        index: List[:class:`int`]
-            The list of integers to sort
-
-        Returns
-        -------
-        List[:class:`int`]
-            The sorted list
-        """
         index.sort(reverse=True)
         return index
 
     async def _cross_lists(self, data: list):
-        """|coro|
-
-        Crosses out items in a list
-
-        Parameters
-        ----------
-        data: :class:`list`
-            List of items to cross out
-
-        Returns
-        -------
-        :class:`list`
-            The list with items crossed out
-        """
         return [f"~~{x}~~" for x in data]
