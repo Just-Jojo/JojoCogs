@@ -91,13 +91,32 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
 
     ### Listing commands ###
 
-    @commands.group()
-    async def todo(self, ctx):
+    @commands.group(invoke_without_command=True)
+    async def todo(self, ctx, index: positive_int):
         """Todo commands
 
         Add a todo to your list and manage your tasks
         """
-        pass
+        act_index = index - 1
+        todos = await self.config.user(ctx.author).todos()
+        if act_index >= len(todos):
+            return await ctx.send("You don't have a todo at that index")
+        todo = f"{index}. {todos.pop(act_index)}"
+        embed = await self.config.user(ctx.author).use_embeds()
+        md = await self.config.user(ctx.author).use_md()
+        title = f"{ctx.author.name}'s Todos | Todo #{index}"
+
+        if md:
+            todo = box(todo, "md")
+        if embed and await ctx.embed_requested():
+            embed = discord.Embed(
+                colour=await ctx.embed_colour(), title=title, description=todo
+            )
+            kwargs = {"embed": embed}
+        else:
+            msg = f"{title}\n{todo}"
+            kwargs = {"content": msg}
+        await ctx.send(**kwargs)
 
     @todo.group(
         invoke_without_command=True, aliases=["c"], require_var_positional=True
@@ -121,7 +140,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
                         else:
                             comp += 1
                             compled.append(f"`{rmd}`")
-                            completed.append(f"`{rmd}`")
+                            completed.append(f"{rmd}")
         msg = "Done."
         details = await self.config.user(ctx.author).detailed_pop()
         if comp:
