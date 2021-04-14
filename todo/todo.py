@@ -263,6 +263,12 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
             completed = await self._number_lists(completed)
             await self.page_logic(ctx, completed, "Completed todos")
 
+    @todo.command()
+    async def version(self, ctx):
+        """Check the version of todo"""
+        msg = f"ToDo version: `{self.__version__}`"
+        await ctx.send(msg)
+
     ### Utility methods ###
 
     async def _complete_list(self, ctx: commands.Context):
