@@ -22,6 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+# This cog is a rewrite of JJW's brownie V2 cog which was licensed under MIT
+# For more details go to https://github.com/JJW8071/mcoc-cogs
+
 import asyncio
 import logging
 import os
