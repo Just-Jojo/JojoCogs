@@ -20,6 +20,7 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 | Name           | Description                                            | Author                 | Type     | Approved | Notes                    |
 |----------------|--------------------------------------------------------|------------------------|----------|----------|--------------------------|
 | Brownies       | Brownie based economy system                           | Jojo#7791, JJW(v2)     | Fun      | X        |                          |
+| Calculations   | Calculate different things, eg. binary to decimal, nautical miles to kilometres and miles, etc | Fun | Jojo | O | It's not ready yet lol |
 | CycleStatus    | Cycles the bot's status                                | Jojo#7791              | Utility  | X        |                          |
 | Depypher       | Encipher and Decipher codes and messages               | Jojo#7791              | Fun      | O        | Eh, it doesn't have much |
 | Store          | Buy items from the store and use them                  | Jojo#7791              | Fun      | X        |                          |
