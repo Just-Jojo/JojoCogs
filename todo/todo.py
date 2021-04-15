@@ -66,7 +66,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         " You can complete a todo using `{prefix}todo complete <indexes...>`"
     )
     _no_todo_message = "You don't have any todos! Add one using `{prefix}todo add <todo>`"
-    __version__ = "1.2.3"
+    __version__ = "1.2.4"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -97,12 +97,13 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         Add a todo to your list and manage your tasks
         """
         act_index = index - 1
-        todos = await self.config.user(ctx.author).todos()
+        conf = await self._get_user_config(ctx.author)
+        todos = conf.get("todos", [])
         if act_index >= len(todos):
             return await ctx.send("You don't have a todo at that index")
         todo = f"{index}. {todos.pop(act_index)}"
-        embed = await self.config.user(ctx.author).use_embeds()
-        md = await self.config.user(ctx.author).use_md()
+        embed = conf.get("use_embeds", True)
+        md = conf.get("use_md", True)
         title = f"{ctx.author.name}'s Todos | Todo #{index}"
 
         if md:
@@ -233,9 +234,10 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     @todo.command(name="list")
     async def todo_list(self, ctx):
         """List your current todos!"""
-        todos = await self.config.user(ctx.author).todos()
-        comb = await self.config.user(ctx.author).combined_lists()
-        completed = await self.config.user(ctx.author).completed()
+        conf = await self._get_user_config(ctx.author)
+        todos = conf.get("todos", [])
+        comb = conf.get("combined_lists", False)
+        completed = conf.get("completed", [])
 
         if not todos and not comb or not todos and not completed:
             await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
@@ -290,7 +292,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     ### Utility methods ###
 
     async def _complete_list(self, ctx: commands.Context):
-        user_conf = self.config.user(ctx.author)
+        user_conf = await self._get_user_config(ctx.author)
         completed = await user_conf.completed()
         if not completed:
             return
@@ -302,8 +304,9 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
 
     async def page_logic(self, ctx: commands.Context, data: list, title: str):
         data = self._pagified_list(data)
-        use_md = await self.config.user(ctx.author).use_md()
-        use_embeds = await self.config.user(ctx.author).use_embeds()
+        conf = await self._get_user_config(ctx.author)
+        use_md = conf.get("use_md", True)
+        use_embeds = conf.get("use_embeds", True)
         source = TodoPages(
             data=data,
             use_md=use_md,
@@ -345,3 +348,10 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
 
     async def _cross_lists(self, data: list):
         return [f"~~{x}~~" for x in data]
+
+    async def _get_user_config(
+        self, user: typing.Union[int, discord.Member, discord.User]
+    ) -> dict:
+        if isinstance(user, int):
+            return await self.config.user_from_id(user).all()
+        return await self.config.user(user).all()

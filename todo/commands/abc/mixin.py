@@ -22,10 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import discord
 from abc import ABC
 from redbot.core import commands, Config
 from redbot.core.bot import Red
 import logging
+from typing import Union
 
 
 class ToDoMixin(ABC):
@@ -41,6 +43,14 @@ class ToDoMixin(ABC):
         self.log: logging.Logger
         self._no_completed_message: str
         self._no_todo_message: str
+
+    async def _get_user_config(
+        self, user: Union[str, discord.User, discord.Member]
+    ) -> dict:
+        ...
+
+    async def _get_destination(self, ctx: commands.Context) -> discord.TextChannel:
+        ...
 
 
 class CompositeMetaclass(type(commands.Cog), type(ABC)):

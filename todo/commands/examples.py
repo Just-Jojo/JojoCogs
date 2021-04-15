@@ -25,6 +25,7 @@ SOFTWARE.
 import discord
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import box
+from typing import List, Union
 
 from .abc import ToDoMixin
 
@@ -45,80 +46,82 @@ class Examples(ToDoMixin):
 
     @commands.group()
     async def todo(self, ctx):
-        """This actually allows me to make a subcommand without actually having it(?)
-
-        It works is what I'm saying"""
         pass
 
     @todo.command()
     async def example(self, ctx):
-        """See some examples of how to use todo!"""
-        use_md = await self.config.user(ctx.author).use_md()
-        use_embeds = await self.config.user(ctx.author).use_embeds()
-        combined = await self.config.user(ctx.author).combined_lists()
-        msg = "Here is an example of how your todo list would look like"
-        act_todos = box(_examples["todos"], "md") if use_md else _examples["todos"]
-        embed = False
+        """Get an example of what your todo list would look like"""
+        conf = await self._get_user_config(ctx.author)
+        md = conf.get("use_md", True)
+        embedded = conf.get("use_embeds", True)
+        private = conf.get("private", False)
+        combined = conf.get("combined_lists", False)
+        act_todos = list(_examples.values())
+        channel = await self._get_destination(ctx)
 
-        if use_embeds and await ctx.embed_requested():
-            todo_embed = discord.Embed(
-                title="Todo example",
-                colour=await ctx.embed_colour(),
-                description=act_todos,
-            )
-            todo_embed.set_footer(text="Page 1/1")
-            if not combined:
-                completed_embed = discord.Embed(
-                    title="Completed todo example",
-                    colour=await ctx.embed_colour(),
-                    description=box(_examples["completed"], "md")
-                    if use_md
-                    else _examples["completed"],
-                )
-                completed_embed.set_footer(text="Page 1/1")
-                return await self._send_embedded_completed_todo(
-                    ctx, todo_embed, completed_embed
-                )
-            to_add = f"\n{_check_mark} Completed todos\n{_examples['completed']}"
-            if use_md:
-                todo_embed.description = todo_embed.description[:-4] + f"{to_add}```"
-            else:
-                todo_embed.description += to_add
-            embed = True
-        else:
-            msg += f"\n\n**Todo Example**\n{act_todos}"
-            completed = _examples["completed"]
+        if md:
             if combined:
-                if use_md:
-                    msg = msg[:-4]
-                    completed += "```"
-                msg += f"\n{_check_mark} Completed todos\n{completed}"
+                pre = "\n\N{WHITE HEAVY CHECK MARK} Completed\n".join(act_todos)
+                act_todos = box(pre, "md")
             else:
-                if use_md:
-                    completed = box(completed, "md")
-                msg += (
-                    f"\nAnd here's what your completed list would look like\n{completed}"
-                )
-            msg += "\nPage 1/1"
-        kwargs = {"content": msg}
-        if embed:
-            kwargs["embed"] = todo_embed
-        await ctx.send(**kwargs)
+                act_todos = [box(x, "md") for x in act_todos]
+        elif combined:
+            # The reason I have an elif is because if md and combined are true it will
+            # combine the lists with markdown
+            # I don't want it to do that, then recombine the string right after
+            # so elif is needed
+            act_todos = "\n\N{WHITE HEAVY CHECK MARK} Completed\n".join(act_todos)
 
-    async def _send_embedded_completed_todo(
+        if (not private and await ctx.embed_requested() and embedded) or (
+            private and embedded
+        ):
+            if not combined:
+                return await self._handle_not_combined(ctx, channel, private, act_todos)
+            embed = (
+                discord.Embed(title="Todos", colour=await ctx.embed_colour())
+            ).set_footer(text="Page 1/1")
+            embed.description = act_todos
+            return await channel.send(
+                "Here's what your todo list would look like", embed=embed
+            )
+
+        if combined:
+            msg = (
+                "Here's what your todo list would look like\n" + act_todos + "\nPage 1/1"
+            )
+        else:
+            msg = "Here's what your todo list would look like\n" + act_todos[0]
+            msg += (
+                "\nAnd here's what your completed list would look like\n" + act_todos[1]
+            )
+        await channel.send(msg)
+
+    async def _handle_not_combined(
         self,
         ctx: commands.Context,
-        todo_embed: discord.Embed,
-        completed_embed: discord.Embed,
+        channel: discord.TextChannel,
+        private: bool,
+        todos: List[str],
     ):
-        msgs = [
-            {
-                "content": "This is what your todo list would look like",
-                "embed": todo_embed,
-            },
-            {
-                "content": "And this is what your completed list would look like",
-                "embed": completed_embed,
-            },
+        todo_embed = (
+            discord.Embed(
+                title="Todos", description=todos[0], colour=await ctx.embed_colour()
+            )
+        ).set_footer(text="Page 1/1")
+        completed_embed = (
+            discord.Embed(
+                title="Completed todos",
+                description=todos[1],
+                colour=await ctx.embed_colour(),
+            )
+        ).set_footer(text="Page 1/1")
+        bundled = [
+            ["Here is what your todo list would look like", todo_embed],
+            ["And here is what your completed list would look like", completed_embed],
         ]
-        [await ctx.send(**k) for k in msgs]
+        await self._send_multiple(channel, bundled)
+
+    async def _send_multiple(
+        self, channel: discord.TextChannel, content: List[List[Union[str, discord.Embed]]]
+    ):
+        [await channel.send(content=msg, embed=embed) for msg, embed in content]

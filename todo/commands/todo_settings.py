@@ -98,17 +98,17 @@ class Settings(ToDoMixin):
     @todo_set.command(aliases=["settings"])
     async def showsettings(self, ctx):
         """Show your settings"""
-        conf = self.config.user(ctx.author)
-        embedded = await conf.use_embeds()
-        private = await conf.private()
+        conf = await self._get_user_config(ctx.author)
+        embedded = conf["use_embeds"]
+        private = conf["private"]
         settings = {
-            "Markdown blocks": get_toggle(await conf.use_md()).capitalize(),
+            "Markdown blocks": get_toggle(conf["use_md"]).capitalize(),
             "Embeds": get_toggle(embedded).capitalize(),
             "Private lists": get_toggle(private).capitalize(),
-            "Autosorting": get_toggle(await conf.autosort()).capitalize(),
-            "Reverse sorting": get_toggle(await conf.reverse_sort()).capitalize(),
-            "Combined lists": get_toggle(await conf.combined_lists()).capitalize(),
-            "Extra details": get_toggle(await conf.detailed_pop()).capitalize(),
+            "Autosorting": get_toggle(conf["autosort"]).capitalize(),
+            "Reverse sorting": get_toggle(conf["reverse_sort"]).capitalize(),
+            "Combined lists": get_toggle(conf["combined_lists"]).capitalize(),
+            "Extra details": get_toggle(conf["detailed_pop"]).capitalize(),
         }
         if private:
             return await self._private_send_settings(
