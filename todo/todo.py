@@ -27,7 +27,6 @@ import logging
 import typing
 
 import discord
-from abc import ABC
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, pagify

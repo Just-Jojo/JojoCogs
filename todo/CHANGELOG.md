@@ -27,3 +27,5 @@ Fix of a bug with the todo list >.>
 - 1.2.0
 Split commands into different files as the main file was getting to be a bit too large.
 Added a command so that users could know how to suggest stuff
+- 1.2.3
+Added the version command back, added the ability to see a todo via index in the todo group
