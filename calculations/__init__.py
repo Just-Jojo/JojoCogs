@@ -1,5 +1,6 @@
-from .calculations import Calculations
 from redbot.core.bot import Red
+
+from .calculations import Calculations
 
 
 def setup(bot: Red):

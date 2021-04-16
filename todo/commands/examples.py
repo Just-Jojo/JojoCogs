@@ -22,13 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from typing import List, Union
+
 import discord
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import box
-from typing import List, Union
 
 from .abc import ToDoMixin
-
 
 _examples = {
     "todos": (

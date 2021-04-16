@@ -32,9 +32,8 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
+from .commands import CompositeMetaclass, Deleting, Examples, Settings
 from .utils import TodoMenu, TodoPages, positive_int
-from .commands import Examples, Settings, Deleting, CompositeMetaclass
-
 
 _config_structure = {
     "todos": [],

@@ -22,12 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import discord
-from abc import ABC
-from redbot.core import commands, Config
-from redbot.core.bot import Red
 import logging
+from abc import ABC
 from typing import Union
+
+import discord
+from redbot.core import Config, commands
+from redbot.core.bot import Red
 
 
 class ToDoMixin(ABC):

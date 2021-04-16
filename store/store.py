@@ -182,9 +182,7 @@ class Store(commands.Cog):
         embed.set_author(name="Jojo")
         async with self.config.guild(ctx.guild).items() as items:
             for key, value in items.items():
-                embed.add_field(
-                    name=self._capitalize_all(key), value=value, inline=True
-                )
+                embed.add_field(name=self._capitalize_all(key), value=value, inline=True)
         embed.set_thumbnail(url=ctx.guild.icon_url)
         embed.set_footer(text="Jojo's Store!")
         await ctx.send(embed=embed)

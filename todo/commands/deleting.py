@@ -23,10 +23,11 @@ SOFTWARE.
 """
 
 import asyncio
-import discord
 
+import discord
 from redbot.core import commands
 from redbot.core.utils.predicates import MessagePredicate
+
 from ..utils import positive_int
 from .abc import ToDoMixin
 

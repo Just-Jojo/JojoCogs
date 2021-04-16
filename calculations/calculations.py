@@ -22,16 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from tabulate import tabulate
+import logging
+from typing import List, Literal, Optional
 
+import discord
 from redbot.core import commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box
-
-import discord
-import logging
-
-from typing import List, Literal, Optional
+from tabulate import tabulate
 
 log = logging.getLogger("red.JojoCogs.calculations")
 _headers = ["Input", "Output"]

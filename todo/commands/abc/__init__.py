@@ -1,1 +1,1 @@
-from .mixin import ToDoMixin, CompositeMetaclass
+from .mixin import CompositeMetaclass, ToDoMixin
