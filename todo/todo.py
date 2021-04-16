@@ -238,21 +238,31 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         todos = conf.get("todos", [])
         comb = conf.get("combined_lists", False)
         completed = conf.get("completed", [])
+        use_md = conf.get("use_md", True)
+        use_embeds = conf.get("use_embeds", True)
+        private = conf.get("private", True)
 
-        if not todos and not comb or not todos and not completed:
-            await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
-        elif not todos and comb:
-            await self._complete_list(ctx=ctx)
-        else:
-            todos = await self._number_lists(todos)
-            if comb:
-                if (c := await self.config.user(ctx.author).completed()) :
-                    if not await self.config.user(ctx.author).use_md():
-                        c = await self._cross_lists(c)
-                    c = await self._number_lists(c)
-                    c.insert(0, "\N{WHITE HEAVY CHECK MARK} Completed todos")
-                    todos.extend(c)
-            await self.page_logic(ctx, todos, "Todos")
+        if not todos:
+            if comb and completed:
+                return await self._complete_list(
+                    ctx,
+                    completed=completed,
+                    use_md=use_md,
+                    use_embeds=use_embeds,
+                    private=private,
+                )
+            return await ctx.send(self._no_todo_message.format(ctx.clean_prefix))
+
+        todos = await self._number_lists(todos)
+        if comb and completed:
+            if not use_md:
+                completed = await self._cross_lists(completed)
+            completed = await self._number_lists(completed)
+            completed.insert(0, "\N{WHITE HEAVY CHECK MARK} Completed todos")
+            todos.extend(completed)
+        await self.page_logic(
+            ctx, todos, "Todos", use_md=use_md, use_embeds=use_embeds, private=private
+        )
 
     @complete.command(name="sort")
     async def complete_sort(self, ctx):
@@ -274,14 +284,25 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     @complete.command(name="list")
     async def complete_list(self, ctx):
         """List your completed todos"""
-        completed = await self.config.user(ctx.author).completed()
+        conf = await self._get_user_config(ctx.author)
+        completed = conf.get("completed", [])
+        use_md = conf.get("use_md", True)
+        use_embeds = conf.get("use_embeds", True)
+
         if not completed:
             await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
         else:
-            if not await self.config.user(ctx.author).use_md():
+            if not use_md:
                 completed = await self._cross_lists(completed)
             completed = await self._number_lists(completed)
-            await self.page_logic(ctx, completed, "Completed todos")
+            await self.page_logic(
+                ctx,
+                completed,
+                "Completed todos",
+                use_md=use_md,
+                use_embeds=use_embeds,
+                private=conf.get("private", False),
+            )
 
     @todo.command()
     async def version(self, ctx):
@@ -291,22 +312,39 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
 
     ### Utility methods ###
 
-    async def _complete_list(self, ctx: commands.Context):
-        user_conf = await self._get_user_config(ctx.author)
-        completed = await user_conf.completed()
-        if not completed:
-            return
-        if not await user_conf.use_md():
+    async def _complete_list(
+        self,
+        ctx: commands.Context,
+        *,
+        completed: typing.List[str],
+        use_md: bool,
+        use_embeds: bool,
+        private: bool,
+    ):
+        if not use_md:
             completed = await self._cross_lists(completed)
         completed = await self._number_lists(completed)
         completed.insert(0, "\N{WHITE HEAVY CHECK MARK} Completed")
-        await self.page_logic(ctx=ctx, data=completed, title="Todos")
+        await self.page_logic(
+            ctx=ctx,
+            data=completed,
+            title="Todos",
+            use_md=use_md,
+            use_embeds=use_embeds,
+            private=private,
+        )
 
-    async def page_logic(self, ctx: commands.Context, data: list, title: str):
+    async def page_logic(
+        self,
+        ctx: commands.Context,
+        data: list,
+        title: str,
+        *,
+        use_md: bool,
+        use_embeds: bool,
+        private: bool,
+    ):
         data = self._pagified_list(data)
-        conf = await self._get_user_config(ctx.author)
-        use_md = conf.get("use_md", True)
-        use_embeds = conf.get("use_embeds", True)
         source = TodoPages(
             data=data,
             use_md=use_md,
@@ -318,7 +356,9 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
             delete_message_after=False,
             clear_reactions_after=True,
             timeout=15.0,
-        ).start(ctx, channel=await self._get_destination(ctx), wait=False)
+        ).start(
+            ctx, channel=await self._get_destination(ctx, private=private), wait=False
+        )
 
     async def _number_lists(self, data: list):
         return [f"{num}. {x}" for num, x in enumerate(data, 1)]
@@ -335,8 +375,8 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         async with self.config.user(ctx.author).completed() as completed:
             completed.sort(reverse=reverse)
 
-    async def _get_destination(self, ctx: commands.Context):
-        if await self.config.user(ctx.author).private():
+    async def _get_destination(self, ctx: commands.Context, *, private: bool):
+        if private:
             if ctx.author.dm_channel is None:
                 await ctx.author.create_dm()
             return ctx.author.dm_channel
