@@ -27,6 +27,7 @@ import asyncio
 import discord
 from redbot.core import commands
 from redbot.core.utils.predicates import MessagePredicate
+from redbot.core.utils.chat_formatting import pagify
 
 from ..utils import positive_int
 from .abc import ToDoMixin
@@ -76,8 +77,11 @@ class Deleting(ToDoMixin):
             msg += f"\nFailed to removed {fails} todo{plural}"
             if details:
                 msg += "\n" + "\n".join(failed)
-        await ctx.send(msg)
         await self._maybe_autosort(ctx)
+        if len(msg) > 2000:
+            await ctx.send_interactive(pagify(msg))
+        else:
+            await ctx.send(msg)
 
     @todo.command(aliases=["delall"])
     async def removeall(self, ctx):
@@ -131,8 +135,11 @@ class Deleting(ToDoMixin):
             msg += f"Failed to remove {fails} todo{plural}"
             if details:
                 msg += "\n" + "\n".join(failed)
-        await ctx.send(msg)
         await self._maybe_autosort(ctx)
+        if len(msg) > 2000:
+            await ctx.send_interactive(pagify(msg))
+        else:
+            await ctx.send(msg)
 
     @complete.command(name="removeall", aliases=["delall", "rma"])
     async def complete_removeall(self, ctx):

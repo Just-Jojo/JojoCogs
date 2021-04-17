@@ -152,8 +152,11 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
             msg += f"\nFailed to complete {fails} todo{plural}"
             if details:
                 msg += "\n" + "\n".join(failed)
-        await ctx.send(msg)
         await self._maybe_autosort(ctx)
+        if len(msg) > 2000:
+            await ctx.send_interactive(pagify(msg))
+        else:
+            await ctx.send(msg)
 
     @todo.command()
     async def explain(self, ctx, comic: bool = False):
@@ -209,8 +212,11 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         details = await self.config.user(ctx.author).detailed_pop()
         if details:
             msg += f"\n'{discord.utils.escape_markdown(todo)}'"
-        await ctx.send(msg)
         await self._maybe_autosort(ctx)
+        if len(msg) > 2000:
+            await ctx.send_interactive(pagify(msg))
+        else:
+            await ctx.send(msg)
 
     @todo.command()
     async def sort(self, ctx):
@@ -250,7 +256,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
                     use_embeds=use_embeds,
                     private=private,
                 )
-            return await ctx.send(self._no_todo_message.format(ctx.clean_prefix))
+            return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
 
         todos = await self._number_lists(todos)
         if comb and completed:
