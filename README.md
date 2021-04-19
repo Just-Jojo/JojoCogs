@@ -23,7 +23,7 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 | Calculations   | Calculate different things, eg. binary to decimal, nautical miles to kilometres and miles, etc | Fun | Jojo | O | It's not ready yet lol |
 | CycleStatus    | Cycles the bot's status                                | Jojo#7791              | Utility  | X        |                          |
 | Depypher       | Encipher and Decipher codes and messages               | Jojo#7791              | Fun      | O        | Eh, it doesn't have much |
-| Store          | Buy items from the store and use them                  | Jojo#7791              | Fun      | X        |                          |
+| Store          | Buy items from the store and use them                  | Jojo#7791              | Fun      | Gone     | I have retired this as I don't wish to work on it anymore                       |
 | Mjolnir        | Try to lift Thor's mighty hammer                       | Jojo#7791              | Fun      | Gone     | This cog has a new home in [Kreusada's cogs](https://github.com/Kreusada/Kreusada-Cogs) :D |
 | ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        | Why did I make it dynamic, oh god why                 |
 
