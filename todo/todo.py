@@ -120,7 +120,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     @todo.group(
         invoke_without_command=True, aliases=["c"], require_var_positional=True
     )  # `c` is easy to type
-    async def complete(self, ctx, *indexes: positive_int):
+    async def complete(self, ctx, *indexes: todo_positive_int):
         """Commands having to do with completed todos"""
         if not await self.config.user(ctx.author).todos():
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
