@@ -33,7 +33,7 @@ from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from .commands import CompositeMetaclass, Deleting, Examples, Settings
-from .utils import TodoMenu, TodoPages, positive_int
+from .utils import TodoMenu, TodoPages, positive_int, todo_positive_int
 
 _config_structure = {
     "todos": [],
@@ -90,7 +90,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     ### Listing commands ###
 
     @commands.group(invoke_without_command=True)
-    async def todo(self, ctx, index: positive_int):
+    async def todo(self, ctx, index: todo_positive_int):
         """Todo commands
 
         Add a todo to your list and manage your tasks

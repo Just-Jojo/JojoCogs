@@ -28,7 +28,7 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import bold, box
 from redbot.vendored.discord.ext import menus
 
-__all__ = ["TodoPages", "TodoMenu", "positive_int"]
+__all__ = ["TodoPages", "TodoMenu", "positive_int", "todo_positive_int"]
 
 
 class TodoPages(menus.ListPageSource):
@@ -141,7 +141,18 @@ def positive_int(arg: str) -> int:
     try:
         ret = int(arg)
     except ValueError:  # Isn't an int
-        raise commands.BadArgument(f"{arg} is not an integer")
+        raise commands.BadArgument(f"'{arg}' is not an integer")
     if ret <= 0:
-        raise commands.BadArgument(f"{arg} is not a positive integer")
+        raise commands.BadArgument(f"'{arg}' is not a positive integer")
+    return ret
+
+
+def todo_positive_int(arg: str) -> int:
+    """A slightly modified type hint for the "todo" group command"""
+    try:
+        ret = int(arg)
+    except ValueError:
+        raise commands.UserInputError()
+    if ret <= 0:
+        raise commands.BadArgument(f"'{arg}' is not a positive integer")
     return ret
