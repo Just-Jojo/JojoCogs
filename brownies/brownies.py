@@ -39,23 +39,13 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 
+from jojo_utils import positive_int
+
 log = logging.getLogger("red.mcoc-v3.brownies")
 _config_structure = {
     "user": {"brownies": 0, "StealCD": 5, "BrownieCD": 5},
     "guild": {"StealCD": 300, "BrownieCD": 300},
 }
-
-
-def positive_int(arg: str) -> int:
-    # From redbot.cogs.cleanup.converters
-    """Returns a positive int"""
-    try:
-        ret = int(arg)
-    except ValueError:
-        raise commands.BadArgument(f"{arg} is not a integer.")
-    if ret <= 0:
-        raise commands.BadArgument(f"{arg} is not a positive integer.")
-    return ret
 
 
 class PluralDict(dict):
