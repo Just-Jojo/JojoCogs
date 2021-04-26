@@ -27,8 +27,13 @@ Fix of a bug with the todo list >.>
 - 1.2.0
 Split commands into different files as the main file was getting to be a bit too large.
 Added a command so that users could know how to suggest stuff
+
 - 1.2.3
 Added the version command back, added the ability to see a todo via index in the todo group
+
 - 1.2.4
 Kreusada told me that I should reduce the amount of config calls, so I am.
 I also rewrote the example command
+
+- 1.2.5
+I created a module for utility sake and now I don't want people to say "This isn't working" and me be confused because I can't see anything wrong with the version...

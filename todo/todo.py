@@ -31,9 +31,10 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
+from jojo_utils import positive_int, Menu
 
 from .commands import CompositeMetaclass, Deleting, Examples, Settings
-from .utils import TodoMenu, TodoPages, positive_int, todo_positive_int
+from .utils import TodoPages, todo_positive_int
 
 _config_structure = {
     "todos": [],
@@ -65,7 +66,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         " You can complete a todo using `{prefix}todo complete <indexes...>`"
     )
     _no_todo_message = "You don't have any todos! Add one using `{prefix}todo add <todo>`"
-    __version__ = "1.2.4"
+    __version__ = "1.2.5"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -356,7 +357,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
             use_embeds=use_embeds,
             title=title,
         )
-        await TodoMenu(
+        await Menu(
             source=source,
             delete_message_after=False,
             clear_reactions_after=True,
