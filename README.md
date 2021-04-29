@@ -1,5 +1,15 @@
+<h1 align="center">
+  <br>
+  <a href="https://github.com/Just-Jojo/JojoCogs/tree/master"><img src="https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/JOJO_COGS.png" alt="JojoCogs"></a>
+  <br>
+  Jojo's Cogs for Red-DiscordBot
+  <br>
+</h1>
+
+
 # A repo for some of the cogs I have built for Red - Discord bot
-![](https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/JOJO_COGS.png)
+
+
 ## Installation
 **note** throughout this guide `[p]` is your prefix
 
