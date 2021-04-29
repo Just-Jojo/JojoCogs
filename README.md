@@ -1,4 +1,26 @@
+<h1 align="center">
+  <br>
+  <a href="https://github.com/Just-Jojo/JojoCogs/tree/master"><img src="https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/JOJO_COGS.png" alt="JojoCogs"></a>
+  <br>
+  Jojo's Cogs for Red-DiscordBot
+  <br>
+</h1>
+
+
 # A repo for some of the cogs I have built for Red - Discord bot
+
+
+## Installation
+**note** throughout this guide `[p]` is your prefix
+
+First (if you haven't already,) load downloader
+```[p]load downloader```
+
+Second, install my repo
+```[p]repo add jojocogs https://github.com/Just-Jojo/JojoCogs```
+
+Third, install the cog you would like
+```[p]cog install jojocogs todo```
 
 ## Help
 For help you can either use a bug report issue, go to the [support server](discord.gg/JmCFyq7), or ask in Red's [cog support server](https://discord.gg/GET4DVk) in `#support_othercogs`
@@ -21,10 +43,9 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 |----------------|--------------------------------------------------------|------------------------|----------|----------|--------------------------|
 | Brownies       | Brownie based economy system                           | Jojo#7791, JJW(v2)     | Fun      | X        |                          |
 | Calculations   | Calculate different things, eg. binary to decimal, nautical miles to kilometres and miles, etc | Fun | Jojo | O | It's not ready yet lol |
+| Court          | Simulate a court in your server with Judges, Lawyers, and case types | Jojo#7791 | Fun     | O       | This is not ready aaaaaaa |
 | CycleStatus    | Cycles the bot's status                                | Jojo#7791              | Utility  | X        |                          |
 | Depypher       | Encipher and Decipher codes and messages               | Jojo#7791              | Fun      | O        | Eh, it doesn't have much |
-| Store          | Buy items from the store and use them                  | Jojo#7791              | Fun      | Gone     | I have retired this as I don't wish to work on it anymore                       |
-| Mjolnir        | Try to lift Thor's mighty hammer                       | Jojo#7791              | Fun      | Gone     | This cog has a new home in [Kreusada's cogs](https://github.com/Kreusada/Kreusada-Cogs) :D |
 | ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        | Why did I make it dynamic, oh god why                 |
 
 ## Pull requests
