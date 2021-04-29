@@ -1,5 +1,5 @@
 # A repo for some of the cogs I have built for Red - Discord bot
-![](https://github.com/Just-Jojo/JojoCog-Assets/blob/main/JOJO_COGS.png)
+![](https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/JOJO_COGS.png)
 ## Installation
 **note** throughout this guide `[p]` is your prefix
 
