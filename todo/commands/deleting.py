@@ -123,16 +123,16 @@ class Deleting(ToDoMixin):
                         failed.append(f"`{index}`")
                     else:
                         removes += 1
-        msg = "Done"
+        msg = "Done."
         details = await self.config.user(ctx.author).detailed_pop()
         if removes:
             plural = "" if removes == 1 else "s"
-            msg += f"Removed {removes} todo{plural}"
+            msg += f"\nRemoved {removes} todo{plural}"
             if details:
                 msg += "\n" + "\n".join(removed)
         if fails:
             plural = "" if fails == 1 else "s"
-            msg += f"Failed to remove {fails} todo{plural}"
+            msg += f"\nFailed to remove {fails} todo{plural}"
             if details:
                 msg += "\n" + "\n".join(failed)
         await self._maybe_autosort(ctx)
