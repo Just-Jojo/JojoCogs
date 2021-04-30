@@ -8,6 +8,8 @@ from redbot.core import commands
 
 from .abc import ToDoMixin
 
+from datetime import datetime
+
 
 def get_toggle(setting: bool) -> str:
     return "enabled" if setting else "disabled"
@@ -99,6 +101,7 @@ class Settings(ToDoMixin):
                 title=self._embed_title.format(ctx),
                 colour=await ctx.embed_colour(),
             )
+            embed.timestamp = datetime.utcnow()
             [
                 embed.add_field(name=key, value=value, inline=True)
                 for key, value in settings.items()
@@ -132,6 +135,7 @@ class Settings(ToDoMixin):
         )
         if embed:
             embed = discord.Embed(title=title, colour=await ctx.embed_colour())
+            embed.timestamp = datetime.utcnow()
             [
                 embed.add_field(name=key, value=value, inline=True)
                 for key, value in settings.items()

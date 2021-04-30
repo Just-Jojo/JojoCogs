@@ -7,6 +7,7 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import bold, box
 from redbot.vendored.discord.ext import menus
 from jojo_utils import Menu
+from datetime import datetime
 
 
 __all__ = ["TodoPages", "TodoMenu", "todo_positive_int"]
@@ -37,6 +38,7 @@ class TodoPages(menus.ListPageSource):
         embed = discord.Embed(title=self.title, colour=await ctx.embed_colour())
         embed.description = page
         embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
+        embed.timestamp = datetime.utcnow()
         return embed
 
 

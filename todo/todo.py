@@ -14,7 +14,10 @@ from jojo_utils import positive_int, Menu
 
 from .commands import CompositeMetaclass, Deleting, Examples, Settings
 from .utils import TodoPages, todo_positive_int
+from datetime import datetime
 
+
+now = datetime.utcnow
 _config_structure = {
     "todos": [],
     "completed": [],
@@ -91,6 +94,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
             embed = discord.Embed(
                 colour=await ctx.embed_colour(), title=title, description=todo
             )
+            embed.timestamp = now()
             kwargs = {"embed": embed}
         else:
             msg = f"{title}\n{todo}"
@@ -143,6 +147,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         """Explain a bit about this cog"""
         if (em := await ctx.embed_requested()) :
             embed = discord.Embed(title="About Todo", colour=await ctx.embed_colour())
+            embed.timestamp = now()
             kwargs = {"embed": embed}
         else:
             kwargs = {"content": None}
@@ -171,12 +176,14 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
             "(here's the issue link <https://github.com/Just-Jojo/JojoCogs/issues/15> :) )"
         )
         if await ctx.embed_requested():
+            embed = discord.Embed(
+                title="Todo suggestions",
+                description=msg,
+                colour=await ctx.embed_colour(),
+            )
+            embed.timestamp = now()
             kwargs = {
-                "embed": discord.Embed(
-                    title="Todo suggestions",
-                    description=msg,
-                    colour=await ctx.embed_colour(),
-                ),
+                "embed": embed,
             }
         else:
             kwargs = {"content": msg}
