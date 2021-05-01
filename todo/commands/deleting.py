@@ -53,7 +53,7 @@ class Deleting(ToDoMixin):
                 msg += "\n" + "\n".join(completed)
         if fails:
             plural = "" if fails else "s"
-            msg += f"\nFailed to removed {fails} todo{plural}"
+            msg += f"\nFailed to removed {fails} todo{plural} {self._failure_explanation}"
             if details:
                 msg += "\n" + "\n".join(failed)
         await self._maybe_autosort(ctx)
@@ -111,7 +111,7 @@ class Deleting(ToDoMixin):
                 msg += "\n" + "\n".join(removed)
         if fails:
             plural = "" if fails == 1 else "s"
-            msg += f"\nFailed to remove {fails} todo{plural}"
+            msg += f"\nFailed to remove {fails} todo{plural} {self._failure_explanation}"
             if details:
                 msg += "\n" + "\n".join(failed)
         await self._maybe_autosort(ctx)

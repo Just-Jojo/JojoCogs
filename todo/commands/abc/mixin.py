@@ -44,6 +44,7 @@ class ToDoMixin(ABC):
         self.log: logging.Logger
         self._no_completed_message: str
         self._no_todo_message: str
+        self._failure_explanation: str
 
     async def _get_user_config(
         self, user: Union[str, discord.User, discord.Member]

@@ -48,7 +48,14 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         " You can complete a todo using `{prefix}todo complete <indexes...>`"
     )
     _no_todo_message = "You don't have any todos! Add one using `{prefix}todo add <todo>`"
-    __version__ = "1.2.5"
+    _failure_explanation = (
+        "(The most common reason for "
+        "a todo deletion to have failed "
+        "is that the index given was greater "
+        "than the length of your todo list)"
+    )
+
+    __version__ = "1.2.6"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -133,7 +140,9 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
                 msg += "\n" + "\n".join(compled)
         if fails:
             plural = "" if fails == 1 else "s"
-            msg += f"\nFailed to complete {fails} todo{plural}"
+            msg += (
+                f"\nFailed to complete {fails} todo{plural} {self._failure_explanation}"
+            )
             if details:
                 msg += "\n" + "\n".join(failed)
         await self._maybe_autosort(ctx)
