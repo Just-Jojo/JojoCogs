@@ -3,7 +3,7 @@
     "short": "Customizable todo list!",
     "description": "A simple, highly customizable todo list for keeping track of things to do",
     "end_user_data_statement": "This cog stores reminders (or todos) based on user ids",
-    "install_msg": "Thankie for installing Jojo's ToDo cog!\nIf you would like to request a feature please make an issue on my github (<https://github.com/Just-Jojo/JojoCogs)\nUse `[p]todo explain` to see what the cog is about!",
+    "install_msg": "Thankie for installing Jojo's ToDo cog!\nIf you would like to request a feature please make an issue on my github (<https://github.com/Just-Jojo/JojoCogs)\nUse `[p]todo explain` to see what the cog is about!\n\n(You can also check out Epic's todo cog <https://github.com/npc203/npc-cogs> :D)",
     "author": [
         "Jojo#7791"
     ],
