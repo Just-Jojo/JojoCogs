@@ -55,7 +55,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.6"
+    __version__ = "1.2.7"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -231,6 +231,27 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         async with self.config.user(ctx.author).todos() as todos:
             todos.sort(reverse=result)
         await self.config.user(ctx.author).autosort.set(True)
+
+    @todo.command(aliases=["ro", "move"])
+    async def reorder(self, ctx, index: positive_int, to_place: positive_int):
+        """Move a todo from one index to another"""
+        act_index, act_to_place = index - 1, to_place - 1
+
+        conf = await self._get_user_config(ctx.author)
+        todos = conf.get("todos")
+        try:
+            todo = todos.pop(act_index)
+            todos.insert(act_to_place, todo)
+        except IndexError:
+            await ctx.send(f"I could not find a todo at the index {index}")
+            return
+        await self.config.user(ctx.author).todos.set(todos)
+        msg = f"Moved a todo from index {index} to {to_place}"
+        if conf["detailed_pop"]:
+            msg += f"\n`{todo}`"
+        await ctx.send(msg)
+        if conf.get("autosort", False):
+            await self.config.user(ctx.author).autosort.set(False)
 
     @todo.command(name="list")
     async def todo_list(self, ctx):
