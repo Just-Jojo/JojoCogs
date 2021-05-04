@@ -1,4 +1,6 @@
 ### Todo changelog
+**Not all updates are here, mostly because I forget this file is here a lot :aha:**
+
 - 0.1.8
 Added a `complete` command to complete todos
 Added an autosorting feature to automattically sort todos
@@ -37,3 +39,6 @@ I also rewrote the example command
 
 - 1.2.5
 I created a module for utility sake and now I don't want people to say "This isn't working" and me be confused because I can't see anything wrong with the version...
+
+- 1.2.8
+Cached settings to decrease config calls
