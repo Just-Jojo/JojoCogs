@@ -329,7 +329,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     @todo.command()
     async def version(self, ctx):
         """Check the version of todo"""
-        msg = f"ToDo version: `{self.__version__}`"
+        msg = f"ToDo version: `{self.__version__}`\nMade with ❤ by Jojo"
         await ctx.send(msg)
 
     ### Utility methods ###
