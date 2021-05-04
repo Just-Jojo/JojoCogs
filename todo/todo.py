@@ -55,7 +55,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.7"
+    __version__ = "1.2.8"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -64,6 +64,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
             cog_instance=self, identifier=19924714019, force_registration=True
         )
         self.config.register_user(**_config_structure)
+        self.settings_cache: typing.Dict[int, dict] = {}
         self.log = logging.getLogger("red.JojoCogs.todo")
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -77,6 +78,16 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
             f"\nAuthor{plural}: `{', '.join(self.__author__)}`"
         )
 
+    async def update_cache(self):
+        """|coro|
+
+        Updates the settings cache
+
+        credits to phen for sharing this
+        https://github.com/phenom4n4n/phen-cogs/blob/1e862ff1f429dfc1c56074f952b75056a79cd246/baron/baron.py#L91
+        """
+        self.settings_cache = await self.config.all_users()
+
     ### Listing commands ###
 
     @commands.group(invoke_without_command=True)
@@ -85,6 +96,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
 
         Add a todo to your list and manage your tasks
         """
+
         act_index = index - 1
         conf = await self._get_user_config(ctx.author)
         todos = conf.get("todos", [])
@@ -257,9 +269,12 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     async def todo_list(self, ctx):
         """List your current todos!"""
         conf = await self._get_user_config(ctx.author)
-        todos = conf.get("todos", [])
+        todos = await self.config.user(ctx.author).todos()
+        completed = await self.config.user(ctx.author).completed()
+        # Okay so, settings cache *only* gets updated on setting changes and
+        # if the user isn't in the cache. This means that I have to do this
+
         comb = conf.get("combined_lists", False)
-        completed = conf.get("completed", [])
         use_md = conf.get("use_md", True)
         use_embeds = conf.get("use_embeds", True)
         private = conf.get("private", True)
@@ -302,12 +317,13 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         await self.config.user(ctx.author).reverse_sort.set(result)
         async with self.config.user(ctx.author).completed() as todos:
             todos.sort(reverse=result)
+        await self.update_cache()
 
     @complete.command(name="list")
     async def complete_list(self, ctx):
         """List your completed todos"""
         conf = await self._get_user_config(ctx.author)
-        completed = conf.get("completed", [])
+        completed = await self.config.user(ctx.author).completed()
         use_md = conf.get("use_md", True)
         use_embeds = conf.get("use_embeds", True)
 
@@ -385,7 +401,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     async def _number_lists(self, data: list):
         return [f"{num}. {x}" for num, x in enumerate(data, 1)]
 
-    def _pagified_list(self, data: list):
+    def _pagified_list(self, data: list) -> typing.List[str]:
         return list(pagify("\n".join(data), page_length=500))
 
     async def _maybe_autosort(self, ctx: commands.Context):
@@ -397,7 +413,9 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         async with self.config.user(ctx.author).completed() as completed:
             completed.sort(reverse=reverse)
 
-    async def _get_destination(self, ctx: commands.Context, *, private: bool):
+    async def _get_destination(
+        self, ctx: commands.Context, *, private: bool
+    ) -> discord.TextChannel:
         if private:
             if ctx.author.dm_channel is None:
                 await ctx.author.create_dm()
@@ -408,12 +426,15 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         index.sort(reverse=True)
         return index
 
-    async def _cross_lists(self, data: list):
+    async def _cross_lists(self, data: list) -> typing.List[str]:
         return [f"~~{x}~~" for x in data]
 
     async def _get_user_config(
         self, user: typing.Union[int, discord.Member, discord.User]
-    ) -> dict:
-        if isinstance(user, int):
-            return await self.config.user_from_id(user).all()
-        return await self.config.user(user).all()
+    ) -> typing.Dict[int, dict]:
+        uid = user if isinstance(user, int) else user.id
+        maybe_config = self.settings_cache.get(uid, None)
+        if maybe_config is None:
+            await self.update_cache()
+            maybe_config = self.settings_cache.get(uid)
+        return maybe_config

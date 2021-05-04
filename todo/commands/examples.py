@@ -82,6 +82,7 @@ class Examples(ToDoMixin):
         private: bool,
         todos: List[str],
     ):
+        """Very good method name Jojo!"""
         todo_embed = (
             discord.Embed(
                 title="Todos", description=todos[0], colour=await ctx.embed_colour()

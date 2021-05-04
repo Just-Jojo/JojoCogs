@@ -124,6 +124,7 @@ class Settings(ToDoMixin):
             return await ctx.send(content=already_set)
         await ctx.send(content=msg)
         await self.config.user(ctx.author).set_raw(key, value=toggle)
+        await self.update_cache()
 
     async def _private_send_settings(
         self, ctx: commands.Context, embed: bool, settings: Dict[str, str]
