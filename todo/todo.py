@@ -55,7 +55,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.8"
+    __version__ = "1.2.9"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -436,5 +436,5 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         maybe_config = self.settings_cache.get(uid, None)
         if maybe_config is None:
             await self.update_cache()
-            maybe_config = self.settings_cache.get(uid)
+            maybe_config = self.settings_cache.get(uid, _config_structure)
         return maybe_config
