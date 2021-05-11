@@ -37,8 +37,8 @@ def positive_int(arg: str) -> int:
     return ret
 
 
-_bot_guild_var = r"{bot_guild_len}"
-_bot_member_var = r"{bot_member_len}"
+_bot_guild_var = r"{bot_guild_count}"
+_bot_member_var = r"{bot_member_count}"
 
 
 class CycleStatus(commands.Cog):
@@ -89,7 +89,7 @@ class CycleStatus(commands.Cog):
     async def status_add(self, ctx, *, status: str):
         """Add a status to the list
 
-        Put `{bot_guild_len}` or `{bot_member_len}` in your message to have the user
+        Put `{bot_guild_count}` or `{bot_member_count}` in your message to have the user
         count and guild count of your bot!
         """
         async with self.config.statuses() as s:
