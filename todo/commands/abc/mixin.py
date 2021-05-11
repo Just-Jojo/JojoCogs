@@ -2,8 +2,8 @@
 # Licensed under MIT
 
 import logging
+import typing
 from abc import ABC, abstractmethod
-from typing import Union
 
 import discord
 from redbot.core import Config, commands
@@ -28,12 +28,14 @@ class ToDoMixin(ABC):
 
     @abstractmethod
     async def _get_user_config(
-        self, user: Union[str, discord.User, discord.Member]
-    ) -> dict:
+        self, user: typing.Union[int, discord.Member, discord.User]
+    ) -> typing.Optional[typing.Dict[typing.Any, typing.Any]]:
         ...
 
     @abstractmethod
-    async def _get_destination(self, ctx: commands.Context) -> discord.TextChannel:
+    async def _get_destination(
+        self, ctx: commands.Context, *, private: bool
+    ) -> discord.TextChannel:
         ...
 
     @abstractmethod
@@ -45,6 +47,10 @@ class ToDoMixin(ABC):
         credits to phen for sharing this
         https://github.com/phenom4n4n/phen-cogs/blob/1e862ff1f429dfc1c56074f952b75056a79cd246/baron/baron.py#L91
         """
+        ...
+
+    @abstractmethod
+    async def _maybe_autosort(self, ctx: commands.Context) -> None:
         ...
 
 

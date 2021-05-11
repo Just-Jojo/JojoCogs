@@ -6,8 +6,8 @@ import asyncio
 import discord
 from jojo_utils import positive_int
 from redbot.core import commands
-from redbot.core.utils.predicates import MessagePredicate
 from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.predicates import MessagePredicate
 
 from .abc import ToDoMixin
 

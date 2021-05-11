@@ -4,6 +4,7 @@
 from typing import List, Union
 
 import discord
+from jojo_utils import Menu
 from redbot.core import commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box
@@ -22,7 +23,7 @@ class Pages(menus.ListPageSource):
     def is_paginating(self) -> bool:
         return True
 
-    async def format_page(self, menu: "Menu", page: str) -> Union[discord.Embed, str]:
+    async def format_page(self, menu: Menu, page: str) -> Union[discord.Embed, str]:
         ctx: commands.Context = menu.ctx
         footnote = f"Page {menu.current_page + 1}/{self.get_max_pages()}"
         if await ctx.embed_requested():

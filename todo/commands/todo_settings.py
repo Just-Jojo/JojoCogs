@@ -1,14 +1,13 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+from datetime import datetime
 from typing import Dict
 
 import discord
 from redbot.core import commands
 
 from .abc import ToDoMixin
-
-from datetime import datetime
 
 
 def get_toggle(setting: bool) -> str:
@@ -94,7 +93,7 @@ class Settings(ToDoMixin):
         }
         if private:
             return await self._private_send_settings(
-                ctx, embed=embedded, settings=settings
+                ctx, use_embed=embedded, settings=settings
             )
         if await ctx.embed_requested() and embedded:
             embed = discord.Embed(
@@ -127,15 +126,17 @@ class Settings(ToDoMixin):
         await self.update_cache()
 
     async def _private_send_settings(
-        self, ctx: commands.Context, embed: bool, settings: Dict[str, str]
+        self, ctx: commands.Context, use_embed: bool, settings: Dict[str, str]
     ):
         """I never said I was good at naming methods"""
         title = self._embed_title.format(ctx)
         humanized_settings = "\n".join(
             f"**{key}** {value}" for key, value in settings.items()
         )
-        if embed:
-            embed = discord.Embed(title=title, colour=await ctx.embed_colour())
+        if use_embed:
+            embed: discord.Embed = discord.Embed(
+                title=title, colour=await ctx.embed_colour()
+            )
             embed.timestamp = datetime.utcnow()
             [
                 embed.add_field(name=key, value=value, inline=True)

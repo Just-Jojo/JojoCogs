@@ -4,18 +4,17 @@
 import asyncio
 import logging
 import typing
+from datetime import datetime
 
 import discord
+from jojo_utils import Menu, positive_int
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
-from jojo_utils import positive_int, Menu
 
 from .commands import CompositeMetaclass, Deleting, Examples, Settings
 from .utils import TodoPages, todo_positive_int
-from datetime import datetime
-
 
 now = datetime.utcnow
 _config_structure = {
@@ -91,14 +90,14 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     ### Listing commands ###
 
     @commands.group(invoke_without_command=True)
-    async def todo(self, ctx, index: todo_positive_int):
+    async def todo(self, ctx, index: todo_positive_int):  # type:ignore
         """Todo commands
 
         Add a todo to your list and manage your tasks
         """
 
         act_index = index - 1
-        conf = await self._get_user_config(ctx.author)
+        conf: dict = await self._get_user_config(ctx.author)
         todos = conf.get("todos", [])
         if act_index >= len(todos):
             return await ctx.send("You don't have a todo at that index")
@@ -123,7 +122,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     @todo.group(
         invoke_without_command=True, aliases=["c"], require_var_positional=True
     )  # `c` is easy to type
-    async def complete(self, ctx, *indexes: todo_positive_int):
+    async def complete(self, ctx, *indexes: todo_positive_int):  # type:ignore[valid-type]
         """Commands having to do with completed todos"""
         if not await self.config.user(ctx.author).todos():
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
@@ -166,7 +165,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
     @todo.command()
     async def explain(self, ctx, comic: bool = False):
         """Explain a bit about this cog"""
-        if (em := await ctx.embed_requested()) :
+        if em := await ctx.embed_requested():
             embed = discord.Embed(title="About Todo", colour=await ctx.embed_colour())
             embed.timestamp = now()
             kwargs = {"embed": embed}
@@ -431,10 +430,10 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
 
     async def _get_user_config(
         self, user: typing.Union[int, discord.Member, discord.User]
-    ) -> typing.Dict[int, dict]:
+    ) -> typing.Dict[typing.Any, typing.Any]:
         uid = user if isinstance(user, int) else user.id
         maybe_config = self.settings_cache.get(uid, None)
         if maybe_config is None:
             await self.update_cache()
             maybe_config = self.settings_cache.get(uid, _config_structure)
-        return maybe_config
+        return maybe_config  # type:ignore[return-value]

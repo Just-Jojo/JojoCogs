@@ -2,7 +2,7 @@
 # Licensed under MIT
 
 import logging
-from typing import List, Literal, Optional
+from typing import Any, List, Literal, Optional, Union
 
 import discord
 from redbot.core import commands
@@ -35,7 +35,7 @@ class Calculations(commands.Cog):
         )
 
     @staticmethod
-    def _get_tabulated(data: List[str]) -> str:
+    def _get_tabulated(data: List[Union[List[Any], str]]) -> str:
         return box(tabulate([data[0]], data[1], tablefmt="fancy_grid"))
 
     @staticmethod

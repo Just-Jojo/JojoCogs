@@ -9,11 +9,11 @@ from typing import List
 
 import discord
 from discord.ext import tasks
+from jojo_utils import Menu
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.predicates import MessagePredicate
-from jojo_utils import Menu
 
 from .menus import Pages
 

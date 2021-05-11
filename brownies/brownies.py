@@ -14,11 +14,10 @@ from typing import Literal, Optional
 
 import aiohttp
 import discord
+from jojo_utils import positive_int
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
-
-from jojo_utils import positive_int
 
 log = logging.getLogger("red.mcoc-v3.brownies")
 _config_structure = {
@@ -122,14 +121,14 @@ class Brownies(commands.Cog):
     async def red_delete_data_for_user(
         self,
         *,
-        user: Literal["discord_deleted_user", "owner", "owner", "user", "user_strict"],
-        uid: int,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
     ):
         """Delete brownie data for a user"""
         all_members = await self.config.all_members()
         async for guild_id, guild_data in AsyncIter(all_members.items(), steps=100):
-            if uid in guild_data:
-                await self.config.member_from_ids(guild_id, uid).clear()
+            if user_id in guild_data:
+                await self.config.member_from_ids(guild_id, user_id).clear()
 
     @commands.group(aliases=["setb"])
     @commands.admin()
