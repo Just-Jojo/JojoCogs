@@ -44,7 +44,7 @@ _bot_member_var = r"{bot_member_count}"
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -75,6 +75,15 @@ class CycleStatus(commands.Cog):
     async def status(self, ctx):
         """Commands working with the status"""
         pass
+
+    @status.command()
+    async def forcenext(self, ctx):
+        """Force the next status to display on the bot"""
+        nl = await self.config.next_iter()
+        status = (statuses := await self.config.statuses())[nl]
+        await self.config.next_iter.set(nl + 1 if nl < len(statuses) else 0)
+        await self._status_add(status, await self.config.use_help())
+        await ctx.tick()
 
     @status.command(name="usehelp")
     async def status_set(self, ctx, toggle: bool = None):
@@ -134,8 +143,7 @@ class CycleStatus(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def main_task(self):
-        statuses = await self.config.statuses()
-        if not statuses:
+        if not (statuses := await self.config.statuses()):
             return
         try:
             # So, sometimes this gets larger than the list of the statuses
@@ -144,18 +152,7 @@ class CycleStatus(commands.Cog):
         except IndexError:
             nl = 0  # Hard reset
             msg = statuses[0]
-        to_re = [
-            (_bot_member_var, str(len(self.bot.users))),
-            (_bot_guild_var, str(len(self.bot.guilds))),
-        ]
-        for (var, replace) in to_re:
-            msg = msg.replace(var, replace)
-        if await self.config.use_help():
-            prefix = (await self.bot.get_valid_prefixes())[0]
-            prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
-            msg += f" | {prefix}help"
-        game = discord.Game(name=msg)
-        await self.bot.change_presence(activity=game)
+        await self._status_add(msg, await self.config.use_help())
         nl = 0 if len(statuses) - 1 == nl else nl + 1
         await self.config.next_iter.set(nl)
 
@@ -176,3 +173,13 @@ class CycleStatus(commands.Cog):
     async def red_delete_data_for_user(self, *, requester: str, user_id: int) -> None:
         """Nothing to delete"""
         return
+
+    async def _status_add(self, status: str, use_help: bool) -> None:
+        status = status.replace(_bot_guild_var, str(len(self.bot.guilds)))
+        status = status.replace(_bot_member_var, str(len(self.bot.users)))
+        if use_help:
+            prefix = (await self.bot.get_valid_prefixes())[0]
+            prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
+            status += f" | {prefix}help"
+        game = discord.Game(name=status)
+        await self.bot.change_presence(activity=game)
