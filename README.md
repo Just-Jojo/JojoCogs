@@ -11,7 +11,7 @@
 
 
 ## Installation
-**note** throughout this guide `[p]` is your prefix
+**Note** throughout this guide `[p]` is your prefix
 
 First (if you haven't already,) load downloader
 ```[p]load downloader```
