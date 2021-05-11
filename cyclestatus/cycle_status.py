@@ -37,10 +37,14 @@ def positive_int(arg: str) -> int:
     return ret
 
 
+_bot_guild_var = r"{bot_guild_len}"
+_bot_member_var = r"{bot_member_len}"
+
+
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -83,13 +87,17 @@ class CycleStatus(commands.Cog):
 
     @status.command(name="add")
     async def status_add(self, ctx, *, status: str):
-        """Add a status to the list"""
+        """Add a status to the list
+
+        Put `{bot_guild_len}` or `{bot_member_len}` in your message to have the user
+        count and guild count of your bot!
+        """
         async with self.config.statuses() as s:
             s.append(status)
         await ctx.tick()
 
     @status.command(name="remove", aliases=["del", "rm", "delete"])
-    async def status_remove(self, ctx, num: positive_int = None):
+    async def status_remove(self, ctx, num: positive_int = None):  # type:ignore
         """Remove a status from the list"""
         if num is None:
             return await ctx.invoke(self.status_list)
@@ -136,6 +144,12 @@ class CycleStatus(commands.Cog):
         except IndexError:
             nl = 0  # Hard reset
             msg = statuses[0]
+        to_re = [
+            (_bot_member_var, str(len(self.bot.users))),
+            (_bot_guild_var, str(len(self.bot.guilds))),
+        ]
+        for (var, replace) in to_re:
+            msg = msg.replace(var, replace)
         if await self.config.use_help():
             prefix = (await self.bot.get_valid_prefixes())[0]
             prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
