@@ -70,7 +70,7 @@ class CycleStatus(commands.Cog):
             f"{super().format_help_for_context(ctx)}"
             f"\nVersion `{self.__version__}`"
             f"\nAuthor(s) `{', '.join(self.__author__)}`"
-            f"\nPeople who have put in suggestions `{', '.join(self.__suggesters__)}"
+            f"\nPeople who have put in suggestions `{', '.join(self.__suggesters__)}`"
         )
 
     @commands.group()
