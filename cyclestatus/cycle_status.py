@@ -46,6 +46,8 @@ class CycleStatus(commands.Cog):
 
     __version__ = "1.0.3"
     __author__ = ["Jojo#7791"]
+    # These people have suggested something for this cog!
+    __suggesters__ = ["ItzXenonUnity | Lou#2369"]
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -68,6 +70,7 @@ class CycleStatus(commands.Cog):
             f"{super().format_help_for_context(ctx)}"
             f"\nVersion `{self.__version__}`"
             f"\nAuthor(s) `{', '.join(self.__author__)}`"
+            f"\nPeople who have put in suggestions `{', '.join(self.__suggesters__)}"
         )
 
     @commands.group()

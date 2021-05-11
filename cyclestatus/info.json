@@ -3,7 +3,7 @@
     "short": "Cycle your bot's status",
     "description": "Cycle the status on your bot so you don't have to update it constantly",
     "end_user_data_statement": "This cog does not store user data",
-    "install_msg": "Thank you for installing Jojo's cycle status cog!",
+    "install_msg": "Thank you for installing Jojo's cycle status cog!\n\nIf you are running on an older version of python (eg. 3.8.1) you might not be able to have the guild and member counts (I don't know why yet)",
     "author": [
         "Jojo#7791"
     ],
