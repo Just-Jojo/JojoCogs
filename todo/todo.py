@@ -7,6 +7,7 @@ import typing
 from datetime import datetime
 
 import discord
+from discord.ext import tasks
 from jojo_utils import Menu, positive_int
 from redbot.core import Config, commands
 from redbot.core.bot import Red
@@ -65,6 +66,10 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         self.config.register_user(**_config_structure)
         self.settings_cache: typing.Dict[int, dict] = {}
         self.log = logging.getLogger("red.JojoCogs.todo")
+        self.update_cache_task.start()
+
+    def cog_unload(self):
+        self.update_cache_task.cancel()
 
     def format_help_for_context(self, ctx: commands.Context):
         """Thankie thankie Sinbad"""
@@ -437,3 +442,8 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
             await self.update_cache()
             maybe_config = self.settings_cache.get(uid, _config_structure)
         return maybe_config  # type:ignore[return-value]
+
+    @tasks.loop(minutes=30)
+    async def update_cache_task(self):
+        await self.bot.wait_until_red_ready()
+        await self.update_cache()
