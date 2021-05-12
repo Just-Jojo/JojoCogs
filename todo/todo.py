@@ -1,3 +1,4 @@
+# type:ignore[attr-defined, operator, union-attr]
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
@@ -134,7 +135,8 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         async with ctx.typing():
             async with self.config.user(ctx.author).todos() as todos:
                 async with self.config.user(ctx.author).completed() as completed:
-                    indexes = [x - 1 for x in indexes]  # Remove 1 from each item...
+                    indexes = [x - 1 for x in indexes]  # type:ignore[assignment]
+                    # Remove 1 from each item...
                     indexes.sort(reverse=True)  # and sort the list
                     fails, failed, comp, compled = 0, [], 0, []
                     for index in indexes:
@@ -443,7 +445,14 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
             maybe_config = self.settings_cache.get(uid, _config_structure)
         return maybe_config  # type:ignore[return-value]
 
-    @tasks.loop(minutes=30)
+    @tasks.loop(minutes=30.0)  # I'm guessing this needs to be a float?
     async def update_cache_task(self):
-        await self.bot.wait_until_red_ready()
         await self.update_cache()
+
+    @update_cache_task.before_loop
+    async def before_updating(self):
+        await self.bot.wait_until_red_ready()
+
+    @update_cache_task.after_loop
+    async def after_updating_cache(self):
+        self.log.debug("Updated todo cache")
