@@ -1,4 +1,5 @@
 # type:ignore[attr-defined, operator, union-attr]
+
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 

@@ -1,6 +1,9 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+from typing import Callable, Literal, Optional
+
+import discord
 from pycipher import pycipher
 from redbot.core import commands
 
@@ -8,6 +11,20 @@ _caesar = pycipher.Caesar(key=4)
 _atbash = pycipher.Atbash()
 _vigenere = pycipher.Vigenere
 _porta = pycipher.Porta
+
+
+async def convert_case(original: str, new: str) -> str:
+    """Convert a string's casing to be the same as the original"""
+    ret = ""
+    for index, letter in enumerate(original):
+        if not letter.isalpha():
+            ret += letter
+            continue
+        if letter.isupper():
+            ret += new[index].upper()
+        else:
+            ret += new[index].lower()
+    return ret
 
 
 class Depypher(commands.Cog):
@@ -21,49 +38,72 @@ class Depypher(commands.Cog):
         """IRGVCTX E QIWWEKI AMXL E GEIWEV GMTLIV
         (hint, use `[p]deceaser <this docstring>` to find out what it means!)
         """
-        await ctx.send(_caesar.encipher(string=to_cipher, keep_punct=True))
+        await self._process_message(
+            ctx, _caesar.encipher(string=to_cipher, keep_punct=True), to_cipher
+        )
 
     @commands.command()
     async def decaesar(self, ctx, *, cipher: str):
         """Decrypt a message with Caesar"""
-        await ctx.send(_caesar.decipher(string=cipher, keep_punct=True))
+        await self._process_message(
+            ctx, _caesar.decipher(string=cipher, keep_punct=True), cipher
+        )
 
     @commands.command()
     async def atbash(self, ctx, *, cipher: str):
         """VMXIBKG Z NVHHZTV DRGS ZGYZHS
         (hint, use `[p]deatbash <this docstring>` to find out what it means!)
         """
-        await ctx.send(_atbash.encipher(string=cipher, keep_punct=True))
+        await self._process_message(
+            ctx, _atbash.encipher(string=cipher, keep_punct=True), cipher
+        )
 
     @commands.command()
     async def deatbash(self, ctx, *, cipher: str):
         """Decipher a message encrypted with Atbash"""
-        await ctx.send(_atbash.decipher(string=cipher, keep_punct=True))
+        await self._process_message(
+            ctx, _atbash.decipher(string=cipher, keep_punct=True), cipher
+        )
 
     @commands.command()
     async def vigenere(self, ctx, keyword: str, *, cipher: str):
         """HREZNWXUEOVQHTJIYZRWOLKGECGXZMVYYZXBAQIB
         (hint, use `[p]devigenere decrypt <this docstring>` to find out what it means!)
         """
-        await ctx.send(_vigenere(key=keyword).encipher(cipher))
+        await self._process_message(ctx, _vigenere(key=keyword).encipher(cipher), cipher)
 
     @commands.command()
     async def devigenere(self, ctx, keyword: str, *, cipher: str):
         """Decipher a message encrypted in Vigenere with a keyword"""
-        await ctx.send(_vigenere(key=keyword).decipher(cipher))
+        await self._process_message(ctx, _vigenere(key=keyword).decipher(cipher), cipher)
 
     @commands.command()
     async def porta(self, ctx, keyword: str, *, cipher: str):
         """SLQJMIKOOSKGUPSHWLTMQSAAJHUYWAVZF
         (hint, use `[p]deporta decrypt <this docstring>` to find out what it means!)
         """
-        await ctx.send(_porta(key=keyword).encipher(string=cipher))
+        await self._process_message(
+            ctx, _porta(key=keyword).encipher(string=cipher), cipher
+        )
 
     @commands.command()
     async def deporta(self, ctx, keyword: str, *, cipher: str):
         """Decrypt a message with the Porta cipher!"""
-        await ctx.send(_porta(key=keyword).decipher(string=cipher))
+        await self._process_message(
+            ctx, _porta(key=keyword).decipher(string=cipher), cipher
+        )
 
-    async def red_delete_data_for_user(self, *, requester, user_id):
-        """Nothing to delete"""
+    @staticmethod
+    async def _process_message(
+        ctx: commands.Context, msg: str, original: str
+    ) -> discord.Message:
+        processed = await convert_case(original, msg)
+        return await ctx.send(processed)
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ) -> None:
         return
