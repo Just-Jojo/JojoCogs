@@ -17,6 +17,12 @@ Formatting with Black should either be ran by an ide (I use vsc so it does it au
 
 ```py -m black -l 90 <path>```
 
+### Type checking
+
+I use Mypy for type checking. Again, if you do not have it install it with `pip install mypy`
+
+```mypy --ignore-missing-imports --follow-imports=silent --show-column-numbers --show-error-codes <path>```
+
 ### Misc.
 
 Make sure to respect the license and *please* try to keep be nice to other people working on this project :D

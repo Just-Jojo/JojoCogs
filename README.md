@@ -28,6 +28,9 @@ For help you can either use a bug report issue, go to the [support server](disco
 ## Suggestions
 For suggestions you can either make an enhancement issue or ask/ping me in either the cog support server or my support server listed in [Help](https://github.com/Just-Jojo/JojoCogs#help)
 
+## Issues
+For issues, please read [the issue guide](https://github.com/Just-Jojo/JojoCogs/tree/master/ISSUES.md) here.
+
 ## Forking
 Forks are great! 🍴
 If you would like to contribute, make personal edits, or just about anything just fork this repo (just don't blame me for the bad code)
@@ -43,7 +46,6 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 |----------------|--------------------------------------------------------|------------------------|----------|----------|--------------------------|
 | Brownies       | Brownie based economy system                           | Jojo#7791, JJW(v2)     | Fun      | X        |                          |
 | Calculations   | Calculate different things, eg. binary to decimal, nautical miles to kilometres and miles, etc | Fun | Jojo | O | It's not ready yet lol |
-| Court          | Simulate a court in your server with Judges, Lawyers, and case types | Jojo#7791 | Fun     | O       | This is not ready aaaaaaa |
 | CycleStatus    | Cycles the bot's status                                | Jojo#7791              | Utility  | X        |                          |
 | Depypher       | Encipher and Decipher codes and messages               | Jojo#7791              | Fun      | O        | Eh, it doesn't have much |
 | ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        | Why did I make it dynamic, oh god why                 |
