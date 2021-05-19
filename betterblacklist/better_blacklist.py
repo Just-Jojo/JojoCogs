@@ -31,14 +31,16 @@ class BetterBlacklist(commands.Cog):
         self.task: Task = self.bot.loop.create_task(self.init())
 
     def cog_unload(self):
+        global BLACKLIST_COMMAND
         if self.task:
             self.task.cancel()
         if BLACKLIST_COMMAND:
             try:
-                bot.remove_command("blacklist")
-                bot.add_command(BLACKLIST_COMMAND)
+                self.bot.remove_command("blocklist")
             except Exception as e:
                 log.debug(exc_info=e)
+            finally:
+                self.bot.add_command(BLACKLIST_COMMAND)
 
     async def init(self):
         await self.bot.wait_for_red_ready()
