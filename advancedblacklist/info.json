@@ -9,6 +9,7 @@
     ],
     "required_cogs": {},
     "requirements": [
+        "tabulate"
     ],
     "tags": [
         "utility",

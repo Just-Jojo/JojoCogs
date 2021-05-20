@@ -10,6 +10,7 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box
+from tabulate import tabulate
 
 log = logging.getLogger("red.JojoCogs.betterblacklist")
 _config_structure = {
@@ -24,11 +25,22 @@ BLACKLIST_COMMAND: commands.Command = None
 class AdvancedBlacklist(commands.Cog):
     """An advanced blacklist cog"""
 
+    __version__ = "1.0.0Dev"
+    __author__ = ["Jojo#7791"]
+
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(**_config_structure["global"])
         self.task: Task = self.bot.loop.create_task(self.init())
+
+    def format_help_for_context(self, ctx: commands.Context):
+        pre_processed = super().format_help_for_context(ctx)
+        return (
+            f"{pre_processed}\n\n"
+            f"Author: `{', '.join(self.__author__)}`\n"
+            f"Version: `{self.__version__}`"
+        )
 
     def cog_unload(self):
         global BLACKLIST_COMMAND
@@ -64,14 +76,11 @@ class AdvancedBlacklist(commands.Cog):
     async def blacklist_list(self, ctx: commands.Context):
         """List the users in your blacklist"""
         blacklist = await self.config.blacklist()
-        users = [
-            (f"{uid} "
-            f"({await self._get_user_name(uid)})"
-            f"\t\t{reason}")
-            for uid, reason in blacklist.items()
-        ]
-        formatted = "\n".join(users)
-        await ctx.send(box(formatted))
+        users = []
+        for uid, reason in blacklist.items():
+            users.append([f"{uid} ({await self._get_user_name(uid)})", reason])
+        tabulated = tabulate(users, ("User", "Reason"), "plain")
+        await ctx.send(box(tabulated))
 
     async def _get_user_name(self, uid: int) -> str:
         return await self.bot.get_or_fetch_user(uid) or "Unknown or Deleted User."
