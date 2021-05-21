@@ -4,13 +4,15 @@
 # type:ignore[assignment]
 
 import logging
-from asyncio import Task
+import asyncio
 
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box
+from redbot.core.utils.predicates import MessagePredicate
 from tabulate import tabulate
+
 
 log = logging.getLogger("red.JojoCogs.betterblacklist")
 _config_structure = {
@@ -32,7 +34,7 @@ class AdvancedBlacklist(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(**_config_structure["global"])
-        self.task: Task = self.bot.loop.create_task(self.init())
+        self.task: asyncio.Task = self.bot.loop.create_task(self.init())
 
     def format_help_for_context(self, ctx: commands.Context):
         pre_processed = super().format_help_for_context(ctx)
@@ -83,7 +85,10 @@ class AdvancedBlacklist(commands.Cog):
         await ctx.send(box(tabulated))
 
     async def _get_user_name(self, uid: int) -> str:
-        return await self.bot.get_or_fetch_user(uid) or "Unknown or Deleted User."
+        try:
+            return await self.bot.get_or_fetch_user(uid)
+        except discord.NotFound:
+            return "Unknown or Deleted User."
 
     @blacklist.command(name="add")
     async def blacklist_add(
@@ -100,9 +105,18 @@ class AdvancedBlacklist(commands.Cog):
     @blacklist.command(name="clear")
     async def blacklist_clear(self, ctx: commands.Context):
         """Clear the blacklist"""
+        msg = await ctx.send("Would you like to clear the blacklist?")
+        pred = MessagePredicate.yes_or_no()
+        try:
+            await self.bot.wait_for("message", check=pred)
+        except asyncio.TimeoutError:
+            pred.result = False
+        if not pred.result:
+            return await ctx.send("Okay. I will not clear the blacklist")
         await self.bot._whiteblacklist_cache.clear_blacklist()
         async with self.config.blacklist() as bl:
             bl.clear()
+        await ctx.tick()
 
     @blacklist.command(name="remove", aliases=["del", "rm"])
     async def blacklist_remove(self, ctx: commands.Context, user_id: int):
