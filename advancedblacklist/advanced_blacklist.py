@@ -105,7 +105,7 @@ class AdvancedBlacklist(commands.Cog):
     @blacklist.command(name="clear")
     async def blacklist_clear(self, ctx: commands.Context):
         """Clear the blacklist"""
-        msg = await ctx.send("Would you like to clear the blacklist?")
+        msg = await ctx.send("Would you like to clear the blacklist? (y/n)")
         pred = MessagePredicate.yes_or_no()
         try:
             await self.bot.wait_for("message", check=pred)
