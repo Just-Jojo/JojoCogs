@@ -57,7 +57,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.9"
+    __version__ = "1.2.10"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
