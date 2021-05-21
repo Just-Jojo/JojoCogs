@@ -36,7 +36,7 @@ class Examples(ToDoMixin):
         private = conf.get("private", False)
         combined = conf.get("combined_lists", False)
         act_todos = list(_examples.values())
-        channel = await self._get_destination(ctx, private)
+        channel = await self._get_destination(ctx, private=private)
 
         if md:
             if combined:
