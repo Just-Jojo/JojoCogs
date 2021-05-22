@@ -27,7 +27,7 @@ class Search(ToDoMixin):
 
     @todo.command()
     async def search(
-        self, ctx: commands.Context, use_regex: Optional[bool], to_search: str
+        self, ctx: commands.Context, use_regex: Optional[bool], *, to_search: str
     ):
         """Search your todo list for todos matching either a regex pattern or a string"""
         todos = await self.config.user(ctx.author).todos()
