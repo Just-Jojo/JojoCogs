@@ -53,8 +53,21 @@ class ToDoMixin(ABC):
     async def _maybe_autosort(self, ctx: commands.Context) -> None:
         ...
 
+    @abstractmethod
+    async def page_logic(
+        self,
+        ctx: commands.Context,
+        data: list,
+        title: str,
+        *,
+        use_md: bool,
+        use_embeds: bool,
+        private: bool,
+    ):
+        ...
 
-class CompositeMetaclass(type(commands.Cog), type(ABC)):
+
+class CompositeMetaclass(type(commands.Cog), type(ABC)):  # type:ignore[misc]
     """Metaclass so it doesn't break or something idk"""
 
     pass
