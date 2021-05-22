@@ -1,8 +1,9 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import logging
 import asyncio
+import logging
+from typing import Optional, Union
 
 import discord
 from redbot.core import Config, commands
@@ -10,20 +11,19 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box
 from redbot.core.utils.predicates import MessagePredicate
 from tabulate import tabulate
-from typing import Optional, Union
-
 
 log = logging.getLogger("red.JojoCogs.betterblacklist")
 _config_structure = {
     "global": {
         "blacklist": {},  # Dict[str, str]. String version of the uid and reason
         "use_reasons": True,
-        "local_blacklist": {}, # Dict[str, Dict[str, str]]. String version of guild id and then same as blacklist
+        "local_blacklist": {},  # Dict[str, Dict[str, str]]. String version of guild id and then same as blacklist
     }
 }
 BLACKLIST_COMMAND: Optional[commands.Command] = None
 LOCAL_BLACKLIST_COMMAND: Optional[commands.Command] = None
 User = Union[discord.Member, int]
+
 
 class AdvancedBlacklist(commands.Cog):
     """An advanced blacklist cog"""
@@ -83,7 +83,9 @@ class AdvancedBlacklist(commands.Cog):
         pass
 
     @localblacklist.command(name="add")
-    async def local_blacklist_add(self, ctx: commands.Context, user: User, *, reason: str = None):
+    async def local_blacklist_add(
+        self, ctx: commands.Context, user: User, *, reason: str = None
+    ):
         """Add a user to this guild's blacklist"""
         user = user if isinstance(user, int) else user.id
         await self.bot._whiteblacklist_cache.add_to_blacklist(
@@ -125,7 +127,9 @@ class AdvancedBlacklist(commands.Cog):
         await ctx.send(box(tabulated))
 
     @localblacklist.command(name="reason")
-    async def local_blacklist_reason(self, ctx: commands.Context, user: User, *, reason: str):
+    async def local_blacklist_reason(
+        self, ctx: commands.Context, user: User, *, reason: str
+    ):
         """Add a reason to a user that is locally blacklisted"""
         gid = str(ctx.guild.id)
         user = user if isinstance(user, int) else user.id
@@ -145,7 +149,7 @@ class AdvancedBlacklist(commands.Cog):
         try:
             await self.bot.wait_for("message", check=pred)
         except asyncio.TimeoutError:
-            pred.result = False #type:ignore[assignment]
+            pred.result = False  # type:ignore[assignment]
         if not pred.result:
             return await ctx.send("Okay, I will not clear the blacklist")
         await ctx.tick()
@@ -199,7 +203,7 @@ class AdvancedBlacklist(commands.Cog):
         try:
             await self.bot.wait_for("message", check=pred)
         except asyncio.TimeoutError:
-            pred.result = False  #type:ignore[assignment]
+            pred.result = False  # type:ignore[assignment]
         if not pred.result:
             return await ctx.send("Okay. I will not clear the blacklist")
         await self.bot._whiteblacklist_cache.clear_blacklist()
