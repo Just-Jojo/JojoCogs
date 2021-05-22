@@ -16,7 +16,7 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
-from .commands import CompositeMetaclass, Deleting, Examples, Settings
+from .commands import CompositeMetaclass, Deleting, Examples, Settings, Search
 from .utils import TodoPages, todo_positive_int
 
 now = datetime.utcnow
@@ -42,7 +42,7 @@ _comic_link = (
 )
 
 
-class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetaclass):
+class ToDo(Examples, Settings, Deleting, Search, commands.Cog, metaclass=CompositeMetaclass):
     """A simple and highly customizable todo list for Discord"""
 
     _no_completed_message = (
@@ -57,7 +57,7 @@ class ToDo(Examples, Settings, Deleting, commands.Cog, metaclass=CompositeMetacl
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.10"
+    _version__ = "1.2.11"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
