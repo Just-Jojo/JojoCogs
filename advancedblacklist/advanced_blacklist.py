@@ -8,7 +8,7 @@ from typing import Optional, Union
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import box
+from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.predicates import MessagePredicate
 from tabulate import tabulate
 
@@ -124,7 +124,7 @@ class AdvancedBlacklist(commands.Cog):
         for uid, reason in lbl.items():
             users.append([f"{uid} ({await self._get_user_name(uid)})", reason])
         tabulated = tabulate(users, ("User", "Reason"), "plain")
-        await ctx.send(box(tabulated))
+        await ctx.send_interactive(pagify(tabulated), box_lang="")
 
     @localblacklist.command(name="reason")
     async def local_blacklist_reason(
@@ -174,7 +174,7 @@ class AdvancedBlacklist(commands.Cog):
         for uid, reason in blacklist.items():
             users.append([f"{uid} ({await self._get_user_name(uid)})", reason])
         tabulated = tabulate(users, ("User", "Reason"), "plain")
-        await ctx.send(box(tabulated))
+        await ctx.send_interactive(pagify(tabulated), box_lang="")
 
     async def _get_user_name(self, uid: int) -> str:
         try:
