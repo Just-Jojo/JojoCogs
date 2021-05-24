@@ -31,7 +31,7 @@ class Collectibles(commands.Cog):
     """Collect trinkets and items!"""
 
     __author__ = ["Jojo#7791"]
-    __version__ = "1.0.1Dev"
+    __version__ = "1.0.2Dev"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -140,7 +140,7 @@ class Collectibles(commands.Cog):
         self,
         ctx: commands.Context,
         name: str,
-        emoji: discord.PartialEmoji,
+        emoji: str,
         cost: positive_int,
     ):
         """Add a Collectible to the global list"""
@@ -149,11 +149,23 @@ class Collectibles(commands.Cog):
                 return await ctx.send(
                     f"A collectible with the name `{name}` already exists in the global cache"
                 )
-            coll[name] = [str(emoji), cost]
+            coll[name] = [emoji, cost]
+        await ctx.tick()
+
+    @collectible.command(name="globalremove", aliases=["gdel", "gdelete"])
+    async def collectible_global_remove(self, ctx: commands.Context, name: str):
+        """Remove a Collectible from the global cache"""
+        async with self.config.collectibles() as coll:
+            if name not in coll.keys():
+                return await ctx.send(
+                    "I could not find a Collectible with that name in the global cache"
+                )
+            del coll[name]
         await ctx.tick()
 
     @collectible.command(name="add")
     @commands.admin()
+    @commands.guild_only()
     async def collectible_guild_add(
         self,
         ctx: commands.Context,
@@ -170,12 +182,27 @@ class Collectibles(commands.Cog):
             coll[name] = [str(emoji), cost]
         await ctx.tick()
 
+    @collectible.command(name="remove", aliases=["del", "delete"])
+    @commands.admin()
+    @commands.guild_only()
+    async def collectible_guild_remove(self, ctx: commands.Context, name: str):
+        """Remove a collectible from this guild's cache"""
+        async with self.config.guild(ctx.guild).collectibles() as coll:
+            if name not in coll.keys():
+                return await ctx.send(
+                    "There is no Collectible with that name in this guild's cache"
+                )
+            coll.pop(name)
+        await ctx.tick()
+
     @collectible.command(name="owned")
     async def collectible_owned(self, ctx: commands.Context):
         """List your Collectibles"""
         collectibles, total_count = (await self.config.user(ctx.author).all()).values()
         joined = "\n".join(f"{emoji} **{coll}**" for coll, emoji in collectibles.items())
-        await Menu(Page(list(pagify(joined)), f"{ctx.author.name}'s Collectibles")).start(ctx)
+        await Menu(Page(list(pagify(joined)), f"{ctx.author.name}'s Collectibles")).start(
+            ctx
+        )
 
     async def _search_collectibles(
         self, ctx: commands.Context, glob: bool, coll_name: str
