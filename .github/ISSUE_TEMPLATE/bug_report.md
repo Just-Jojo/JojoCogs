@@ -7,6 +7,9 @@ assignees: Just-Jojo
 
 ---
 
+### Pre starting checklist
+- [ ] I have read through open and closed issues and made sure that this is not a duplicate.
+
 **What cog are you reporting for?**
 
 
