@@ -116,6 +116,9 @@ class Collectibles(commands.Cog):
         msg: str = ""
         for key, value in collectibles.items():
             log.debug(value)
+            if not value:
+                msg += f"**{key}**\nNo Collectibles available"
+                continue
             msg += (
                 f"**{key}**\n"
                 + "\n".join(
@@ -123,7 +126,7 @@ class Collectibles(commands.Cog):
                 )
                 + "\n\n"
             )
-        msg = msg[:-2]
+        msg = msg[:-2] if msg.endswith("\n") else msg
         await Menu(source=Page(list(pagify(msg)), "Collectibles")).start(ctx)
 
     @collectible.command(

@@ -21,4 +21,4 @@ class Page(ListPageSource):
             return discord.Embed(
                 title=self.title, description=page, colour=await ctx.embed_colour()
             ).set_footer(text=footer)
-        return f"**{self.title}**\n{page}\n{footer}"
+        return f"**{self.title}**\n{page}\n\n{footer}"
