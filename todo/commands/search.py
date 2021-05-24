@@ -15,7 +15,7 @@ except ImportError:
     import re
 
 
-__all__ = ["Search"] # Mypy is a bitch
+__all__ = ["Search"]  # Mypy is a bitch
 
 
 class Search(ToDoMixin):
@@ -34,13 +34,9 @@ class Search(ToDoMixin):
         found = []
         if use_regex:
             to_search = re.compile(to_search)
-            for num, todo in enumerate(todos, 1):
-                if re.search(to_search, todo):
-                    found.append(f"{num}. {todo}")
-        else:
-            for num, todo in enumerate(todos, 1):
-                if to_search in todo:
-                    found.append(f"{num}. {todo}")
+        for num, todo in enumerate(todos, 1):
+            if _ := re.search(to_search, todo) if use_regex else to_search in todo:
+                found.append(f"{num}. {todo}")
         if not found:
             return await ctx.send("I could not find any todos with that pattern")
         conf = await self._get_user_config(ctx.author)

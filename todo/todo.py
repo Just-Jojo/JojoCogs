@@ -16,7 +16,7 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
-from .commands import CompositeMetaclass, Deleting, Examples, Settings, Search
+from .commands import CompositeMetaclass, Deleting, Examples, Search, Settings
 from .utils import TodoPages, todo_positive_int
 
 now = datetime.utcnow
@@ -42,7 +42,9 @@ _comic_link = (
 )
 
 
-class ToDo(Examples, Settings, Deleting, Search, commands.Cog, metaclass=CompositeMetaclass):
+class ToDo(
+    Examples, Settings, Deleting, Search, commands.Cog, metaclass=CompositeMetaclass
+):
     """A simple and highly customizable todo list for Discord"""
 
     _no_completed_message = (
