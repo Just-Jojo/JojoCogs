@@ -3,14 +3,18 @@
 
 import logging
 from datetime import datetime
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 import discord
-from jojo_utils import positive_int
+from jojo_utils import Menu, positive_int
 from redbot.core import Config, bank, commands
 from redbot.core.bot import Red
+from redbot.core.utils.chat_formatting import pagify
+
+from .utils import Page
 
 log = logging.getLogger("red.JojoCogs.collectibles")
+log.setLevel(logging.DEBUG)
 _config_structure = {
     "user": {
         "collectibles": {},
@@ -27,7 +31,7 @@ class Collectibles(commands.Cog):
     """Collect trinkets and items!"""
 
     __author__ = ["Jojo#7791"]
-    __version__ = "1.0.0Dev"
+    __version__ = "1.0.1Dev"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -37,6 +41,14 @@ class Collectibles(commands.Cog):
                 **value
             )  # am too lazy to type it all out :)
 
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+        await self.config.user_from_id(user_id).clear()
+
     @commands.group()
     async def collectible(
         self,
@@ -45,24 +57,22 @@ class Collectibles(commands.Cog):
         """Buy and set collectibles"""
         pass
 
-    @collectible.command(usage="[check_global] <collectible>")
+    @collectible.command(usage="[check_global=True] <collectible>")
     async def buy(
         self,
         ctx: commands.Context,
-        _global: Optional[bool] = True,
+        _global: Optional[bool],
         *,
         collectible_name: str = None,
     ):
         """Buy a collectible"""
-        if collectible_name is None:
-            return await self._send_collectible_list(ctx)
+        _global = True if _global is None else _global
         maybe_collectible = await self._search_collectibles(
             ctx, _global, collectible_name  # type:ignore[arg-type]
         )
         if maybe_collectible is None:
             return await ctx.send("I could not find that Collectible")
         emoji, cost = maybe_collectible
-        log.info(f"{cost} {emoji}\n{type(cost)} {type(emoji)}")
 
         name = await bank.get_currency_name(ctx.guild)
         if not await bank.can_spend(ctx.author, cost):
@@ -71,7 +81,7 @@ class Collectibles(commands.Cog):
                 f"You can't buy that! {collectible_name} costs {cost} {name} but you only have {bal} {name}"
             )
         await bank.withdraw_credits(ctx.author, cost)
-        coll_msg = f"You bought a {collectible_name} for {cost} {name}"
+        coll_msg = f"You bought a {collectible_name} {emoji} for {cost} {name}"
         if await ctx.embed_requested():
             embed = discord.Embed(
                 title="Collectible purchase",
@@ -95,6 +105,26 @@ class Collectibles(commands.Cog):
                 coll[collectible_name] = f"{emoji} {amount}x"
         func = self.config.user(ctx.author).total_count
         await func.set(await func() + 1)
+
+    @collectible.command(name="list")
+    async def collectible_list(self, ctx: commands.Context):
+        """List the collectibles available to purchase"""
+        collectibles: dict = {"Global": await self.config.collectibles()}
+        if ctx.guild:
+            collectibles["Guild"] = await self.config.guild(ctx.guild).collectibles()
+        log.debug(collectibles)
+        msg: str = ""
+        for key, value in collectibles.items():
+            log.debug(value)
+            msg += (
+                f"**{key}**\n"
+                + "\n".join(
+                    f"{name} {emoji}: {cost}" for name, (emoji, cost) in value.items()
+                )
+                + "\n\n"
+            )
+        msg = msg[:-2]
+        await Menu(source=Page(list(pagify(msg)), "Collectibles")).start(ctx)
 
     @collectible.command(
         name="globaladd",
@@ -137,26 +167,16 @@ class Collectibles(commands.Cog):
             coll[name] = [str(emoji), cost]
         await ctx.tick()
 
-    @collectible.command(name="list")
-    async def collectible_list(self, ctx: commands.Context):
+    @collectible.command(name="owned")
+    async def collectible_owned(self, ctx: commands.Context):
         """List your Collectibles"""
         collectibles, total_count = (await self.config.user(ctx.author).all()).values()
-        joined = "\n".join(f"**{coll}** {emoji}" for coll, emoji in collectibles.items())
-        if await ctx.embed_requested():
-            embed = discord.Embed(
-                title=f"{ctx.author.name}'s Collectibles", colour=await ctx.embed_colour()
-            )
-            embed.description = joined
-            kwargs = {"embed": embed}
-        else:
-            msg = f"{ctx.author.name}'s Collectibles\n"
-            msg += joined
-            kwargs = {"content": msg}
-        await ctx.send(**kwargs)
+        joined = "\n".join(f"{emoji} **{coll}**" for coll, emoji in collectibles.items())
+        await Menu(Page(list(pagify(joined)), f"{ctx.author.name}'s Collectibles")).start(ctx)
 
     async def _search_collectibles(
         self, ctx: commands.Context, glob: bool, coll_name: str
-    ) -> Union[None, dict]:
+    ) -> Optional[dict]:
         collectibles: dict = await self.config.collectibles()
         if coll_name in collectibles.keys() and glob:
             # This is an override bool as a global and
@@ -169,31 +189,3 @@ class Collectibles(commands.Cog):
         if coll_name in collectibles.keys():
             return collectibles[coll_name]
         return None
-
-    async def _send_collectible_list(self, ctx: commands.Context):
-        collectibles = await self.config.collectibles()
-        guild_collectibles = None
-        if ctx.guild:
-            guild_collectibles = await self.config.guild(ctx.guild).collectibles()
-        c_dict = {
-            "Global": ", ".join(
-                f"{c_name}: {emoji} {cost}"
-                for c_name, (emoji, cost) in collectibles.items()
-            ),
-        }
-        if guild_collectibles is not None:
-            c_dict["Guild Collectibles"] = ", ".join(
-                f"{c_name}: {emoji} {cost}"
-                for c_name, (emoji, cost) in guild_collectibles.items()
-            )
-        if await ctx.embed_requested():
-            embed = discord.Embed(
-                title="Available Collectibles",
-                description=f"Type `{ctx.clean_prefix}collectible buy <collectible>` to buy a collectible",
-                colour=await ctx.embed_colour(),
-            )
-            for key, value in c_dict.items():
-                embed.add_field(name=key, value=value or "No collectibles", inline=False)
-            return await ctx.send(embed=embed)
-        msg = "\n".join(f"**{key}**\n{value}" for key, value in c_dict.items())
-        await ctx.send(msg)
