@@ -2,7 +2,7 @@
     "name": "advancedblacklist",
     "short": "An advanced Blacklist",
     "description": "Blacklist users with reasons",
-    "end_user_data_statement": "This cog does not store any data on users",
+    "end_user_data_statement": "This cog stores reasons for blacklisting via user id.",
     "install_msg": "Thank you for installing Jojo's advanced blacklist cog!\nIf you have an issue make an issue on my repo",
     "author": [
         "Jojo#7791"

@@ -2,7 +2,7 @@
     "name": "brownies",
     "short": "Collect brownies!",
     "description": "Collect and steal brownies from other guild members then eat them! (the brownies, not the members :notlikeblob:)",
-    "end_user_data_statement": "This cog does not store any data on users",
+    "end_user_data_statement": "This cog stores numbers of brownies via user ids.",
     "install_msg": "Thank you for installing JJW's brownie cog. If you have an issue please make an issue on the github page",
     "author": [
         "JJW (V2)",
