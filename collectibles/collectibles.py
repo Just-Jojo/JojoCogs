@@ -199,6 +199,8 @@ class Collectibles(commands.Cog):
     async def collectible_owned(self, ctx: commands.Context):
         """List your Collectibles"""
         collectibles, total_count = (await self.config.user(ctx.author).all()).values()
+        if not collectibles:
+            return await ctx.send("You do not have any collectibles")
         joined = "\n".join(f"{emoji} **{coll}**" for coll, emoji in collectibles.items())
         await Menu(Page(list(pagify(joined)), f"{ctx.author.name}'s Collectibles")).start(
             ctx
