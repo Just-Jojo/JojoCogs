@@ -31,7 +31,7 @@ class Collectibles(commands.Cog):
     """Collect trinkets and items!"""
 
     __author__ = ["Jojo#7791"]
-    __version__ = "1.0.2Dev"
+    __version__ = "1.0.0"
 
     def __init__(self, bot: Red):
         self.bot = bot
