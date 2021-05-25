@@ -63,7 +63,7 @@ class Collectibles(commands.Cog):
         ctx: commands.Context,
         _global: Optional[bool],
         *,
-        collectible_name: str = None,
+        collectible_name: str,
     ):
         """Buy a collectible"""
         _global = True if _global is None else _global
