@@ -77,13 +77,14 @@ class Settings(ToDoMixin):
         await self._toggler(ctx, toggle, "private", msg, already_set)
 
     @todo_set.command(aliases=["color"])
-    async def colour(self, ctx, color: int = None):
+    async def colour(self, ctx, color: discord.Colour = None):
         """Set the colour of your embeds"""
         msg: str
         if color is None:
             msg = "The embed colour is now reset (it will be the bot's embed colour)"
         else:
             msg = f"The embed colour is now {color}"
+            color = color.value
         await ctx.send(msg)
         await self.config.user(ctx.author).colour.set(color)
         await self.update_cache()
