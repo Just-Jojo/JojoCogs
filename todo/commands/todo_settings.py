@@ -2,7 +2,7 @@
 # Licensed under MIT
 
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Union, Optional
 
 import discord
 from redbot.core import commands
@@ -76,6 +76,18 @@ class Settings(ToDoMixin):
         already_set = f"Private lists are already {toggled}"
         await self._toggler(ctx, toggle, "private", msg, already_set)
 
+    @todo_set.command(aliases=["color"])
+    async def colour(self, ctx, color: int = None):
+        """Set the colour of your embeds"""
+        msg: str
+        if color is None:
+            msg = "The embed colour is now reset (it will be the bot's embed colour)"
+        else:
+            msg = f"The embed colour is now {color}"
+        await ctx.send(msg)
+        await self.config.user(ctx.author).colour.set(color)
+        await self.update_cache()
+
     @todo_set.command(aliases=["settings"])
     async def showsettings(self, ctx):
         """Show your settings"""
@@ -90,6 +102,7 @@ class Settings(ToDoMixin):
             "Reverse sorting": get_toggle(conf["reverse_sort"]).capitalize(),
             "Combined lists": get_toggle(conf["combined_lists"]).capitalize(),
             "Extra details": get_toggle(conf["detailed_pop"]).capitalize(),
+            "Colour": conf["colour"] or "Bot's embed colour",
         }
         if private:
             return await self._private_send_settings(
@@ -98,7 +111,7 @@ class Settings(ToDoMixin):
         if await ctx.embed_requested() and embedded:
             embed = discord.Embed(
                 title=self._embed_title.format(ctx),
-                colour=await ctx.embed_colour(),
+                colour=conf["colour"] or await ctx.embed_colour(),
             )
             embed.timestamp = datetime.utcnow()
             [

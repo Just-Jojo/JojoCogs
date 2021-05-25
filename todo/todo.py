@@ -6,6 +6,7 @@
 import asyncio
 import logging
 import typing
+from typing import Union, Optional
 from datetime import datetime
 
 import discord
@@ -30,6 +31,7 @@ _config_structure = {
     "reverse_sort": False,
     "combined_lists": False,
     "private": False,
+    "colour": None
 }
 _about = (
     "ToDo is a cog designed by Jojo#7791 for keeping track"
@@ -287,6 +289,7 @@ class ToDo(
         use_md = conf.get("use_md", True)
         use_embeds = conf.get("use_embeds", True)
         private = conf.get("private", True)
+        colour = conf.get("colour", None)
 
         if not todos:
             if comb and completed:
@@ -296,6 +299,7 @@ class ToDo(
                     use_md=use_md,
                     use_embeds=use_embeds,
                     private=private,
+                    colour=colour,
                 )
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
 
@@ -307,7 +311,7 @@ class ToDo(
             completed.insert(0, "\N{WHITE HEAVY CHECK MARK} Completed todos")
             todos.extend(completed)
         await self.page_logic(
-            ctx, todos, "Todos", use_md=use_md, use_embeds=use_embeds, private=private
+            ctx, todos, "Todos", use_md=use_md, use_embeds=use_embeds, private=private, colour=colour
         )
 
     @complete.command(name="sort")
@@ -367,6 +371,7 @@ class ToDo(
         use_md: bool,
         use_embeds: bool,
         private: bool,
+        colour: Optional[Union[str, int]]
     ):
         if not use_md:
             completed = await self._cross_lists(completed)
@@ -379,6 +384,7 @@ class ToDo(
             use_md=use_md,
             use_embeds=use_embeds,
             private=private,
+            colour=colour,
         )
 
     async def page_logic(
@@ -390,6 +396,7 @@ class ToDo(
         use_md: bool,
         use_embeds: bool,
         private: bool,
+        colour: Optional[Union[str, int]]
     ):
         data = self._pagified_list(data)
         source = TodoPages(
@@ -397,6 +404,7 @@ class ToDo(
             use_md=use_md,
             use_embeds=use_embeds,
             title=title,
+            colour=colour,
         )
         await Menu(
             source=source,
