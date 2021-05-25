@@ -23,7 +23,7 @@ _config_structure = {
     "guild": {
         "collectibles": {},
     },
-    "global": {"collectibles": {"Trophy": ["🏆", 300]}},
+    "global": {"collectibles": {"Trophy": ["\N{TROPHY}\N{VARIATION SELECTOR-16}", 300]}},
 }
 
 
