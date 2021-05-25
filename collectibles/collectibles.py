@@ -129,12 +129,7 @@ class Collectibles(commands.Cog):
         msg = msg[:-2] if msg.endswith("\n") else msg
         await Menu(source=Page(list(pagify(msg)), "Collectibles")).start(ctx)
 
-    @collectible.command(
-        name="globaladd",
-        aliases=[
-            "gadd",
-        ],
-    )
+    @collectible.command(name="globaladd", aliases=["gadd"])
     @commands.is_owner()
     async def collectible_global_add(
         self,
