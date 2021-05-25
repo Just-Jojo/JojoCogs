@@ -36,10 +36,9 @@ class Collectibles(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
-        for key, value in _config_structure.items():
-            getattr(self.config, f"register_{key}")(
-                **value
-            )  # am too lazy to type it all out :)
+        self.config.register_guild(**_config_structure["guild"])
+        self.config.register_global(**_config_structure["global"])
+        self.config.register_user(**_config_structure["user"])
 
     async def red_delete_data_for_user(
         self,
