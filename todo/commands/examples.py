@@ -1,7 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from typing import List, Union
+from typing import List, Union, Optional
 
 import discord
 from redbot.core import commands
@@ -35,6 +35,7 @@ class Examples(ToDoMixin):
         embedded = conf.get("use_embeds", True)
         private = conf.get("private", False)
         combined = conf.get("combined_lists", False)
+        colour = conf.get("colour", None)
         act_todos = list(_examples.values())
         channel = await self._get_destination(ctx, private=private)
 
@@ -55,9 +56,9 @@ class Examples(ToDoMixin):
             private and embedded
         ):
             if not combined:
-                return await self._handle_not_combined(ctx, channel, private, act_todos)
+                return await self._handle_not_combined(ctx, channel, private, act_todos, colour)
             embed = (
-                discord.Embed(title="Todos", colour=await ctx.embed_colour())
+                discord.Embed(title="Todos", colour=colour or await ctx.embed_colour())
             ).set_footer(text="Page 1/1")
             embed.description = act_todos
             return await channel.send(
@@ -81,18 +82,19 @@ class Examples(ToDoMixin):
         channel: discord.TextChannel,
         private: bool,
         todos: List[str],
+        colour: Optional[int],
     ):
         """Very good method name Jojo!"""
         todo_embed = (
             discord.Embed(
-                title="Todos", description=todos[0], colour=await ctx.embed_colour()
+                title="Todos", description=todos[0], colour=colour or await ctx.embed_colour()
             )
         ).set_footer(text="Page 1/1")
         completed_embed = (
             discord.Embed(
                 title="Completed todos",
                 description=todos[1],
-                colour=await ctx.embed_colour(),
+                colour=colour or await ctx.embed_colour(),
             )
         ).set_footer(text="Page 1/1")
         bundled = [
