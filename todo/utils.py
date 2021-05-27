@@ -1,6 +1,8 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+# type:ignore[attr-defined]
+
 from datetime import datetime
 from typing import Optional
 

@@ -1,6 +1,8 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+# type:ignore[assignment, attr-defined]
+
 import asyncio
 
 import discord
