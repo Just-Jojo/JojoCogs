@@ -149,7 +149,7 @@ class AdvancedBlacklist(commands.Cog):
         try:
             await self.bot.wait_for("message", check=pred)
         except asyncio.TimeoutError:
-            pred.result = False  # type:ignore[assignment]
+            pass
         if not pred.result:
             return await ctx.send("Okay, I will not clear the blacklist")
         await ctx.tick()
@@ -203,7 +203,7 @@ class AdvancedBlacklist(commands.Cog):
         try:
             await self.bot.wait_for("message", check=pred)
         except asyncio.TimeoutError:
-            pred.result = False  # type:ignore[assignment]
+            pass
         if not pred.result:
             return await ctx.send("Okay. I will not clear the blacklist")
         await self.bot._whiteblacklist_cache.clear_blacklist()
