@@ -39,7 +39,7 @@ class ToDoMixin(ABC):
         ...
 
     @abstractmethod
-    async def update_cache(self) -> None:
+    async def update_cache(self, *, user_id: int = None) -> None:
         """|coro|
 
         Updates the settings cache

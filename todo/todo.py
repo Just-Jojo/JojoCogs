@@ -88,7 +88,7 @@ class ToDo(
             f"\nAuthor{plural}: `{', '.join(self.__author__)}`"
         )
 
-    async def update_cache(self):
+    async def update_cache(self, *, user_id: int = None):
         """|coro|
 
         Updates the settings cache
@@ -96,7 +96,10 @@ class ToDo(
         credits to phen for sharing this
         https://github.com/phenom4n4n/phen-cogs/blob/1e862ff1f429dfc1c56074f952b75056a79cd246/baron/baron.py#L91
         """
-        self.settings_cache = await self.config.all_users()
+        if user_id:
+            self.settings_cache[user_id] = await self.config.user_from_id(user_id).all()
+        else:
+            self.settings_cache = await self.config.all_users()
 
     ### Listing commands ###
 
@@ -330,7 +333,7 @@ class ToDo(
         await self.config.user(ctx.author).reverse_sort.set(result)
         async with self.config.user(ctx.author).completed() as todos:
             todos.sort(reverse=result)
-        await self.update_cache()
+        await self.update_cache(user_id=ctx.author.id)
 
     @complete.command(name="list")
     async def complete_list(self, ctx):
@@ -452,7 +455,7 @@ class ToDo(
         uid = user if isinstance(user, int) else user.id
         maybe_config = self.settings_cache.get(uid, None)
         if maybe_config is None:
-            await self.update_cache()
+            await self.update_cache(user_id=ctx.author.id)
             maybe_config = self.settings_cache.get(uid, _config_structure)
         return maybe_config  # type:ignore[return-value]
 

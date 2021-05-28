@@ -87,7 +87,7 @@ class Settings(ToDoMixin):
             color = color.value
         await ctx.send(msg)
         await self.config.user(ctx.author).colour.set(color)
-        await self.update_cache()
+        await self.update_cache(user_id=ctx.author.id)
 
     @todo_set.command(aliases=["settings"])
     async def showsettings(self, ctx):
@@ -137,7 +137,7 @@ class Settings(ToDoMixin):
             return await ctx.send(content=already_set)
         await ctx.send(content=msg)
         await self.config.user(ctx.author).set_raw(key, value=toggle)
-        await self.update_cache()
+        await self.update_cache(user_id=ctx.author.id)
 
     async def _private_send_settings(
         self, ctx: commands.Context, use_embed: bool, settings: Dict[str, str]
