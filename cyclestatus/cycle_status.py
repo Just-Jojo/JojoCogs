@@ -45,7 +45,7 @@ _bot_prefix_var = r"{bot_prefix}"
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
-    __version__ = "1.0.3"
+    __version__ = "1.0.4"
     __author__ = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__ = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
@@ -103,7 +103,8 @@ class CycleStatus(commands.Cog):
         """Add a status to the list
 
         Put `{bot_guild_count}` or `{bot_member_count}` in your message to have the user
-        count and guild count of your bot!
+        count and guild count of your bot! You can also put `{bot_prefix}` in your message to have
+        the bot's prefix be displayed (eg. `{bot_prefix}ping`)
         """
         async with self.config.statuses() as s:
             s.append(status)
