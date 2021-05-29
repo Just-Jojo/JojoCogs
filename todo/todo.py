@@ -61,7 +61,7 @@ class ToDo(
         "than the length of your todo list)"
     )
 
-    _version__ = "1.2.12"
+    __version__ = "1.2.12"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
