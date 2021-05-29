@@ -39,6 +39,7 @@ def positive_int(arg: str) -> int:
 
 _bot_guild_var = r"{bot_guild_count}"
 _bot_member_var = r"{bot_member_count}"
+_bot_prefix_var = r"{bot_prefix}"
 
 
 class CycleStatus(commands.Cog):
@@ -47,7 +48,7 @@ class CycleStatus(commands.Cog):
     __version__ = "1.0.3"
     __author__ = ["Jojo#7791"]
     # These people have suggested something for this cog!
-    __suggesters__ = ["ItzXenonUnity | Lou#2369"]
+    __suggesters__ = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -180,9 +181,10 @@ class CycleStatus(commands.Cog):
     async def _status_add(self, status: str, use_help: bool) -> None:
         status = status.replace(_bot_guild_var, str(len(self.bot.guilds)))
         status = status.replace(_bot_member_var, str(len(self.bot.users)))
+        prefix = (await self.bot.get_valid_prefixes())[0]
+        prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
+        status = status.replace(_bot_prefix_var, prefix)
         if use_help:
-            prefix = (await self.bot.get_valid_prefixes())[0]
-            prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
             status += f" | {prefix}help"
         game = discord.Game(name=status)
         await self.bot.change_presence(activity=game)
