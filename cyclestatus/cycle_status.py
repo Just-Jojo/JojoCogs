@@ -9,7 +9,7 @@ from typing import List
 
 import discord
 from discord.ext import tasks
-from jojo_utils import Menu
+from jojo_utils import Menu, positive_int
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
@@ -25,17 +25,6 @@ _config_structure = {
         "next_iter": 0,
     },
 }
-
-
-def positive_int(arg: str) -> int:
-    try:
-        ret = int(arg)
-    except ValueError:
-        raise commands.BadArgument(message=f"{arg} is not an int")
-    if ret < 1:
-        raise commands.BadArgument(message=f"'{arg}' is not positive")
-    return ret
-
 
 _bot_guild_var = r"{bot_guild_count}"
 _bot_member_var = r"{bot_member_count}"
