@@ -70,6 +70,7 @@ class AdvancedBlacklist(commands.Cog):
     async def init(self):
         await self.bot.wait_until_red_ready()
         async with self.config.blacklist() as bl:
+            blacklist = await self.bot._whiteblacklist_cache.get_blacklist()
             for uid in blacklist:
                 if str(uid) in bl.keys():
                     continue
