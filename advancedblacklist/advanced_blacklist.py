@@ -27,7 +27,7 @@ LOCAL_BLACKLIST_COMMAND: Optional[commands.Command] = None
 class AdvancedBlacklist(commands.Cog):
     """An advanced blacklist cog"""
 
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -131,12 +131,14 @@ class AdvancedBlacklist(commands.Cog):
     ):
         """Add a reason to a user that is locally blacklisted"""
         gid = str(ctx.guild.id)
-        user = user.id
+        user = str(user.id)
         async with self.config.local_blacklist() as lb:
             lbl = lb.get(gid)
             if not lbl:
                 return await ctx.send("The blacklist is empty")
-            lbl[str(user)] = reason
+            elif user not in lbl.keys():
+                return await ctx.send("That user is not blacklisted")
+            lbl[user] = reason
             lb[gid] = lbl
         await ctx.tick()
 
@@ -227,7 +229,7 @@ class AdvancedBlacklist(commands.Cog):
     @blacklist.command(name="reason")
     async def blacklist_reason(self, ctx: commands.Context, user: discord.User, *, reason: str):
         """Add or edit the reason for a blacklisted user"""
-        uid = str(user)
+        uid = str(user.id)
         async with self.config.blacklist() as bl:
             if uid not in bl.keys():
                 return await ctx.send("That user is not blacklisted")
