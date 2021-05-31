@@ -22,7 +22,6 @@ _config_structure = {
 }
 BLACKLIST_COMMAND: Optional[commands.Command] = None
 LOCAL_BLACKLIST_COMMAND: Optional[commands.Command] = None
-User = Union[discord.Member, int]
 
 
 class AdvancedBlacklist(commands.Cog):
@@ -84,10 +83,10 @@ class AdvancedBlacklist(commands.Cog):
 
     @localblacklist.command(name="add")
     async def local_blacklist_add(
-        self, ctx: commands.Context, user: User, *, reason: str = None
+        self, ctx: commands.Context, user: discord.User, *, reason: str = None
     ):
         """Add a user to this guild's blacklist"""
-        user = user if isinstance(user, int) else user.id
+        user = user.id
         await self.bot._whiteblacklist_cache.add_to_blacklist(
             guild=ctx.guild, role_or_user=(user,)
         )
@@ -101,9 +100,9 @@ class AdvancedBlacklist(commands.Cog):
         await ctx.tick()
 
     @localblacklist.command(name="remove", alises=["del", "delete"])
-    async def local_blacklist_remove(self, ctx: commands.Context, user: User):
+    async def local_blacklist_remove(self, ctx: commands.Context, user: discord.User):
         """Remove a user from this guild's blacklist"""
-        user = user if isinstance(user, int) else user.id
+        user = user.id
         await self.bot._whiteblacklist_cache.remove_from_blacklist(
             guild=ctx.guild, role_or_user=(user,)
         )
@@ -128,11 +127,11 @@ class AdvancedBlacklist(commands.Cog):
 
     @localblacklist.command(name="reason")
     async def local_blacklist_reason(
-        self, ctx: commands.Context, user: User, *, reason: str
+        self, ctx: commands.Context, user: discord.User, *, reason: str
     ):
         """Add a reason to a user that is locally blacklisted"""
         gid = str(ctx.guild.id)
-        user = user if isinstance(user, int) else user.id
+        user = user.id
         async with self.config.local_blacklist() as lb:
             lbl = lb.get(gid)
             if not lbl:
@@ -184,10 +183,10 @@ class AdvancedBlacklist(commands.Cog):
 
     @blacklist.command(name="add")
     async def blacklist_add(
-        self, ctx: commands.Context, user: User, *, reason: str = "No reason provided"
+        self, ctx: commands.Context, user: discord.User, *, reason: str = "No reason provided"
     ):
         """Add a user to the blacklist"""
-        user = user if isinstance(user, int) else user.id
+        user = user.id
         await self.bot._whiteblacklist_cache.add_to_blacklist(
             guild=None, role_or_user=(user,)
         )
@@ -212,9 +211,9 @@ class AdvancedBlacklist(commands.Cog):
         await ctx.tick()
 
     @blacklist.command(name="remove", aliases=["del", "rm"])
-    async def blacklist_remove(self, ctx: commands.Context, user: User):
+    async def blacklist_remove(self, ctx: commands.Context, user: discord.User):
         """Remove users from the blacklist"""
-        user = user if isinstance(user, int) else user.id
+        user = user.id
         await self.bot._whiteblacklist_cache.remove_from_blacklist(
             guild=None, role_or_user=(user,)
         )
@@ -226,7 +225,7 @@ class AdvancedBlacklist(commands.Cog):
         await ctx.tick()
 
     @blacklist.command(name="reason")
-    async def blacklist_reason(self, ctx: commands.Context, user: User, *, reason: str):
+    async def blacklist_reason(self, ctx: commands.Context, user: discord.User, *, reason: str):
         """Add or edit the reason for a blacklisted user"""
         uid = str(user)
         async with self.config.blacklist() as bl:
