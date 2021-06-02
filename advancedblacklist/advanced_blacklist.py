@@ -186,7 +186,11 @@ class AdvancedBlacklist(commands.Cog):
 
     @blacklist.command(name="add")
     async def blacklist_add(
-        self, ctx: commands.Context, user: discord.User, *, reason: str = "No reason provided"
+        self,
+        ctx: commands.Context,
+        user: discord.User,
+        *,
+        reason: str = "No reason provided",
     ):
         """Add a user to the blacklist"""
         user = user.id
@@ -228,7 +232,9 @@ class AdvancedBlacklist(commands.Cog):
         await ctx.tick()
 
     @blacklist.command(name="reason")
-    async def blacklist_reason(self, ctx: commands.Context, user: discord.User, *, reason: str):
+    async def blacklist_reason(
+        self, ctx: commands.Context, user: discord.User, *, reason: str
+    ):
         """Add or edit the reason for a blacklisted user"""
         uid = str(user.id)
         async with self.config.blacklist() as bl:

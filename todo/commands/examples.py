@@ -1,7 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 import discord
 from redbot.core import commands
@@ -56,7 +56,9 @@ class Examples(ToDoMixin):
             private and embedded
         ):
             if not combined:
-                return await self._handle_not_combined(ctx, channel, private, act_todos, colour)
+                return await self._handle_not_combined(
+                    ctx, channel, private, act_todos, colour
+                )
             embed = (
                 discord.Embed(title="Todos", colour=colour or await ctx.embed_colour())
             ).set_footer(text="Page 1/1")
@@ -87,7 +89,9 @@ class Examples(ToDoMixin):
         """Very good method name Jojo!"""
         todo_embed = (
             discord.Embed(
-                title="Todos", description=todos[0], colour=colour or await ctx.embed_colour()
+                title="Todos",
+                description=todos[0],
+                colour=colour or await ctx.embed_colour(),
             )
         ).set_footer(text="Page 1/1")
         completed_embed = (
