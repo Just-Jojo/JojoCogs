@@ -3,7 +3,7 @@
 
 import asyncio
 import logging
-from typing import Optional, Union
+from typing import Dict, Optional, Union, List
 
 import discord
 from redbot.core import Config, commands
@@ -12,12 +12,18 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.predicates import MessagePredicate
 from tabulate import tabulate
 
-log = logging.getLogger("red.JojoCogs.betterblacklist")
+try:
+    import regex as re
+except ImportError:
+    import re  # type:ignore[no-redef]
+
+log = logging.getLogger("red.JojoCogs.advancedblacklist")
 _config_structure = {
     "global": {
         "blacklist": {},  # Dict[str, str]. String version of the uid and reason
         "use_reasons": True,
         "local_blacklist": {},  # Dict[str, Dict[str, str]]. String version of guild id and then same as blacklist
+        "names": {},  # Dict[str, bool]. The search pattern and if it's a regex or not
     }
 }
 BLACKLIST_COMMAND: Optional[commands.Command] = None
@@ -27,7 +33,7 @@ LOCAL_BLACKLIST_COMMAND: Optional[commands.Command] = None
 class AdvancedBlacklist(commands.Cog):
     """An advanced blacklist cog"""
 
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
     __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
@@ -35,6 +41,7 @@ class AdvancedBlacklist(commands.Cog):
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(**_config_structure["global"])
         self.task: asyncio.Task = self.bot.loop.create_task(self.init())
+        self.blacklist_name_cache: Dict[str, List[bool]] = {}
 
     def format_help_for_context(self, ctx: commands.Context):
         pre_processed = super().format_help_for_context(ctx)
@@ -75,6 +82,7 @@ class AdvancedBlacklist(commands.Cog):
                 if str(uid) in bl.keys():
                     continue
                 bl[str(uid)] = "No reason provided"
+        self.blacklist_name_cache = await self.config.names()
 
     @commands.group(aliases=["localblocklist"])
     @commands.guild_only()
@@ -184,6 +192,58 @@ class AdvancedBlacklist(commands.Cog):
         except discord.NotFound:
             return "Unknown or Deleted User."
 
+    @blacklist.group(name="name", aliases=["names"])
+    async def blacklist_name(self, ctx: commands.Context):
+        """Blacklist users by names.
+
+        For example, you can add `Jojo` to it and it would blacklist anyone with the name `Jojo`
+        This also supports regexes, which you can test at https://regex101.com/ (make sure to set it to python)
+        """
+        pass
+
+    @blacklist_name.command(name="add", usage="[use_regex=False] [lower_case=True] <pattern>")
+    async def blacklist_name_add(
+        self,
+        ctx: commands.Context,
+        use_regex: Optional[bool],
+        lower_case: Optional[bool],
+        *,
+        pattern: str,
+    ):
+        """Add a pattern to the blacklisted name cache.
+
+        If you would like a regex, use the command list this `[p]blacklist name add True ^jojo+$`
+        If you would like it to match casing use `[p]blacklist name add <regex value> True Jojo"""
+        use_regex = use_regex if use_regex is not None else False
+        lower_case = lower_case if lower_case is not None else True
+        self.blacklist_name_cache[pattern] = [use_regex, lower_case]
+        regex = "will" if use_regex else "won't"
+        lower = "will" if lower_case else "won't"
+        await ctx.send(f"Added this as a blacklist pattern `{pattern}`.\nIt {regex} be regex and {lower} match lower case.")
+        async with self.config.names() as names:
+            names[pattern] = [use_regex, lower_case]
+
+    @blacklist_name.command(name="list")
+    async def blacklist_name_list(self, ctx: commands.Context):
+        """List the blacklisted names."""
+        if not self.blacklist_name_cache:
+            return await ctx.send("There are no blacklisted user names.")
+        ret = []
+        for pattern, (reg, lc) in self.blacklist_name_cache.items():
+            ret.append([pattern, f"{reg}|{lc}"])
+        tabulated = tabulate(ret, ("Pattern", "Regex?|Match case?"))
+        await ctx.send_interactive(pagify(tabulated), box_lang="")
+
+    @blacklist_name.command(name="remove", aliases=["del", "delete"])
+    async def blacklist_name_remove(self, ctx: commands.Context, *, pattern: str):
+        """Remove a pattern from the blacklisted names cache."""
+        if pattern not in self.blacklist_name_cache.keys():
+            return await ctx.send("I could not find a pattern like that in the blacklisted names.")
+        async with self.config.names() as names:
+            names.pop(pattern)
+            self.blacklist_name_cache.pop(pattern)
+        await ctx.tick()
+
     @blacklist.command(name="add")
     async def blacklist_add(
         self,
@@ -242,6 +302,28 @@ class AdvancedBlacklist(commands.Cog):
                 return await ctx.send("That user is not blacklisted")
             bl[uid] = reason
         await ctx.tick()
+
+    @commands.Cog.listener()
+    async def on_message(self, msg: discord.Message):
+        author_name: str = msg.author.name
+        if await self.bot.is_owner(msg.author):
+            return
+        async with self.config.blacklist() as bl:
+            if str(msg.author.id) in bl.keys():
+                return
+            for pattern, (reg, lower) in self.blacklist_name_cache.items():
+                if lower:
+                    author_name = author_name.lower()
+                    pattern = pattern.lower()
+                if reg:
+                    pattern = re.compile(pattern)
+                if re.search(pattern, author_name) if reg else pattern in author_name:
+                    await self.bot._whiteblacklist_cache.add_to_blacklist(
+                        guild=None, role_or_user=(msg.author.id,)
+                    )
+                    bl[str(msg.author.id)] = "Name matched the blacklisted name list."
+                    log.debug(f"Blacklisted {msg.author.name}. They had a blacklisted name.")
+                    return
 
     async def cog_check(self, ctx: commands.Context) -> bool:
         # Owner only cog check
