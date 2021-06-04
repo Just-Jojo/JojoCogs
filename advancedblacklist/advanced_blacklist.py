@@ -3,7 +3,7 @@
 
 import asyncio
 import logging
-from typing import Dict, Optional, Union, List
+from typing import Dict, List, Optional, Union
 
 import discord
 from redbot.core import Config, commands
@@ -201,7 +201,9 @@ class AdvancedBlacklist(commands.Cog):
         """
         pass
 
-    @blacklist_name.command(name="add", usage="[use_regex=False] [lower_case=True] <pattern>")
+    @blacklist_name.command(
+        name="add", usage="[use_regex=False] [lower_case=True] <pattern>"
+    )
     async def blacklist_name_add(
         self,
         ctx: commands.Context,
@@ -219,7 +221,9 @@ class AdvancedBlacklist(commands.Cog):
         self.blacklist_name_cache[pattern] = [use_regex, lower_case]
         regex = "will" if use_regex else "won't"
         lower = "will" if lower_case else "won't"
-        await ctx.send(f"Added this as a blacklist pattern `{pattern}`.\nIt {regex} be regex and {lower} match lower case.")
+        await ctx.send(
+            f"Added this as a blacklist pattern `{pattern}`.\nIt {regex} be regex and {lower} match lower case."
+        )
         async with self.config.names() as names:
             names[pattern] = [use_regex, lower_case]
 
@@ -238,7 +242,9 @@ class AdvancedBlacklist(commands.Cog):
     async def blacklist_name_remove(self, ctx: commands.Context, *, pattern: str):
         """Remove a pattern from the blacklisted names cache."""
         if pattern not in self.blacklist_name_cache.keys():
-            return await ctx.send("I could not find a pattern like that in the blacklisted names.")
+            return await ctx.send(
+                "I could not find a pattern like that in the blacklisted names."
+            )
         async with self.config.names() as names:
             names.pop(pattern)
             self.blacklist_name_cache.pop(pattern)
@@ -322,7 +328,9 @@ class AdvancedBlacklist(commands.Cog):
                         guild=None, role_or_user=(msg.author.id,)
                     )
                     bl[str(msg.author.id)] = "Name matched the blacklisted name list."
-                    log.debug(f"Blacklisted {msg.author.name}. They had a blacklisted name.")
+                    log.info(
+                        f"Blacklisted {msg.author.name} as they had a blacklisted name."
+                    )
                     return
 
     async def cog_check(self, ctx: commands.Context) -> bool:
