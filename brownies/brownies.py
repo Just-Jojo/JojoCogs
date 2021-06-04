@@ -43,7 +43,7 @@ class PluralDict(dict):
 
 
 class Brownies(commands.Cog):
-    """[bot] loves brownies, and will steal from others for you!"""
+    """[botname] loves brownies, and will steal from others for you!"""
 
     __author__ = ["JJW (V2)", "Jojo#7791"]
     __version__ = "0.1.0"
