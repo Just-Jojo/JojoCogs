@@ -14,7 +14,7 @@ from discord.ext import tasks
 from jojo_utils import Menu, positive_int
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import box, pagify
+from redbot.core.utils.chat_formatting import box, pagify, humanize_list
 from redbot.core.utils.predicates import MessagePredicate
 
 from .commands import CompositeMetaclass, Deleting, Examples, Search, Settings
@@ -61,8 +61,9 @@ class ToDo(
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.12"
+    __version__ = "1.2.13"
     __author__ = ["Jojo#7791"]
+    __suggesters__ = ["Blackbird#0001",]
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -86,6 +87,7 @@ class ToDo(
             f"{super().format_help_for_context(ctx)}"
             f"\n\nCurrent Version: `{self.__version__}`"
             f"\nAuthor{plural}: `{', '.join(self.__author__)}`"
+            f"\nSuggesters: Use `[p]todo suggesters`!"
         )
 
     async def update_cache(self, *, user_id: int = None):
@@ -140,6 +142,15 @@ class ToDo(
         """Commands having to do with completed todos"""
         if not await self.config.user(ctx.author).todos():
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+        conf = await self._get_user_config(ctx.author)
+        try:
+            conf["completed"]
+        except KeyError:
+            conf["completed"] = []
+        try:
+            conf["todos"]
+        except KeyError:
+            conf["todos"] = []
         async with ctx.typing():
             async with self.config.user(ctx.author).todos() as todos:
                 async with self.config.user(ctx.author).completed() as completed:
@@ -150,15 +161,17 @@ class ToDo(
                     for index in indexes:
                         try:
                             rmd = todos.pop(index)
+                            conf["todos"].pop(index)
                         except IndexError:
                             fails += 1
                             failed.append(f"`{index}`")
                         else:
                             comp += 1
                             compled.append(f"`{rmd}`")
-                            completed.append(f"{rmd}")
+                            completed.append(rmd)
+                            conf["completed"].append(rmd)
         msg = "Done."
-        details = await self.config.user(ctx.author).detailed_pop()
+        details = conf.get("detailed_pop", False)
         if comp:
             plural = "" if comp == 1 else "s"
             msg += f"\nCompleted {comp} todo{plural}"
@@ -176,6 +189,7 @@ class ToDo(
             await ctx.send_interactive(pagify(msg))
         else:
             await ctx.send(msg)
+        self.settings_cache[ctx.author.id] = conf
 
     @todo.command()
     async def explain(self, ctx, comic: bool = False):
@@ -198,6 +212,21 @@ class ToDo(
                 kwargs["content"] = _about
         await ctx.send(**kwargs)
 
+    @todo.command(name="suggesters")
+    async def todo_suggesters(self, ctx):
+        """These awesome people have suggested things for this cog!"""
+        msg = (
+            "Thanks for everyone who's suggested something for this cog!"
+            f"\n{humanize_list(self.__suggesters__)}"
+            "\n\nSpecial thanks to Kreusada for helping me a lot with this cog ❤"
+        )
+        kwargs = {"content": msg}
+        if await ctx.embed_requested():
+            em = discord.Embed(title="Suggesters!", colour=await ctx.embed_colour(), description=msg)
+            em.timestamp = datetime.utcnow()
+            kwargs = {"embed": em}
+        await ctx.send(**kwargs)
+
     @todo.command()
     async def suggestions(self, ctx):
         """See how you could add suggestions!"""
@@ -208,8 +237,10 @@ class ToDo(
             "I can add more things, I just don't know what I should add, "
             "you can help by going to my GitHub repo (<https://github.com/Just-Jojo/JojoCogs>), "
             "go to the `issues` tab, click on `Todo suggestions`, and leave a comment! "
-            "(here's the issue link <https://github.com/Just-Jojo/JojoCogs/issues/15> :) )"
+            "(here's the issue link <https://github.com/Just-Jojo/JojoCogs/issues/15> 😄)"
+            f"\n~~You can also appear in the `{ctx.clean_prefix}todo suggesters` command :p~~"
         )
+        kwargs = {"content": msg}
         if await ctx.embed_requested():
             embed = discord.Embed(
                 title="Todo suggestions",
@@ -220,8 +251,6 @@ class ToDo(
             kwargs = {
                 "embed": embed,
             }
-        else:
-            kwargs = {"content": msg}
         await ctx.send(**kwargs)
 
     @todo.command(name="add")
@@ -229,9 +258,15 @@ class ToDo(
         """Add a todo to your list"""
         async with self.config.user(ctx.author).todos() as todos:
             todos.append(todo)
+        conf = await self._get_user_config(ctx.author)
+        try:
+            conf["todos"].append(todo)
+        except KeyError:
+            conf["todos"] = [todo,]
+        self.settings_cache[ctx.author.id] = conf
 
         msg = "Added that as a todo"
-        details = await self.config.user(ctx.author).detailed_pop()
+        details = conf.get("detailed_pop", False)
         if details:
             msg += f"\n'{discord.utils.escape_markdown(todo)}'"
         await self._maybe_autosort(ctx)
@@ -283,10 +318,8 @@ class ToDo(
     async def todo_list(self, ctx):
         """List your current todos!"""
         conf = await self._get_user_config(ctx.author)
-        todos = await self.config.user(ctx.author).todos()
-        completed = await self.config.user(ctx.author).completed()
-        # Okay so, settings cache *only* gets updated on setting changes and
-        # if the user isn't in the cache. This means that I have to do this
+        todos = conf.get("todos", [])
+        completed = conf.get("completed", [])
 
         comb = conf.get("combined_lists", False)
         use_md = conf.get("use_md", True)
@@ -345,7 +378,7 @@ class ToDo(
     async def complete_list(self, ctx):
         """List your completed todos"""
         conf = await self._get_user_config(ctx.author)
-        completed = await self.config.user(ctx.author).completed()
+        completed = conf.get("completed", [])
         use_md = conf.get("use_md", True)
         use_embeds = conf.get("use_embeds", True)
 
@@ -457,7 +490,7 @@ class ToDo(
 
     async def _get_user_config(
         self, user: typing.Union[int, discord.Member, discord.User]
-    ) -> typing.Dict[typing.Any, typing.Any]:
+    ) -> typing.Dict[str, typing.Any]:
         uid = user if isinstance(user, int) else user.id
         maybe_config = self.settings_cache.get(uid, None)
         if maybe_config is None:
