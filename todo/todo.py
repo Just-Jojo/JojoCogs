@@ -14,7 +14,7 @@ from discord.ext import tasks
 from jojo_utils import Menu, positive_int
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import box, pagify, humanize_list
+from redbot.core.utils.chat_formatting import box, humanize_list, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from .commands import CompositeMetaclass, Deleting, Examples, Search, Settings
@@ -61,9 +61,11 @@ class ToDo(
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.13"
+    __version__ = "1.2.14"
     __author__ = ["Jojo#7791"]
-    __suggesters__ = ["Blackbird#0001",]
+    __suggesters__ = [
+        "Blackbird#0001",
+    ]
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -222,7 +224,9 @@ class ToDo(
         )
         kwargs = {"content": msg}
         if await ctx.embed_requested():
-            em = discord.Embed(title="Suggesters!", colour=await ctx.embed_colour(), description=msg)
+            em = discord.Embed(
+                title="Suggesters!", colour=await ctx.embed_colour(), description=msg
+            )
             em.timestamp = datetime.utcnow()
             kwargs = {"embed": em}
         await ctx.send(**kwargs)
@@ -262,7 +266,9 @@ class ToDo(
         try:
             conf["todos"].append(todo)
         except KeyError:
-            conf["todos"] = [todo,]
+            conf["todos"] = [
+                todo,
+            ]
         self.settings_cache[ctx.author.id] = conf
 
         msg = "Added that as a todo"
@@ -299,20 +305,24 @@ class ToDo(
         act_index, act_to_place = index - 1, to_place - 1
 
         conf = await self._get_user_config(ctx.author)
-        todos = conf.get("todos")
-        try:
-            todo = todos.pop(act_index)
-            todos.insert(act_to_place, todo)
-        except IndexError:
-            await ctx.send(f"I could not find a todo at the index {index}")
-            return
-        await self.config.user(ctx.author).todos.set(todos)
+        async with self.config.user(ctx.author).todos() as tds:
+            if not tds:
+                return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+            todos = conf.get("todos")
+            try:
+                todo = tds.pop(act_index)
+                tds.insert(act_to_place, todo)
+                # todo = todos.pop(act_index)
+                # todos.insert(act_to_place, todo)
+            except IndexError:
+                return await ctx.send("I could not find a todo at that index!")
         msg = f"Moved a todo from index {index} to {to_place}"
         if conf["detailed_pop"]:
             msg += f"\n`{todo}`"
         await ctx.send(msg)
         if conf.get("autosort", False):
             await self.config.user(ctx.author).autosort.set(False)
+        await self.update_cache(user_id=ctx.author.id)
 
     @todo.command(name="list")
     async def todo_list(self, ctx):
@@ -381,6 +391,7 @@ class ToDo(
         completed = conf.get("completed", [])
         use_md = conf.get("use_md", True)
         use_embeds = conf.get("use_embeds", True)
+        colour = conf.get("colour", None)
 
         if not completed:
             await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
@@ -395,7 +406,30 @@ class ToDo(
                 use_md=use_md,
                 use_embeds=use_embeds,
                 private=conf.get("private", False),
+                colour=colour,
             )
+
+    @complete.command(name="reorder")
+    async def complete_reorder(self, ctx, index: positive_int, to_place: positive_int):
+        """Move a completed todo to a new index"""
+        act_index, act_to_place = [i - 1 for i in (index, to_place)]
+        conf = await self._get_user_config(ctx.author)
+        completed = conf.get("completed")
+        async with self.config.user(ctx.author).completed() as comp:
+            if not completed:
+                return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
+            try:
+                todo = comp.pop(act_index)
+                comp.insert(act_to_place, todo)
+            except KeyError:
+                return await ctx.send("I could not find a todo at that index!")
+        msg = f"Moved a todo from {index} to {to_place}."
+        if conf.get("detailed_pop"):
+            msg += f"\n`{todo}`"
+        await ctx.send(msg)
+        if conf.get("autosort"):
+            await self.config.user(ctx.author).autosort.set(False)
+        await self.update_cache(user_id=ctx.author.id)
 
     @todo.command()
     async def version(self, ctx):
