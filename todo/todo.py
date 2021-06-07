@@ -61,7 +61,7 @@ class ToDo(
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.14"
+    __version__ = "1.2.15"
     __author__ = ["Jojo#7791"]
     __suggesters__ = [
         "Blackbird#0001",
@@ -307,7 +307,9 @@ class ToDo(
         conf = await self._get_user_config(ctx.author)
         async with self.config.user(ctx.author).todos() as tds:
             if not tds:
-                return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+                return await ctx.send(
+                    self._no_todo_message.format(prefix=ctx.clean_prefix)
+                )
             todos = conf.get("todos")
             try:
                 todo = tds.pop(act_index)
@@ -417,7 +419,9 @@ class ToDo(
         completed = conf.get("completed")
         async with self.config.user(ctx.author).completed() as comp:
             if not completed:
-                return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
+                return await ctx.send(
+                    self._no_completed_message.format(prefix=ctx.clean_prefix)
+                )
             try:
                 todo = comp.pop(act_index)
                 comp.insert(act_to_place, todo)

@@ -31,7 +31,9 @@ class Deleting(ToDoMixin):
     @todo.command(require_var_positional=True, aliases=["del", "rm", "delete"])
     async def remove(self, ctx, *indexes: positive_int):
         """Delete todos!"""
-        if not await self.config.user(ctx.author).todos():
+        conf = await self._get_user_config(ctx.author)
+        tds = conf.get("todos", [])
+        if not tds:
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         async with ctx.typing():
             async with self.config.user(ctx.author).todos() as todos:
@@ -40,6 +42,7 @@ class Deleting(ToDoMixin):
                 fails, failed, comp, completed = 0, [], 0, []
                 for index in indexes:
                     try:
+                        tds.pop(index)
                         completed.append(f"`{todos.pop(index)}`")
                     except IndexError:
                         fails += 1
@@ -47,7 +50,7 @@ class Deleting(ToDoMixin):
                     else:
                         comp += 1
         msg = "Done."
-        details = await self.config.user(ctx.author).detailed_pop()
+        details = conf.get("detailed_pop", False)
         if comp:
             plural = "" if comp == 1 else "s"
             msg += f"\nRemoved {comp} todo{plural}"
@@ -63,6 +66,10 @@ class Deleting(ToDoMixin):
             await ctx.send_interactive(pagify(msg))
         else:
             await ctx.send(msg)
+        try:
+            self.settings_cache[ctx.author.id]["todos"] = tds
+        except KeyError:
+            await self.update_cache(user_id=ctx.author.id)
 
     @todo.command(aliases=["delall"])
     async def removeall(self, ctx):
@@ -81,13 +88,18 @@ class Deleting(ToDoMixin):
             else:
                 await self.config.user(ctx.author).todos.clear()
                 await ctx.send("Removed your todos.")
+                try:
+                    self.settings_cache[ctx.author.id]["todos"] = []
+                except KeyError:
+                    await self.update_cache(user_id=ctx.author.id)
 
     @complete.command(
         require_var_positional=True, name="remove", aliases=["del", "rm", "delete"]
     )
     async def complete_delete(self, ctx, *indexes: positive_int):
         """Remove your completed todos"""
-        if not await self.config.user(ctx.author).completed():
+        conf = await self._get_user_config(ctx.author)
+        if not (comp := conf.get("completed", [])):
             return await ctx.send(
                 self._no_completed_message.format(prefix=ctx.clean_prefix)
             )
@@ -99,13 +111,14 @@ class Deleting(ToDoMixin):
                 for index in indexes:
                     try:
                         removed.append(f"`{cd.pop(index)}`")
+                        comp.pop(index)
                     except IndexError:
                         fails += 1
                         failed.append(f"`{index}`")
                     else:
                         removes += 1
         msg = "Done."
-        details = await self.config.user(ctx.author).detailed_pop()
+        details = conf.get("detailed_pop", False)
         if removes:
             plural = "" if removes == 1 else "s"
             msg += f"\nRemoved {removes} todo{plural}"
@@ -121,6 +134,10 @@ class Deleting(ToDoMixin):
             await ctx.send_interactive(pagify(msg))
         else:
             await ctx.send(msg)
+        try:
+            self.settings_cache[ctx.author.id]["completed"] = comp
+        except KeyError:
+            await self.update_cache(user_id=ctx.author.id)
 
     @complete.command(name="removeall", aliases=["delall", "rma"])
     async def complete_removeall(self, ctx):
@@ -139,3 +156,7 @@ class Deleting(ToDoMixin):
             else:
                 await self.config.user(ctx.author).completed.clear()
                 await ctx.send("Removed your completed todos.")
+                try:
+                    self.settings_cache[ctx.author.id]["completed"] = []
+                except KeyError:
+                    await self.update_cache(user_id=ctx.author.id)

@@ -72,7 +72,8 @@ class Settings(ToDoMixin):
     async def private(self, ctx, toggle: bool):
         """Set your lists to be private"""
         toggled = get_toggle(toggle)
-        msg = (f"Private lists are now {toggled} "
+        msg = (
+            f"Private lists are now {toggled} "
             "(note, you will need to have the bot able to "
             "dm you otherwise this will not work)"
         )
