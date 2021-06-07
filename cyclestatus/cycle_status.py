@@ -23,6 +23,7 @@ _config_structure = {
         "statuses": [],
         "use_help": True,
         "next_iter": 0,
+        "toggled": True,  # Toggle if the status should be cycled or not
     },
 }
 
@@ -34,7 +35,7 @@ _bot_prefix_var = r"{bot_prefix}"
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
-    __version__ = "1.0.4"
+    __version__ = "1.0.5"
     __author__ = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__ = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
@@ -44,10 +45,12 @@ class CycleStatus(commands.Cog):
         self.config = Config.get_conf(self, 115849, True)
         self.config.register_global(**_config_structure["global"])
         self.task: asyncio.Task = self.bot.loop.create_task(self.init())
+        self.toggled: bool = None  # type:ignore
 
     async def init(self):
         await self.bot.wait_until_red_ready()
         self.main_task.start()
+        self.toggled = await self.config.toggled()
 
     def cog_unload(self):
         if not self.task.done():
@@ -135,9 +138,22 @@ class CycleStatus(commands.Cog):
         await self.bot.change_presence()
         await ctx.tick()
 
+    @status.command(name="toggle")
+    async def status_toggle(self, ctx: commands.Context, value: bool):
+        """Toggle whether the status should be cycled.
+
+        This is handy for if you want to keep your statuses but don't want them displayed at the moment"""
+        if value == self.toggled:
+            enabled = "enabled" if value else "disabled"
+            return await ctx.send(f"Cycling statuses is already {enabled}")
+        self.toggled = value
+        await self.config.toggled.set(value)
+        now_not = "now" if value else "not"
+        await ctx.send(f"I will {now_not} cycle statuses")
+
     @tasks.loop(minutes=1)
     async def main_task(self):
-        if not (statuses := await self.config.statuses()):
+        if not (statuses := await self.config.statuses()) or not self.toggled:
             return
         try:
             # So, sometimes this gets larger than the list of the statuses
