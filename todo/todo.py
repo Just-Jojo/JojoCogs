@@ -416,7 +416,7 @@ class ToDo(
         """Explain about this cog"""
         await ctx.send(
             "Hallo! Please read this to learn about todo\n"
-            "https://github.com/Just-Jojo/JojoCogs/blob/master/todo/README.md"
+            "<https://github.com/Just-Jojo/JojoCogs/blob/master/todo/README.md>"
         )
 
     ### Utility methods ###
