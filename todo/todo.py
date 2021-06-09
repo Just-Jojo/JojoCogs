@@ -33,15 +33,6 @@ _config_structure = {
     "private": False,
     "colour": None,
 }
-_about = (
-    "ToDo is a cog designed by Jojo#7791 for keeping track"
-    " of tasks for you to do. It provides a simple listing,"
-    " adding, and completing for you to work with, and is highly"
-    " customizable so you get the best out of it"
-)
-_comic_link = (
-    "https://raw.githubusercontent.com/Just-Jojo/JojoCog-Assets/main/data/todo_comic.jpg"
-)
 
 
 class ToDo(
@@ -61,7 +52,7 @@ class ToDo(
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.16"
+    __version__ = "1.2.17"
     __author__ = ["Jojo#7791"]
     __suggesters__ = [
         "Blackbird#0001",
@@ -192,27 +183,6 @@ class ToDo(
         else:
             await ctx.send(msg)
         self.settings_cache[ctx.author.id] = conf
-
-    @todo.command()
-    async def explain(self, ctx, comic: bool = False):
-        """Explain a bit about this cog"""
-        if em := await ctx.embed_requested():
-            embed = discord.Embed(title="About Todo", colour=await ctx.embed_colour())
-            embed.timestamp = now()
-            kwargs = {"embed": embed}
-        else:
-            kwargs = {"content": None}
-        if comic:
-            if em:
-                embed.set_image(url=_comic_link)
-            else:
-                kwargs["content"] = _comic_link
-        else:
-            if em:
-                embed.description = _about
-            else:
-                kwargs["content"] = _about
-        await ctx.send(**kwargs)
 
     @todo.command(name="suggesters")
     async def todo_suggesters(self, ctx):
@@ -440,6 +410,14 @@ class ToDo(
         """Check the version of todo"""
         msg = f"ToDo version: `{self.__version__}`\nMade with ❤ by Jojo"
         await ctx.send(msg)
+
+    @todo.command()
+    async def explain(self, ctx):
+        """Explain about this cog"""
+        await ctx.send(
+            "Hallo! Please read this to learn about todo\n"
+            "https://github.com/Just-Jojo/JojoCogs/blob/master/todo/README.md"
+        )
 
     ### Utility methods ###
 
