@@ -19,7 +19,7 @@ class Ducks(commands.Cog):
     """Ducks! Who could ask for more?"""
 
     __author__ = ["Jojo#7791"]
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -50,10 +50,11 @@ class Ducks(commands.Cog):
     @commands.command()
     async def ducks(self, ctx: commands.Context):
         """Get a random duck image!"""
-        try:
-            url = await self._get_response()
-        except APIError as e:
-            return await ctx.send("Hm, something went wrong")
+        async with ctx.typing():
+            try:
+                url = await self._get_response()
+            except APIError as e:
+                return await ctx.send("Hm, something went wrong")
         kwargs = {"content": url}
         if await ctx.embed_requested():
             embed = discord.Embed(title="Ducks!", colour=await ctx.embed_colour())
