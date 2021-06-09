@@ -61,7 +61,7 @@ class ToDo(
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.15"
+    __version__ = "1.2.16"
     __author__ = ["Jojo#7791"]
     __suggesters__ = [
         "Blackbird#0001",
@@ -532,7 +532,7 @@ class ToDo(
         uid = user if isinstance(user, int) else user.id
         maybe_config = self.settings_cache.get(uid, None)
         if maybe_config is None:
-            await self.update_cache(user_id=ctx.author.id)
+            await self.update_cache(user_id=uid)
             maybe_config = self.settings_cache.get(uid, _config_structure)
         return maybe_config  # type:ignore[return-value]
 
