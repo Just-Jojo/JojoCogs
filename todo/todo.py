@@ -52,7 +52,7 @@ class ToDo(
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.17"
+    __version__ = "1.2.18"
     __author__ = ["Jojo#7791"]
     __suggesters__ = [
         "Blackbird#0001",
@@ -418,6 +418,35 @@ class ToDo(
             "Hallo! Please read this to learn about todo\n"
             "<https://github.com/Just-Jojo/JojoCogs/blob/master/todo/README.md>"
         )
+
+    @todo.command(name="edit")
+    async def todo_edit(self, ctx, index: positive_int, *, new_todo: str):
+        """Edit a todo at a certain index"""
+        new_index = index - 1
+        conf = await self._get_user_config(ctx.author)
+        todos = conf.get("todos", [])
+        if not todos:
+            return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+        try:
+            old = box(f"{index}. {todos.pop(new_index)}", "md")
+        except IndexError:
+            return await ctx.send("I could not find a todo at that index")
+        else:
+            todos.insert(index, new_todo)
+            new = box(f"{index}. {new_todo}", "md")
+        use_embeds = conf.get("use_embeds", True)
+        colour = conf.get("colour", None) or await ctx.embed_colour()
+        formatting = f"**Old**\n{old}**New**\n{new}"
+        kwargs: dict = {"content": f"**Todo edit**\n\n{formatting}"}
+        if await ctx.embed_requested() and use_embeds:
+            embed = discord.Embed(
+                title="Todo edit", colour=colour, description=formatting
+            )
+            embed.timestamp = datetime.utcnow()
+            kwargs = {"embed": embed}
+        await ctx.send(**kwargs)
+        self.settings_cache["todos"] = todos
+        await self.config.user(ctx.author).todos.set(todos)
 
     ### Utility methods ###
 
