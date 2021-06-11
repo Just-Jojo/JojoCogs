@@ -14,6 +14,3 @@ Here are some rules of thumb to follow
 This issue is for asking for a feature you want in my cogs
 
 You can either request a feature in an existing cog or a new cog
-
-### Dev
-This one is for my dev branch. It's not really needed but it can help maybe
