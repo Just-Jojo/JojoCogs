@@ -6,7 +6,11 @@
 import asyncio
 
 import discord
-from jojo_utils import positive_int
+from jojo_utils import version_info
+if type(version_info[0], str):
+    from jojo_utils import positive_int
+else:
+    from jojo_utils import PositiveInt as positive_int #type:ignore
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.predicates import MessagePredicate
@@ -30,7 +34,11 @@ class Deleting(ToDoMixin):
 
     @todo.command(require_var_positional=True, aliases=["del", "rm", "delete"])
     async def remove(self, ctx, *indexes: positive_int):
-        """Delete todos!"""
+        """Remove todos from your list.
+
+        **Examples**
+        1. `[p]todo remove 1`
+        2. `[p]todo remove 1 2 5 8`"""
         conf = await self._get_user_config(ctx.author)
         tds = conf.get("todos", [])
         if not tds:
@@ -97,7 +105,11 @@ class Deleting(ToDoMixin):
         require_var_positional=True, name="remove", aliases=["del", "rm", "delete"]
     )
     async def complete_delete(self, ctx, *indexes: positive_int):
-        """Remove your completed todos"""
+        """Remove your completed todos.
+
+        **Examples**
+        1. `[p]todo complete remove 1`
+        2. `[p]todo complete remove 1 3 5 6`"""
         conf = await self._get_user_config(ctx.author)
         if not (comp := conf.get("completed", [])):
             return await ctx.send(
