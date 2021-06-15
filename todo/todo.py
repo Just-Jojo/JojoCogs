@@ -11,11 +11,14 @@ from typing import Optional, Union
 
 import discord
 from discord.ext import tasks
-from jojo_utils import Menu, version_info
-if type(version_info[0], str):
+from jojo_utils import Menu
+try:
+    from jojo_utils import version_info
+except ImportError:
     from jojo_utils import positive_int
 else:
-    from jojo_utils import PositiveInt as positive_int #type:ignore
+    from jojo_utils.general import PositiveInt as positive_int #type:ignore
+    del version_info
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, humanize_list, pagify
@@ -56,7 +59,7 @@ class ToDo(
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.19"
+    __version__ = "1.2.20"
     __author__ = ["Jojo#7791"]
     __suggesters__ = [
         "Blackbird#0001",

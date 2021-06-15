@@ -6,11 +6,13 @@
 import asyncio
 
 import discord
-from jojo_utils import version_info
-if type(version_info[0], str):
+try:
+    from jojo_utils import version_info
+except ImportError:
     from jojo_utils import positive_int
 else:
-    from jojo_utils import PositiveInt as positive_int #type:ignore
+    from jojo_utils.general import PositiveInt as positive_int #type:ignore
+    del version_info
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.predicates import MessagePredicate
