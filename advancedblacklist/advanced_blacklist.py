@@ -215,7 +215,7 @@ class AdvancedBlacklist(commands.Cog):
         """Add a pattern to the blacklisted name cache.
 
         If you would like a regex, use the command list this `[p]blacklist name add True ^jojo+$`
-        If you would like it to match casing use `[p]blacklist name add <regex value> True Jojo"""
+        If you would like it to match casing use `[p]blacklist name add <regex value> True Jojo`"""
         use_regex = use_regex if use_regex is not None else False
         lower_case = lower_case if lower_case is not None else True
         self.blacklist_name_cache[pattern] = [use_regex, lower_case]
