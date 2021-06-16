@@ -11,14 +11,7 @@ from typing import Optional, Union
 
 import discord
 from discord.ext import tasks
-from jojo_utils import Menu
-try:
-    from jojo_utils import version_info
-except ImportError:
-    from jojo_utils import positive_int
-else:
-    from jojo_utils.general import PositiveInt as positive_int #type:ignore
-    del version_info
+
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, humanize_list, pagify
@@ -26,6 +19,13 @@ from redbot.core.utils.predicates import MessagePredicate
 
 from .commands import CompositeMetaclass, Deleting, Examples, Search, Settings
 from .utils import TodoPages, todo_positive_int
+
+from jojo_utils import Menu, __version__ as jojo_version
+if int(jojo_version[-1]) > 4:
+    from jojo_utils.general import PositiveInt as positive_int
+else:
+    from jojo_utils.general import positive_int # type:ignore
+
 
 now = datetime.utcnow
 _config_structure = {
@@ -59,7 +59,7 @@ class ToDo(
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.20"
+    __version__ = "1.2.21"
     __author__ = ["Jojo#7791"]
     __suggesters__ = [
         "Blackbird#0001",
