@@ -6,7 +6,14 @@ from datetime import datetime
 from typing import Literal, Optional, Union
 
 import discord
-from jojo_utils import Menu, positive_int
+from jojo_utils import Menu
+from jojo_utils import __version__ as jojo_version
+
+if int(jojo_version[-1]) > 4:
+    from jojo_utils.general import PositiveInt as positive_int
+else:
+    from jojo_utils.general import positive_int  # type:ignore
+
 from redbot.core import Config, bank, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
@@ -31,7 +38,7 @@ class Collectibles(commands.Cog):
     """Collect trinkets and items!"""
 
     __author__ = ["Jojo#7791"]
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     def __init__(self, bot: Red):
         self.bot = bot

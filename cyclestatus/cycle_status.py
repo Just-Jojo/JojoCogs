@@ -9,7 +9,14 @@ from typing import List
 
 import discord
 from discord.ext import tasks
-from jojo_utils import Menu, positive_int
+from jojo_utils import Menu
+from jojo_utils import __version__ as jojo_version
+
+if int(jojo_version[-1]) > 4:
+    from jojo_utils.general import PositiveInt as positive_int
+else:
+    from jojo_utils.general import positive_int
+
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
@@ -35,7 +42,7 @@ _bot_prefix_var = r"{bot_prefix}"
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
-    __version__ = "1.0.5"
+    __version__ = "1.0.6"
     __author__ = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__ = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]

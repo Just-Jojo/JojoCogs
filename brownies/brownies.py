@@ -14,7 +14,13 @@ from typing import Literal, Optional
 
 import aiohttp
 import discord
-from jojo_utils import positive_int
+from jojo_utils import __version__ as jojo_version
+
+if int(jojo_version[-1]) > 4:
+    from jojo_utils.general import PositiveInt as positive_int
+else:
+    from jojo_utils.general import positive_int  # type:ignore
+
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
@@ -46,7 +52,7 @@ class Brownies(commands.Cog):
     """[botname] loves brownies, and will steal from others for you!"""
 
     __author__ = ["JJW (V2)", "Jojo#7791"]
-    __version__ = "0.1.0"
+    __version__ = "1.0.0"
 
     async def default_embed(
         self,

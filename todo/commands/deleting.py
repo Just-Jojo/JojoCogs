@@ -6,17 +6,18 @@
 import asyncio
 
 import discord
+from jojo_utils import __version__ as jojo_version
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from .abc import ToDoMixin
 
-from jojo_utils import __version__ as jojo_version
 if int(jojo_version[-1]) > 4:
     from jojo_utils.general import PositiveInt as positive_int
 else:
     from jojo_utils.general import positive_int
+
 
 class Deleting(ToDoMixin):
     """Commands having to do with deletion of todos"""
