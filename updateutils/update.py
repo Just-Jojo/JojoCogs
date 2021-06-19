@@ -10,11 +10,13 @@ from pathlib import Path
 
 import aiohttp
 import discord
+from discord.ext import tasks
 from jojo_utils import __version__ as jojoutils_version
 from redbot.core import commands
 from redbot.core.bot import Red
 from redbot.core.utils.predicates import MessagePredicate
 import logging
+from typing import Optional
 
 
 log = logging.getLogger("red.JojoCogs.updateutils")
@@ -27,7 +29,7 @@ class UpdateUtils(commands.Cog):
     __authors__ = [
         "Jojo#7791",
     ]
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -38,6 +40,8 @@ class UpdateUtils(commands.Cog):
         # https://github.com/jack1142/JackCogs/blob/v3/shell/utils.py#L30
         self.path = Path(sys.executable).resolve()
         self.command = "-m pip install -U git+https://github.com/Just-Jojo/jojoutils.git"
+        self.latest_version: Optional[str] = None
+        self.update_version.start()
 
     def format_help_for_context(self, ctx: commands.Context):
         pre = super().format_help_for_context(ctx)
@@ -57,6 +61,7 @@ class UpdateUtils(commands.Cog):
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
+        self.update_version.cancel()
 
     async def _update_utils(self):
         process = await asyncio.create_subprocess_shell(
@@ -73,9 +78,9 @@ class UpdateUtils(commands.Cog):
         # Owoner only check
         return await self.bot.is_owner(ctx.author)
 
-    async def _get_version(self) -> str:
+    async def _get_version(self):
         async with self.session.get(VERSION_URL) as re:
-            return await re.text()
+            self.version = await re.text()
 
     @commands.group(name="jojoutils")
     async def jojo_utils(self, ctx: commands.Context):
@@ -86,12 +91,11 @@ class UpdateUtils(commands.Cog):
     async def jojo_utils_check_updates(self, ctx: commands.Context):
         """Check if you need to update Jojo's utils"""
 
-        version = await self._get_version()
         description = "You are up to date!"
-        if jojoutils_version != version:
+        if jojoutils_version != self.latest_version:
             description = (
                 f"You are out of date! "
-                f"You are on version {jojoutils_version} but version {version} is available!"
+                f"You are on version {jojoutils_version} but version {self.latest_version} is available!"
             )
         kwargs = {"content": f"Jojo Utils updater\n\n{description}"}
         if await ctx.embed_requested():
@@ -111,11 +115,10 @@ class UpdateUtils(commands.Cog):
     async def jojo_utils_version(self, ctx: commands.Context):
         """Shows the version of the cog and Jojo's utils"""
 
-        latest_version = await self._get_version()
         data = {
             "Cog Version": self.__version__,
             "Jojo Utils version": jojoutils_version,
-            "Latest version on GitHub": latest_version,
+            "Latest version on GitHub": self.latest_version,
         }
         kwargs = {
             "content": f"Jojo Utils updater\n\n"
@@ -139,8 +142,7 @@ class UpdateUtils(commands.Cog):
     async def jojo_utils_update(self, ctx: commands.Context):
         """Attempt to update your version of Jojo's utils"""
 
-        latest_version = await self._get_version()
-        if jojoutils_version == latest_version:
+        if jojoutils_version == self.latest_version:
             await ctx.send("Your version of Jojo's utils is up to date")
             return
         pred = MessagePredicate.yes_or_no(ctx)
@@ -162,3 +164,7 @@ class UpdateUtils(commands.Cog):
         async with ctx.typing():
             await self._update_utils()
         await ctx.send("Done. You can now restart your bot to have the changes be put into effect.")
+
+    @tasks.loop(hours=4)
+    async def update_version(self):
+        await self._get_version()
