@@ -1,3 +1,6 @@
+# Copyright (c) 2021 - Jojo#7791
+# Licensed under MIT
+
 import asyncio
 import asyncio.subprocess as asp
 import os
