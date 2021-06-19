@@ -13,7 +13,7 @@
     ],
     "tags": ["utils", "dev"],
     "min_bot_version": "3.4.6",
-    "hidden": false,
+    "hidden": true,
     "disabled": false,
     "type": "COG"
 }
