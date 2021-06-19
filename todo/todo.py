@@ -5,9 +5,8 @@
 
 import asyncio
 import logging
-import typing
 from datetime import datetime
-from typing import Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import discord
 from discord.ext import tasks
@@ -72,7 +71,7 @@ class ToDo(
             cog_instance=self, identifier=19924714019, force_registration=True
         )
         self.config.register_user(**_config_structure)
-        self.settings_cache: typing.Dict[int, dict] = {}
+        self.settings_cache: Dict[int, dict] = {}
         self.log = logging.getLogger("red.JojoCogs.todo")
         self.update_cache_task.start()
 
@@ -462,7 +461,7 @@ class ToDo(
         self,
         ctx: commands.Context,
         *,
-        completed: typing.List[str],
+        completed: List[str],
         use_md: bool,
         use_embeds: bool,
         private: bool,
@@ -517,7 +516,7 @@ class ToDo(
     async def _number_lists(self, data: list):
         return [f"{num}. {x}" for num, x in enumerate(data, 1)]
 
-    def _pagified_list(self, data: list) -> typing.List[str]:
+    def _pagified_list(self, data: list) -> List[str]:
         return list(pagify("\n".join(data), page_length=500))
 
     async def _maybe_autosort(self, ctx: commands.Context):
@@ -538,16 +537,16 @@ class ToDo(
             return ctx.author.dm_channel
         return ctx.channel
 
-    async def _sort_indexes(self, index: typing.List[int]) -> typing.List[int]:
+    async def _sort_indexes(self, index: List[int]) -> List[int]:
         index.sort(reverse=True)
         return index
 
-    async def _cross_lists(self, data: list) -> typing.List[str]:
+    async def _cross_lists(self, data: list) -> List[str]:
         return [f"~~{x}~~" for x in data]
 
     async def _get_user_config(
-        self, user: typing.Union[int, discord.Member, discord.User]
-    ) -> typing.Dict[str, typing.Any]:
+        self, user: Union[int, discord.Member, discord.User]
+    ) -> Dict[str, Any]:
         uid = user if isinstance(user, int) else user.id
         maybe_config = self.settings_cache.get(uid, None)
         if maybe_config is None:
