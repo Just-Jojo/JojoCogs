@@ -5,7 +5,9 @@ import asyncio
 import logging
 import re
 from itertools import cycle
-from typing import List
+import random
+from typing import List, Optional
+from datetime import datetime
 
 import discord
 from discord.ext import tasks
@@ -31,6 +33,7 @@ _config_structure = {
         "use_help": True,
         "next_iter": 0,
         "toggled": True,  # Toggle if the status should be cycled or not
+        "random": False,
     },
 }
 
@@ -42,7 +45,7 @@ _bot_prefix_var = r"{bot_prefix}"
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
-    __version__ = "1.0.6"
+    __version__ = "1.0.7"
     __author__ = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__ = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
@@ -52,12 +55,15 @@ class CycleStatus(commands.Cog):
         self.config = Config.get_conf(self, 115849, True)
         self.config.register_global(**_config_structure["global"])
         self.task: asyncio.Task = self.bot.loop.create_task(self.init())
-        self.toggled: bool = None  # type:ignore
+        self.toggled: Optional[bool] = None
+        self.random: Optional[bool] = None
+        self.last_random: Optional[int] = None
 
     async def init(self):
         await self.bot.wait_until_red_ready()
         self.main_task.start()
         self.toggled = await self.config.toggled()
+        self.random = await self.config.random()
 
     def cog_unload(self):
         if not self.task.done():
@@ -80,6 +86,7 @@ class CycleStatus(commands.Cog):
         pass
 
     @status.command()
+    @commands.check(lambda ctx: ctx.cog.random is False)
     async def forcenext(self, ctx):
         """Force the next status to display on the bot"""
         nl = await self.config.next_iter()
@@ -145,6 +152,17 @@ class CycleStatus(commands.Cog):
         await self.bot.change_presence()
         await ctx.tick()
 
+    @status.command(name="random")
+    async def status_random(self, ctx: commands.Context, value: bool):
+        """Have the bot cycle to a random status"""
+        if value == self.random:
+            enabled = "enabled" if value else "disabled"
+            return await ctx.send(f"Random statuses are already {enabled}")
+        self.random = value
+        await self.config.random.set(value)
+        now_no_longer = "now" if value else "no longer"
+        await ctx.send(f"Statuses will {now_no_longer} be random")
+
     @status.command(name="toggle")
     async def status_toggle(self, ctx: commands.Context, value: bool):
         """Toggle whether the status should be cycled.
@@ -158,20 +176,42 @@ class CycleStatus(commands.Cog):
         now_not = "now" if value else "not"
         await ctx.send(f"I will {now_not} cycle statuses")
 
+    @status.command(name="settings")
+    async def status_settings(self, ctx: commands.Context):
+        """Show your current settings for the cycle status cog"""
+        settings = {
+            "Randomized statuses?": "Enabled" if self.random else "Disabled",
+            "Toggled?": "Yes" if self.toggled else "No",
+            "Statuses?": f"See `{ctx.clean_prefix}status list`",
+        }
+        title = "Your Cycle Status settings"
+        kwargs = {"content": f"**{title}**\n\n" + "\n".join(f"**{k}** {v}" for k, v in settings.items())}
+        if await ctx.embed_requested():
+            embed = discord.Embed(title=title, colour=await ctx.embed_colour(), timestamp=datetime.utcnow())
+            [embed.add_field(name=k, value=v, inline=False) for k, v in settings.items()]
+            kwargs = {"embed": embed}
+        await ctx.send(**kwargs)
+
     @tasks.loop(minutes=1)
     async def main_task(self):
         if not (statuses := await self.config.statuses()) or not self.toggled:
             return
-        try:
-            # So, sometimes this gets larger than the list of the statuses
-            # so, if this raises an `IndexError` we need to reset the next iter
-            msg = statuses[(nl := await self.config.next_iter())]
-        except IndexError:
-            nl = 0  # Hard reset
-            msg = statuses[0]
+        if self.random:
+            if self.last_random is not None and len(statuses) > 1:
+                statuses.pop(self.last_random) # Remove that last picked one
+            msg = random.choice(statuses)
+        else:
+            try:
+                # So, sometimes this gets larger than the list of the statuses
+                # so, if this raises an `IndexError` we need to reset the next iter
+                msg = statuses[(nl := await self.config.next_iter())]
+            except IndexError:
+                nl = 0  # Hard reset
+                msg = statuses[0]
         await self._status_add(msg, await self.config.use_help())
-        nl = 0 if len(statuses) - 1 == nl else nl + 1
-        await self.config.next_iter.set(nl)
+        if not self.random:
+            nl = 0 if len(statuses) - 1 == nl else nl + 1
+            await self.config.next_iter.set(nl)
 
     async def _num_lists(self, data: List[str]) -> List[str]:
         """|coro|
