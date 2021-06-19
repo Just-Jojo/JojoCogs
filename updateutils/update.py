@@ -29,15 +29,12 @@ class UpdateUtils(commands.Cog):
     __authors__ = [
         "Jojo#7791",
     ]
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
 
     def __init__(self, bot: Red):
         self.bot = bot
         self.session = aiohttp.ClientSession()
         sep = os.path.sep
-        # This section is a modified version of Jack's shell's `get_env` function
-        # Which is copyrighted under the Apache-2.0 License.
-        # https://github.com/jack1142/JackCogs/blob/v3/shell/utils.py#L30
         self.path = Path(sys.executable).resolve()
         self.command = "-m pip install -U git+https://github.com/Just-Jojo/jojoutils.git"
         self.latest_version: Optional[str] = None
@@ -110,6 +107,13 @@ class UpdateUtils(commands.Cog):
             embed.timestamp = datetime.utcnow()
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
+
+    @jojo_utils.command(name="forcecheck")
+    async def jojo_utils_force_check_update(self, ctx: commands.Context):
+        """Bypass the cached latest version and check if you need to update."""
+        await ctx.send("Forcing an update check.\nPlease don't run this too many times!")
+        await self._get_version()
+        await self.jojo_utils_check_updates.invoke(ctx)
 
     @jojo_utils.command(name="version")
     async def jojo_utils_version(self, ctx: commands.Context):
