@@ -21,7 +21,8 @@ from redbot.core.utils.predicates import MessagePredicate
 from .commands import CompositeMetaclass, Deleting, Examples, Search, Settings
 from .utils import TodoPages, todo_positive_int
 
-if int(jojo_version[-1]) > 4:
+minor_version = int(jojo_version[-1])
+if minor_version > 4:
     from jojo_utils.general import PositiveInt as positive_int
 else:
     from jojo_utils.general import positive_int  # type:ignore
@@ -59,7 +60,7 @@ class ToDo(
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.21"
+    __version__ = "1.2.22"
     __author__ = ["Jojo#7791"]
     __suggesters__ = [
         "Blackbird#0001",
@@ -500,12 +501,16 @@ class ToDo(
             title=title,
             colour=colour,
         )
-        await Menu(
-            source=source,
-            delete_message_after=False,
-            clear_reactions_after=True,
-            timeout=15.0,
-        ).start(
+        menu_kwargs = {"source": source}
+        if minor_version != 6:  # 6 is the only borked version
+            menu_kwargs.update(
+                {
+                    "delete_message_after": True,
+                    "clear_reactions_after": True,
+                    "timeout": 15.0,
+                }
+            )
+        await Menu(**menu_kwargs).start(
             ctx, channel=await self._get_destination(ctx, private=private), wait=False
         )
 
