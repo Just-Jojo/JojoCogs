@@ -148,7 +148,7 @@ class UpdateUtils(commands.Cog):
         pred = MessagePredicate.yes_or_no(ctx)
         msg = await ctx.send(
             "This is the command that will be ran. Are you okay with this (input y/n)?"
-            f"\n\n`<path to your venv's python> {self.command}`"
+            f"\n\n`{self.path} {self.command}`"
         )
         try:
             msg = await self.bot.wait_for("message", check=pred, timeout=15.0)
