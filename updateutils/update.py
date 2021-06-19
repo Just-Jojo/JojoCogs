@@ -80,7 +80,7 @@ class UpdateUtils(commands.Cog):
 
     async def _get_version(self):
         async with self.session.get(VERSION_URL) as re:
-            self.version = await re.text()
+            self.latest_version = await re.text()
 
     @commands.group(name="jojoutils")
     async def jojo_utils(self, ctx: commands.Context):
