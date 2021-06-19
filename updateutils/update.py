@@ -36,10 +36,7 @@ class UpdateUtils(commands.Cog):
         # This section is a modified version of Jack's shell's `get_env` function
         # Which is copyrighted under the Apache-2.0 License.
         # https://github.com/jack1142/JackCogs/blob/v3/shell/utils.py#L30
-        if sys.platform == "win32":
-            self.path = f"{sys.prefix}{sep}Scripts{sep}python.exe"
-        else:
-            self.path = f"{sys.prefix}{sep}bin{sep}python3.8"
+        self.path = Path(sys.executable).resolve()
         self.command = "-m pip install -U git+https://github.com/Just-Jojo/jojoutils.git"
 
     def format_help_for_context(self, ctx: commands.Context):
