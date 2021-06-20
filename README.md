@@ -48,8 +48,10 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 | Brownies       | Brownie based economy system                           | Jojo#7791, JJW(v2)     | Fun      | X        |                          |
 | Calculations   | Calculate different things, eg. binary to decimal, nautical miles to kilometres and miles, etc | Fun | Jojo | O | It's not ready yet lol |
 | CycleStatus    | Cycles the bot's status                                | Jojo#7791              | Utility  | X        |                          |
+| Ducks          | Ducks! Who could ask for more?                         | Jojo#7791              | Fun      | O        |                          |
 | Depypher       | Encipher and Decipher codes and messages               | Jojo#7791              | Fun      | O        | Eh, it doesn't have much |
 | ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        | Why did I make it dynamic, oh god why                 |
+| UpdateUtils    | A cog used for updating jojo_utils                     | Jojo#7791              | Utility  | X        |                          |
 
 ## Pull requests
 If you want to make a pull request, first thank you for contributing (because I need help) and second follow this list
