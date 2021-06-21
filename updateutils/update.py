@@ -3,10 +3,12 @@
 
 import asyncio
 import asyncio.subprocess as asp
+import logging
 import os
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 import aiohttp
 import discord
@@ -15,9 +17,6 @@ from jojo_utils import __version__ as jojoutils_version
 from redbot.core import commands
 from redbot.core.bot import Red
 from redbot.core.utils.predicates import MessagePredicate
-import logging
-from typing import Optional
-
 
 log = logging.getLogger("red.JojoCogs.updateutils")
 VERSION_URL = r"https://raw.githubusercontent.com/Just-Jojo/jojoutils/master/version"
@@ -62,8 +61,9 @@ class UpdateUtils(commands.Cog):
 
     async def _update_utils(self):
         process = await asyncio.create_subprocess_shell(
-            F"{self.path} {self.command}",
-            stdin=asp.PIPE, stderr=asp.STDOUT,
+            f"{self.path} {self.command}",
+            stdin=asp.PIPE,
+            stderr=asp.STDOUT,
         )
         try:
             out, err = await process.communicate()
@@ -159,7 +159,9 @@ class UpdateUtils(commands.Cog):
         except asyncio.TimeoutError:
             pass
         if not pred.result:
-            await ctx.send("That's fine. If you ever want to update you can run that command in your console.")
+            await ctx.send(
+                "That's fine. If you ever want to update you can run that command in your console."
+            )
             return
         try:
             await msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
@@ -167,7 +169,9 @@ class UpdateUtils(commands.Cog):
             pass
         async with ctx.typing():
             await self._update_utils()
-        await ctx.send("Done. You can now restart your bot to have the changes be put into effect.")
+        await ctx.send(
+            "Done. You can now restart your bot to have the changes be put into effect."
+        )
 
     @tasks.loop(hours=4)
     async def update_version(self):

@@ -1,14 +1,13 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import logging
 from typing import Callable, Literal, Optional
 
 import discord
 from pycipher import pycipher
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_list
-
-import logging
 
 log = logging.getLogger("red.JojoCogs.depypher")
 
@@ -24,7 +23,7 @@ async def convert_case(original: str, new: str) -> str:
     for index, letter in enumerate(original):
         if not letter.isalpha():
             ret += letter
-            _ = list(new) # type:ignore
+            _ = list(new)  # type:ignore
             _.insert(index, letter)
             new = "".join(_)
             continue

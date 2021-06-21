@@ -51,5 +51,5 @@ class Search(ToDoMixin):
             use_md=conf.get("use_md", True),
             use_embeds=conf.get("use_embeds", True),
             private=False,
-            colour=conf.get("colour", None)
+            colour=conf.get("colour", None),
         )

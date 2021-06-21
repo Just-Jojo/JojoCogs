@@ -3,11 +3,11 @@
 
 import asyncio
 import logging
-import re
-from itertools import cycle
 import random
-from typing import List, Optional
+import re
 from datetime import datetime
+from itertools import cycle
+from typing import List, Optional
 
 import discord
 from discord.ext import tasks
@@ -185,9 +185,14 @@ class CycleStatus(commands.Cog):
             "Statuses?": f"See `{ctx.clean_prefix}status list`",
         }
         title = "Your Cycle Status settings"
-        kwargs = {"content": f"**{title}**\n\n" + "\n".join(f"**{k}** {v}" for k, v in settings.items())}
+        kwargs = {
+            "content": f"**{title}**\n\n"
+            + "\n".join(f"**{k}** {v}" for k, v in settings.items())
+        }
         if await ctx.embed_requested():
-            embed = discord.Embed(title=title, colour=await ctx.embed_colour(), timestamp=datetime.utcnow())
+            embed = discord.Embed(
+                title=title, colour=await ctx.embed_colour(), timestamp=datetime.utcnow()
+            )
             [embed.add_field(name=k, value=v, inline=False) for k, v in settings.items()]
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
@@ -198,7 +203,7 @@ class CycleStatus(commands.Cog):
             return
         if self.random:
             if self.last_random is not None and len(statuses) > 1:
-                statuses.pop(self.last_random) # Remove that last picked one
+                statuses.pop(self.last_random)  # Remove that last picked one
             msg = random.choice(statuses)
         else:
             try:

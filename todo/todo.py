@@ -363,7 +363,9 @@ class ToDo(
         await self.update_cache(user_id=ctx.author.id)
 
     @complete.command(name="edit", hidden=True)
-    async def complete_edit(self, ctx: commands.Context, index: positive_int, *, todo: str):
+    async def complete_edit(
+        self, ctx: commands.Context, index: positive_int, *, todo: str
+    ):
         """Edit a completed todo.
 
         This isn't really *that* useful but I thought it would be"""
