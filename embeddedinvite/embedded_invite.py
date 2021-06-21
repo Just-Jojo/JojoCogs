@@ -28,7 +28,7 @@ class EmbeddedInvite(commands.Cog):
     This cog was requested by DSC#6238"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     def format_help_for_context(self, ctx: commands.Context):
         pre = super().format_help_for_context(ctx)
@@ -42,19 +42,22 @@ class EmbeddedInvite(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
-        self.config.register_global(custom_url=None, send_in_channel=False)
+        self.config.register_global(custom_url=None, send_in_channel=False, custom_message=None)
         self._url_cache: Optional[str] = None
         self._channel_cache: Optional[bool] = None
+        self._custom_message: Optional[str] = None
         self.task = self.bot.loop.create_task(self.init())
 
     async def init(self):
         self._url_cache = await self.config.custom_url()
         self._channel_cache = await self.config.send_in_channel()
+        self._custom_message = await self.config.custom_message()
 
     def cog_unload(self):
         if INVITE_COMMAND:
             bot.remove_command("invite")
             bot.add_command(INVITE_COMMAND)
+        self.task.cancel()
 
     @commands.group(invoke_without_command=True)
     @commands.check(lambda ctx: ctx.bot.get_cog("Core")._can_get_invite_url)
@@ -68,11 +71,14 @@ class EmbeddedInvite(commands.Cog):
                 await ctx.author.create_dm()
                 channel = ctx.author.dm_channel
         url = await core._invite_url()  # type:ignore
-        kwargs = {"content": f"Here is {ctx.me.name}'s invite url: {url}"}
+        message = self._custom_message or f"Thanks for choosing {ctx.me.name}!"
+        kwargs = {"content": f"{message}\nHere is {ctx.me}'s invite url: {url}"}
         if await self.bot.embed_requested(channel, ctx.author):
             embed = discord.Embed(
                 title=f"Invite {ctx.me.name}",
-                description=f"Thanks for choosing {ctx.me.name}!\n\nHere is **[{ctx.me.name}'s invite]({url})**",
+                description=(
+                    f"{message}\n"
+                    f"\nHere is **[{ctx.me.name}'s invite]({url})**"),
                 colour=await ctx.embed_colour(),
                 timestamp=datetime.utcnow(),
             )
@@ -127,6 +133,25 @@ class EmbeddedInvite(commands.Cog):
             )
         await self.config.send_in_channel.set(toggle)
         self._channel_cache = toggle
+        await ctx.tick()
+
+    @invite.command(name="message")
+    @commands.is_owner()
+    async def invite_message(self, ctx: commands.Context, *, msg: str = None):
+        """Set the message for invites.
+        
+        This will be before the invite url.
+        
+        **Arguments**
+        >   msg: The custom message for the invite command. If no msg is given, it will revert to the default
+        'Thanks for choosing [botname]'"""
+        if not msg and not self._custom_message:
+            return await ctx.send(
+                "The message is already set to default. If you would like to view the help for this command, "
+                f"use `{ctx.clean_prefix}help invite message`"
+            )
+        self._custom_message = msg
+        await self.config.custom_message.set(msg)
         await ctx.tick()
 
 
