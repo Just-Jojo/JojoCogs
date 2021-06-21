@@ -29,7 +29,7 @@ class UpdateUtils(commands.Cog):
     __authors__ = [
         "Jojo#7791",
     ]
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -84,7 +84,7 @@ class UpdateUtils(commands.Cog):
         """Base command for checking/updating Jojo's utils"""
         pass
 
-    @jojo_utils.command(name="check")
+    @jojo_utils.group(name="check", invoke_without_command=True)
     async def jojo_utils_check_updates(self, ctx: commands.Context):
         """Check if you need to update Jojo's utils"""
 
@@ -108,7 +108,7 @@ class UpdateUtils(commands.Cog):
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
 
-    @jojo_utils.command(name="forcecheck")
+    @jojo_utils_check_updates.command(name="force", hidden=True)
     async def jojo_utils_force_check_update(self, ctx: commands.Context):
         """Bypass the cached latest version and check if you need to update."""
         await ctx.send("Forcing an update check.\nPlease don't run this too many times!")
