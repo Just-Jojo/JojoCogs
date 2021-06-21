@@ -6,6 +6,11 @@ from typing import Callable, Literal, Optional
 import discord
 from pycipher import pycipher
 from redbot.core import commands
+from redbot.core.utils.chat_formatting import humanize_list
+
+import logging
+
+log = logging.getLogger("red.JojoCogs.depypher")
 
 _caesar = pycipher.Caesar(key=4)
 _atbash = pycipher.Atbash()
@@ -19,6 +24,9 @@ async def convert_case(original: str, new: str) -> str:
     for index, letter in enumerate(original):
         if not letter.isalpha():
             ret += letter
+            _ = list(new) # type:ignore
+            _.insert(index, letter)
+            new = "".join(_)
             continue
         if letter.isupper():
             ret += new[index].upper()
@@ -32,6 +40,18 @@ class Depypher(commands.Cog):
 
     (hint, use `[p]devigenere depypher <this docstring>` to find out what it means!)
     """
+
+    __authors__ = ["Jojo#7791"]
+    __version__ = "1.0.0"
+
+    def format_help_for_context(self, ctx: commands.Context):
+        pre = super().format_help_for_context(ctx)
+        plural = "s" if len(self.__authors__) > 1 else ""
+        return (
+            f"{pre}\n"
+            f"Author{plural}: {humanize_list(self.__authors__)}\n"
+            f"Version: `{self.__version__}`"
+        )
 
     @commands.command()
     async def caesar(self, ctx, *, to_cipher: str):
