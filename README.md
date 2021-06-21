@@ -50,6 +50,7 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 | CycleStatus    | Cycles the bot's status                                | Jojo#7791              | Utility  | X        |                          |
 | Ducks          | Ducks! Who could ask for more?                         | Jojo#7791              | Fun      | O        |                          |
 | Depypher       | Encipher and Decipher codes and messages               | Jojo#7791              | Fun      | O        | Eh, it doesn't have much |
+| EmbeddedInvite | Embed the invite command | Jojo#7791 | Utility | X | This cog was made at the request of DSC#6238, a good friend of mine. Check out `[p]help invite` for settings commands |
 | ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        | Why did I make it dynamic, oh god why                 |
 | UpdateUtils    | A cog used for updating jojo_utils                     | Jojo#7791              | Utility  | X        | This is mostly for developers and it really isn't needed to update utils, however it can be useful to check for updatess |
 
