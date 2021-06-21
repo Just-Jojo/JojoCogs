@@ -511,7 +511,7 @@ class ToDo(
         if minor_version != 6:  # 6 is the only borked version
             menu_kwargs.update(
                 {
-                    "delete_message_after": True,
+                    "delete_message_after": False,
                     "clear_reactions_after": True,
                     "timeout": 15.0,
                 }
