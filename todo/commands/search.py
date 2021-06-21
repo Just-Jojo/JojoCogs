@@ -32,7 +32,10 @@ class Search(ToDoMixin):
         """Search your todo list for todos matching either a regex pattern or a string
 
         For help with regexes, use https://regex101.com/"""
-        todos = await self.config.user(ctx.author).todos()
+        conf = await self._get_user_config(ctx.author)
+        todos = conf.get("todos", [])
+        if not todos:
+            return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         found = []
         if use_regex:
             to_search = re.compile(to_search)
@@ -41,7 +44,6 @@ class Search(ToDoMixin):
                 found.append(f"{num}. {todo}")
         if not found:
             return await ctx.send("I could not find any todos with that pattern")
-        conf = await self._get_user_config(ctx.author)
         await self.page_logic(
             ctx,
             found,
@@ -49,4 +51,5 @@ class Search(ToDoMixin):
             use_md=conf.get("use_md", True),
             use_embeds=conf.get("use_embeds", True),
             private=False,
+            colour=conf.get("colour", None)
         )

@@ -59,7 +59,7 @@ class ToDo(
         "than the length of your todo list)"
     )
 
-    __version__ = "1.2.22"
+    __version__ = "1.2.23"
     __author__ = ["Jojo#7791"]
     __suggesters__ = [
         "Blackbird#0001",
@@ -246,7 +246,6 @@ class ToDo(
             conf["todos"] = [
                 todo,
             ]
-        self.settings_cache[ctx.author.id] = conf
 
         msg = "Added that as a todo"
         details = conf.get("detailed_pop", False)
@@ -363,6 +362,15 @@ class ToDo(
             todos.sort(reverse=result)
         await self.update_cache(user_id=ctx.author.id)
 
+    @complete.command(name="edit", hidden=True)
+    async def complete_edit(self, ctx: commands.Context, index: positive_int, *, todo: str):
+        """Edit a completed todo.
+
+        This isn't really *that* useful but I thought it would be"""
+        # conf = await self._get_user_config(ctx.author)
+        # if not (completed := conf.get("completed", [])):
+        #     return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
+
     @complete.command(name="list")
     async def complete_list(self, ctx):
         """List your completed todos"""
@@ -452,7 +460,6 @@ class ToDo(
             embed.timestamp = datetime.utcnow()
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
-        self.settings_cache["todos"] = todos
         await self.config.user(ctx.author).todos.set(todos)
 
     ### Utility methods ###
