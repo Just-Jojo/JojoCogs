@@ -60,7 +60,7 @@ class ToDo(
     )
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.2.24"
+    __version__ = "1.2.25"
     __suggesters__ = [
         "Blackbird#0001",
     ]
@@ -483,6 +483,20 @@ class ToDo(
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
         await self.config.user(ctx.author).todos.set(todos)
+
+    @todo.command(name="multiadd", aliases=("ma",))
+    async def todo_multi_add(self, ctx: commands.Context, *, todos: str):
+        """Add multiple todos. Todos will be broken up by newlines."""
+        to_add = todos.split("\n")
+        if len(to_add) == 1:
+            return await ctx.invoke(self.todo_add, todo=to_add[0])
+        conf = await self._get_user_config(ctx.author)
+        todos = conf.get("todos", [])
+        for todo in to_add:
+            todos.append(todo)
+        await ctx.send("Done. Added those as todos.")
+        await self.config.user(ctx.author).todos.set(todos)
+        await self._maybe_autosort(ctx)
 
     ### Utility methods ###
 
