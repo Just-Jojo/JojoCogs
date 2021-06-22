@@ -13,7 +13,7 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list
 
-log = logging.getLogger("red.JojoCogs.embedded_invite")
+log = logging.getLogger("red.JojoCogs.advanced_invite")
 with open(pathlib.Path(__file__).parent / "info.json") as fp:
     __red_end_user_data_statement__ = json.load(fp)["end_user_data_statement"]
 del json, pathlib
@@ -22,8 +22,8 @@ INVITE_COMMAND: Optional[commands.Command] = None
 __all__ = ["setup", "__red_end_user_data_statement__"]
 
 
-class EmbeddedInvite(commands.Cog):
-    """Embed invite links.
+class AdvancedInvite(commands.Cog):
+    """An "advanced" invite cog.
 
     This cog was requested by DSC#6238"""
 
@@ -164,4 +164,4 @@ class EmbeddedInvite(commands.Cog):
 def setup(bot: Red):
     global INVITE_COMMAND
     INVITE_COMMAND = bot.remove_command("invite")
-    bot.add_cog(EmbeddedInvite(bot))
+    bot.add_cog(AdvancedInvite(bot))
