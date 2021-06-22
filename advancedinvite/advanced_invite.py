@@ -28,7 +28,7 @@ class AdvancedInvite(commands.Cog):
     This cog was requested by DSC#6238"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
 
     def format_help_for_context(self, ctx: commands.Context):
         pre = super().format_help_for_context(ctx)
@@ -69,15 +69,23 @@ class AdvancedInvite(commands.Cog):
 
     @commands.group(invoke_without_command=True)
     @commands.check(lambda ctx: ctx.bot.get_cog("Core")._can_get_invite_url)
+    @commands.cooldown(1, 300, commands.BucketType.user)
     async def invite(self, ctx: commands.Context):
         """Invite [botname] to your server"""
         core = self.bot.get_cog("Core")
         channel = ctx.channel
         if not self._channel_cache:
+            ctx.command.reset_cooldown(ctx) # Don't need to have it if it's in dms
             channel = ctx.author.dm_channel
             if not channel:
                 await ctx.author.create_dm()
                 channel = ctx.author.dm_channel
+        elif await self.bot.is_owner(ctx.author):
+            ctx.command.reset_cooldown(ctx) # Owners can bypass it
+        elif isinstance(channel, discord.DMChannel):
+            # This time, we have to check explicitly if it's in a dm
+            # And then reset the cooldown
+            ctx.command.reset_cooldown(ctx)
         url = await core._invite_url()  # type:ignore
         message = self._custom_message or f"Thanks for choosing {ctx.me.name}!"
         kwargs = {"content": f"{message}\nHere is {ctx.me}'s invite url: {url}"}
