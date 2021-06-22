@@ -60,7 +60,7 @@ class ToDo(
     )
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.2.23"
+    __version__ = "1.2.24"
     __suggesters__ = [
         "Blackbird#0001",
     ]
@@ -363,14 +363,35 @@ class ToDo(
 
     @complete.command(name="edit", hidden=True)
     async def complete_edit(
-        self, ctx: commands.Context, index: positive_int, *, todo: str
+        self, ctx: commands.Context, index: positive_int, *, new_todo: str
     ):
         """Edit a completed todo.
 
         This isn't really *that* useful but I thought it would be"""
-        # conf = await self._get_user_config(ctx.author)
-        # if not (completed := conf.get("completed", [])):
-        #     return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
+        conf = await self._get_user_config(ctx.author)
+        if not (completed := conf.get("completed", [])):
+            return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
+        act_index = index - 1
+        try:
+            old = box(f"{index}. {completed.pop(act_index)}", "md")
+        except IndexError:
+            return await ctx.send(f"I could not find a todo at index {index}")
+        else:
+            completed.insert(act_index, new_todo)
+            new = box(f"{index}. {new_todo}", "md")
+        formatting = f"**Old**\n{old}\n**New**\n{new}"
+        title = "Todo complete edit"
+        kwargs = {"content": f"**{title}**\n\n{formatting}"}
+        if await ctx.embed_requested() and conf.get("use_embeds", True):
+            embed = discord.Embed(
+                title=title,
+                description=formatting,
+                colour=conf.get("colour", None) or await ctx.embed_colour(),
+                timestamp=datetime.utcnow()
+            )
+            kwargs = {"embed": embed}
+        await ctx.send(**kwargs)
+        await self.config.user(ctx.author).completed.set(completed)
 
     @complete.command(name="list")
     async def complete_list(self, ctx):
@@ -446,7 +467,7 @@ class ToDo(
         try:
             old = box(f"{index}. {todos.pop(new_index)}", "md")
         except IndexError:
-            return await ctx.send("I could not find a todo at that index")
+            return await ctx.send(f"I could not find a todo at index {index}")
         else:
             todos.insert(index, new_todo)
             new = box(f"{index}. {new_todo}", "md")
