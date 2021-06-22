@@ -16,6 +16,7 @@ from discord.ext import tasks
 from jojo_utils import __version__ as jojoutils_version
 from redbot.core import commands
 from redbot.core.bot import Red
+from redbot.core.utils.chat_formatting import humanize_list
 from redbot.core.utils.predicates import MessagePredicate
 
 log = logging.getLogger("red.JojoCogs.updateutils")
@@ -44,7 +45,7 @@ class UpdateUtils(commands.Cog):
         plural = "s" if len(self.__authors__) > 1 else ""
         return (
             f"{pre}\n"
-            f"Author{plural}: {', '.join(self.__authors__)}\n"
+            f"Author{plural}: {humanize_list(self.__authors__)}\n"
             f"Version: {self.__version__}"
         )
 

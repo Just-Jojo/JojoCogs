@@ -35,7 +35,7 @@ class AdvancedInvite(commands.Cog):
         plural = "s" if len(self.__authors__) > 1 else ""
         return (
             f"{pre}\n"
-            f"Author{plural}: {humanize_list(self.__authors__)}\n"
+            f"Author{plural}: `{humanize_list(self.__authors__)}`\n"
             f"Version: `{self.__version__}`"
         )
 
@@ -48,7 +48,9 @@ class AdvancedInvite(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
-        self.config.register_global(custom_url=None, send_in_channel=False, custom_message=None)
+        self.config.register_global(
+            custom_url=None, send_in_channel=False, custom_message=None
+        )
         self._url_cache: Optional[str] = None
         self._channel_cache: Optional[bool] = None
         self._custom_message: Optional[str] = None
@@ -83,8 +85,8 @@ class AdvancedInvite(commands.Cog):
             embed = discord.Embed(
                 title=f"Invite {ctx.me.name}",
                 description=(
-                    f"{message}\n"
-                    f"\nHere is **[{ctx.me.name}'s invite]({url})**"),
+                    f"{message}\n" f"\nHere is **[{ctx.me.name}'s invite]({url})**"
+                ),
                 colour=await ctx.embed_colour(),
                 timestamp=datetime.utcnow(),
             )
@@ -145,9 +147,9 @@ class AdvancedInvite(commands.Cog):
     @commands.is_owner()
     async def invite_message(self, ctx: commands.Context, *, msg: str = None):
         """Set the message for invites.
-        
+
         This will be before the invite url.
-        
+
         **Arguments**
         >   msg: The custom message for the invite command. If no msg is given, it will revert to the default
         'Thanks for choosing [botname]'"""

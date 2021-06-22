@@ -24,6 +24,7 @@ else:
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
+from redbot.core.utils.chat_formatting import humanize_list
 
 log = logging.getLogger("red.mcoc-v3.brownies")
 _config_structure = {
@@ -51,7 +52,7 @@ class PluralDict(dict):
 class Brownies(commands.Cog):
     """[botname] loves brownies, and will steal from others for you!"""
 
-    __author__ = ["JJW (V2)", "Jojo#7791"]
+    __authors__ = ["JJW (V2)", "Jojo#7791"]
     __version__ = "1.0.0"
 
     async def default_embed(
@@ -118,10 +119,12 @@ class Brownies(commands.Cog):
         self.bot.loop.create_task(self.session.close())
 
     def format_help_for_context(self, ctx):
+        pre = super().format_help_for_context(ctx)
+        plural = "s" if len(self.__authors__) > 1 else ""
         return (
-            f"{super().format_help_for_context(ctx)}"
-            f"\n**__Version__**: {self.__version__}"
-            f"\n**__Authors__**: {', '.join(self.__author__)}"
+            f"{pre}\n"
+            f"Author{plural}: `{humanize_list(self.__authors__)}`\n"
+            f"Version: `{self.__version__}`"
         )
 
     async def red_delete_data_for_user(

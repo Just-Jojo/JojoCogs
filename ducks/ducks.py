@@ -30,8 +30,8 @@ class Ducks(commands.Cog):
         plural = "s" if len(self.__author__) > 1 else ""
         return (
             f"{pre_processed}\n"
-            f"Author{plural}: {humanize_list(self.__author__)}\n"
-            f"Version: {self.__version__}"
+            f"Author{plural}: `{humanize_list(self.__author__)}`\n"
+            f"Version: `{self.__version__}`"
         )
 
     async def red_delete_data_for_user(self, *args):

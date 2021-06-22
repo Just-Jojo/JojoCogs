@@ -16,7 +16,7 @@ else:
 
 from redbot.core import Config, bank, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.chat_formatting import humanize_list, pagify
 
 from .utils import Page
 
@@ -37,7 +37,7 @@ _config_structure = {
 class Collectibles(commands.Cog):
     """Collect trinkets and items!"""
 
-    __author__ = ["Jojo#7791"]
+    __authors__ = ["Jojo#7791"]
     __version__ = "1.0.1"
 
     def __init__(self, bot: Red):
@@ -46,6 +46,15 @@ class Collectibles(commands.Cog):
         self.config.register_guild(**_config_structure["guild"])
         self.config.register_global(**_config_structure["global"])
         self.config.register_user(**_config_structure["user"])
+
+    def format_help_for_context(self, ctx: commands.Context):
+        pre = super().format_help_for_context(ctx)
+        plural = "s" if len(self.__authors__) > 1 else ""
+        return (
+            f"{pre}\n"
+            f"Author{plural}: `{humanize_list(self.__authors__)}`\n"
+            f"Version: `{self.__version__}`"
+        )
 
     async def red_delete_data_for_user(
         self,

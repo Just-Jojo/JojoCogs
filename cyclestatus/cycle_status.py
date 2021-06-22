@@ -21,7 +21,7 @@ else:
 
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from .menus import Pages
@@ -45,8 +45,8 @@ _bot_prefix_var = r"{bot_prefix}"
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
+    __authors__ = ["Jojo#7791"]
     __version__ = "1.0.7"
-    __author__ = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__ = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
 
@@ -72,11 +72,13 @@ class CycleStatus(commands.Cog):
         self.main_task.cancel()
 
     def format_help_for_context(self, ctx: commands.Context):
+        pre = super().format_help_for_context(ctx)
+        plural = "s" if len(self.__authors__) > 1 else ""
         return (
-            f"{super().format_help_for_context(ctx)}"
-            f"\nVersion `{self.__version__}`"
-            f"\nAuthor(s) `{', '.join(self.__author__)}`"
-            f"\nPeople who have put in suggestions `{', '.join(self.__suggesters__)}`"
+            f"{pre}\n"
+            f"Author{plural}: `{humanize_list(self.__authors__)}`\n"
+            f"Version: `{self.__version__}`\n"
+            f"People who have put in suggestions: `{humanize_list(self.__suggesters__)}`"
         )
 
     @commands.group()

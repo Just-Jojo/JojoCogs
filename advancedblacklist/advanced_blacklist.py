@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Union
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.predicates import MessagePredicate
 from tabulate import tabulate
 
@@ -33,8 +33,8 @@ LOCAL_BLACKLIST_COMMAND: Optional[commands.Command] = None
 class AdvancedBlacklist(commands.Cog):
     """An advanced blacklist cog"""
 
+    __authors__ = ["Jojo#7791"]
     __version__ = "1.0.3"
-    __author__ = ["Jojo#7791"]
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -45,9 +45,10 @@ class AdvancedBlacklist(commands.Cog):
 
     def format_help_for_context(self, ctx: commands.Context):
         pre_processed = super().format_help_for_context(ctx)
+        plural = "s" if len(self.__authors__) > 1 else ""
         return (
             f"{pre_processed}\n\n"
-            f"Author: `{', '.join(self.__author__)}`\n"
+            f"Author{plural}: `{humanize_list(self.__authors__)}\n"
             f"Version: `{self.__version__}`"
         )
 

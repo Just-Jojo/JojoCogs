@@ -59,8 +59,8 @@ class ToDo(
         "than the length of your todo list)"
     )
 
+    __authors__ = ["Jojo#7791"]
     __version__ = "1.2.23"
-    __author__ = ["Jojo#7791"]
     __suggesters__ = [
         "Blackbird#0001",
     ]
@@ -80,14 +80,13 @@ class ToDo(
 
     def format_help_for_context(self, ctx: commands.Context):
         """Thankie thankie Sinbad"""
-        plural = ""
-        if len(self.__author__) > 1:
-            plural = "s"
+        pre = super().format_help_for_context(ctx)
+        plural = "s" if len(self.__authors__) > 1 else ""
         return (
-            f"{super().format_help_for_context(ctx)}"
-            f"\n\nCurrent Version: `{self.__version__}`"
-            f"\nAuthor{plural}: `{', '.join(self.__author__)}`"
-            f"\nSuggesters: Use `[p]todo suggesters`!"
+            f"{pre}\n"
+            f"Author{plural}: `{humanize_list(self.__authors__)}`\n"
+            f"Version: `{self.__version__}`\n"
+            f"Suggesters: Use `{ctx.clean_prefix}todo suggesters`!"
         )
 
     async def update_cache(self, *, user_id: int = None):
