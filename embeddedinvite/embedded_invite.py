@@ -28,7 +28,7 @@ class EmbeddedInvite(commands.Cog):
     This cog was requested by DSC#6238"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
 
     def format_help_for_context(self, ctx: commands.Context):
         pre = super().format_help_for_context(ctx)
@@ -38,6 +38,12 @@ class EmbeddedInvite(commands.Cog):
             f"Author{plural}: {humanize_list(self.__authors__)}\n"
             f"Version: `{self.__version__}`"
         )
+
+    async def red_delete_data_for_user(self, **kwargs):
+        return
+
+    async def red_get_data_for_user(self, **kwargs):
+        return {}
 
     def __init__(self, bot: Red):
         self.bot = bot
