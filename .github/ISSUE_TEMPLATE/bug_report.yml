@@ -33,6 +33,12 @@ body:
       description: "What is your Discord username? (user#1234)"
     validations:
       required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Traceback details (if applicable)
+      description: Please copy and paste any traceback details. This will be automatically formatted into code, so no need for backticks.
+      render: py
   - type: input
     id: repro
     attributes:
