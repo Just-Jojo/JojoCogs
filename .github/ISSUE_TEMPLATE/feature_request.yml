@@ -23,6 +23,6 @@ body:
     id: details
     attributes:
       label: Details
-      description: Describe your request:
+      description: "Describe your request:"
     validations:
       required: true
