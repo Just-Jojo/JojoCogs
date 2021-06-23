@@ -1,6 +1,6 @@
 name: Feature Request
 description: Submit a feature request for one of these cogs.
-labels: [bug]
+labels: [enhancement]
 assignees: "Just-Jojo"
 body:
   - type: dropdown
