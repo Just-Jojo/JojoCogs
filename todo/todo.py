@@ -60,7 +60,7 @@ class ToDo(
     )
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.2.26"
+    __version__ = "1.2.27"
     __suggesters__ = [
         "Blackbird#0001",
     ]

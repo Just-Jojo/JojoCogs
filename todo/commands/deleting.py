@@ -81,26 +81,28 @@ class Deleting(ToDoMixin):
             await self.update_cache(user_id=ctx.author.id)
 
     @todo.command(aliases=["delall"])
-    async def removeall(self, ctx):
-        """Remove all of your todos"""
-        await ctx.send(
-            "WARNING, this will remove **ALL** of your todos. Would you like to remove your todos? (y/n)"
-        )
-        pred = MessagePredicate.yes_or_no(ctx)
-        try:
-            await self.bot.wait_for("message", check=pred)
-        except asyncio.TimeoutError:
-            await ctx.send("Okay, I won't delete your todos")
-        else:
+    async def removeall(self, ctx, confirm: bool = False):
+        """Remove all of your todos
+
+        **Arguments**
+        >   confirm: If True it will skip the yes or no check. Defaults to False"""
+        if not confirm:
+            await ctx.send(
+                "WARNING, this will remove **ALL** of your todos. Would you like to remove your todos? (y/n)"
+            )
+            pred = MessagePredicate.yes_or_no()
+            try:
+                await self.bot.wait_for("message", check=pred)
+            except asyncio.TimeoutError:
+                pass
             if not pred.result:
-                await ctx.send("Okay, I won't delete your todos")
-            else:
-                await self.config.user(ctx.author).todos.clear()
-                await ctx.send("Removed your todos.")
-                try:
-                    self.settings_cache[ctx.author.id]["todos"] = []
-                except KeyError:
-                    await self.update_cache(user_id=ctx.author.id)
+                return await ctx.send("Okay, I won't delete your todos")
+        await self.config.user(ctx.author).todos.clear()
+        await ctx.send("Removed your todos.")
+        try:
+            self.settings_cache[ctx.author.id]["todos"] = []
+        except KeyError:
+            await self.update_cache(user_id=ctx.author.id)
 
     @complete.command(
         require_var_positional=True, name="remove", aliases=["del", "rm", "delete"]
@@ -153,23 +155,25 @@ class Deleting(ToDoMixin):
             await self.update_cache(user_id=ctx.author.id)
 
     @complete.command(name="removeall", aliases=["delall", "rma"])
-    async def complete_removeall(self, ctx):
-        """Remove all of your completed todos"""
-        await ctx.send(
-            "WARNING, this will remove **ALL** of your completed todos. Would you like to remove them? (y/n)"
-        )
-        pred = MessagePredicate.yes_or_no(ctx)
-        try:
-            await self.bot.wait_for("message", check=pred)
-        except asyncio.TimeoutError:
-            await ctx.send("Okay, I won't delete your completed todos")
-        else:
+    async def complete_removeall(self, ctx, confirm: bool = False):
+        """Remove all of your completed todos
+
+        **Arguments**
+        >   confirm: If True it will skip the yes or no check. Defaults to False"""
+        if not confirm:
+            await ctx.send(
+                "WARNING, this will remove **ALL** of your completed todos. Would you like to remove them? (y/n)"
+            )
+            pred = MessagePredicate.yes_or_no()
+            try:
+                await self.bot.wait_for("message", check=pred)
+            except asyncio.TimeoutError:
+                pass
             if not pred.result:
-                await ctx.send("Okay, I won't delete your completed todos")
-            else:
-                await self.config.user(ctx.author).completed.clear()
-                await ctx.send("Removed your completed todos.")
-                try:
-                    self.settings_cache[ctx.author.id]["completed"] = []
-                except KeyError:
-                    await self.update_cache(user_id=ctx.author.id)
+                return await ctx.send("Okay, I won't delete your completed todos")
+        await self.config.user(ctx.author).completed.clear()
+        await ctx.send("Removed your completed todos.")
+        try:
+            self.settings_cache[ctx.author.id]["completed"] = []
+        except KeyError:
+            await self.update_cache(user_id=ctx.author.id)
