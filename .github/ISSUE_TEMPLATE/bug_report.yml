@@ -1,0 +1,42 @@
+name: Bug Report
+description: Submit an issue for one of these cogs.
+labels: [bug]
+assignees: "Just-Jojo"
+body:
+  - type: dropdown
+    id: cog
+    attributes:
+      label: Cog
+      description: Which cog has this bug occured in?
+      options:
+        - AdvancedBlacklist
+        - AdvancedInvite
+        - Collectibles
+        - Cyclestatus
+        - Depypher
+        - Ducks
+        - ToDo
+        - UpdateUtils
+    validations:
+      required: true
+  - type: input
+    id: details
+    attributes:
+      label: Details
+      description: Give some details about the bug. What happened, and what did you expect to happen?
+    validations:
+      required: true
+  - type: input
+    id: repro
+    attributes:
+      label: Reproduction
+      description: How can I reproduce this issue? If this is not reproducible, leave this field blank.
+    validations:
+      required: false
+  - type: input
+    id: discord_user_info
+    attributes:
+      label: Discord User Information
+      description: "What is your Discord username? (user#1234)"
+    validations:
+      required: true
