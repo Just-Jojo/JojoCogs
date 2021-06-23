@@ -27,16 +27,16 @@ body:
     validations:
       required: true
   - type: input
-    id: repro
-    attributes:
-      label: Reproduction
-      description: How can I reproduce this issue? If this is not reproducible, leave this field blank.
-    validations:
-      required: false
-  - type: input
     id: discord_user_info
     attributes:
       label: Discord User Information
       description: "What is your Discord username? (user#1234)"
     validations:
       required: true
+  - type: input
+    id: repro
+    attributes:
+      label: Reproduction
+      description: How can I reproduce this issue? If this is not reproducible, leave this field blank.
+    validations:
+      required: false
