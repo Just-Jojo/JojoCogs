@@ -7,7 +7,7 @@ body:
     id: cog
     attributes:
       label: Cog
-      description: Which cog are you proposing a feature request for>
+      description: Which cog are you proposing a feature request for?
       options:
         - AdvancedBlacklist
         - AdvancedInvite
