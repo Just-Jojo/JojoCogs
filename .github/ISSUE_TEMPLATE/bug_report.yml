@@ -39,6 +39,8 @@ body:
       label: Traceback details (if applicable)
       description: Please copy and paste any traceback details. This will be automatically formatted into code, so no need for backticks.
       render: py
+    validations: 
+      required: false
   - type: input
     id: repro
     attributes:
