@@ -117,8 +117,8 @@ class Settings(ToDoMixin):
             embed = discord.Embed(
                 title=self._embed_title.format(ctx),
                 colour=conf["colour"] or await ctx.embed_colour(),
+                timestamp = datetime.utcnow(),
             )
-            embed.timestamp = datetime.utcnow()
             [
                 embed.add_field(name=key, value=value, inline=True)
                 for key, value in settings.items()
@@ -128,7 +128,10 @@ class Settings(ToDoMixin):
             humanized_settings = "\n".join(
                 f"**{key}** {value}" for key, value in settings.items()
             )
-            msg = f"{self._embed_title.format(ctx)}\n\n{humanized_settings}"
+            msg = (
+                f"{self._embed_title.format(ctx)}\n\n"
+                f"{humanized_settings}\n<t:{round(datetime.now().timestamp())}>"
+            )
             kwargs = {"content": msg}
         await ctx.send(**kwargs)
 
@@ -153,16 +156,15 @@ class Settings(ToDoMixin):
         )
         if use_embed:
             embed: discord.Embed = discord.Embed(
-                title=title, colour=await ctx.embed_colour()
+                title=title, colour=await ctx.embed_colour(), timestamp=datetime.utcnow()
             )
-            embed.timestamp = datetime.utcnow()
             [
                 embed.add_field(name=key, value=value, inline=True)
                 for key, value in settings.items()
             ]
             kwargs = {"embed": embed}
         else:
-            kwargs = {"content": f"{title}\n\n{humanized_settings}"}
+            kwargs = {"content": f"{title}\n\n{humanized_settings}\n<t:{round(datetime.now().timestamp())}"}
         try:
             await ctx.author.send(**kwargs)
         except discord.Forbidden:

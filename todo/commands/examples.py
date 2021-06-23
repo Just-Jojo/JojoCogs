@@ -6,6 +6,7 @@ from typing import List, Optional, Union
 import discord
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import box
+from datetime import datetime
 
 from .abc import ToDoMixin
 
@@ -60,21 +61,26 @@ class Examples(ToDoMixin):
                     ctx, channel, private, act_todos, colour
                 )
             embed = (
-                discord.Embed(title="Todos", colour=colour or await ctx.embed_colour())
+                discord.Embed(
+                    title="Todos",
+                    colour=colour or await ctx.embed_colour(),
+                    timestamp=datetime.utcnow()),
             ).set_footer(text="Page 1/1")
             embed.description = act_todos
             return await channel.send(
                 "Here's what your todo list would look like", embed=embed
             )
 
+        now = round(datetime.now().timestamp())
         if combined:
             msg = (
-                "Here's what your todo list would look like\n" + act_todos + "\nPage 1/1"
+                f"Here's what your todo list would look like\n{act_todos}\nPage 1/1\n<t:{now}>"
             )
         else:
-            msg = "Here's what your todo list would look like\n" + act_todos[0]
-            msg += (
-                "\nAnd here's what your completed list would look like\n" + act_todos[1]
+            msg = (
+                f"Here's what your todo list would look like\n{act_todos[0]}\nPage 1/1\n<t:{now}>"
+                f"\n\nAnd here's what your completed list would look like\n{act_todos[1]}"
+                f"\nPage 1/1\n<t:{now}>"
             )
         await channel.send(msg)
 
@@ -92,6 +98,7 @@ class Examples(ToDoMixin):
                 title="Todos",
                 description=todos[0],
                 colour=colour or await ctx.embed_colour(),
+                timestamp=datetime.utcnow()
             )
         ).set_footer(text="Page 1/1")
         completed_embed = (
@@ -99,6 +106,7 @@ class Examples(ToDoMixin):
                 title="Completed todos",
                 description=todos[1],
                 colour=colour or await ctx.embed_colour(),
+                timestamp=datetime.utcnow()
             )
         ).set_footer(text="Page 1/1")
         bundled = [

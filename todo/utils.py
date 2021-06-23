@@ -12,8 +12,9 @@ from redbot.core import commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import bold, box
 from redbot.vendored.discord.ext import menus  # type:ignore[attr-defined]
+from jojo_utils import Menu
 
-__all__ = ["TodoPages", "TodoMenu", "todo_positive_int"]
+__all__ = ["TodoPages", "todo_positive_int"]
 
 
 class TodoPages(menus.ListPageSource):
@@ -34,24 +35,25 @@ class TodoPages(menus.ListPageSource):
     def is_paginating(self):
         return True
 
-    async def format_page(self, menu, page):
+    async def format_page(self, menu: Menu, page: str):
         bot: Red = menu.bot
         ctx: commands.Context = menu.ctx
         if self.md:
             page = box(page, "md")
+        footer = f"Page {menu.current_page + 1}/{self.get_max_pages()}"
         if not await ctx.embed_requested() or not self.use_embeds:
             return (
                 f"{bold(self.title)}\n"
-                + page
-                + f"\nPage {menu.current_page + 1}/{self.get_max_pages()}"
+                f"{page}\n"
+                f"{footer}\n<t:{round(datetime.now().timestamp())}>"
             )
 
         embed = discord.Embed(
-            title=self.title, colour=self.colour or await ctx.embed_colour()
+            title=self.title, colour=self.colour or await ctx.embed_colour(),
+            description=page,
+            timestamp=datetime.utcnow()
         )
-        embed.description = page
         embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
-        embed.timestamp = datetime.utcnow()
         return embed
 
 
