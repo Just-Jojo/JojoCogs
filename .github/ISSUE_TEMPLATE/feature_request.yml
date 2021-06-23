@@ -1,0 +1,28 @@
+name: Feature Request
+description: Submit a feature request for one of these cogs.
+labels: [bug]
+assignees: "Just-Jojo"
+body:
+  - type: dropdown
+    id: cog
+    attributes:
+      label: Cog
+      description: Which cog are you proposing a feature request for>
+      options:
+        - AdvancedBlacklist
+        - AdvancedInvite
+        - Collectibles
+        - Cyclestatus
+        - Depypher
+        - Ducks
+        - ToDo
+        - UpdateUtils
+    validations:
+      required: true
+  - type: input
+    id: details
+    attributes:
+      label: Details
+      description: Describe your request:
+    validations:
+      required: true
