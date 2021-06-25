@@ -8,6 +8,7 @@ import discord
 from redbot.core import commands
 
 from .abc import ToDoMixin
+from ..utils import PresetConverter # type:ignore
 
 
 def get_toggle(setting: bool) -> str:
@@ -92,6 +93,37 @@ class Settings(ToDoMixin):
         await ctx.send(msg)
         await self.config.user(ctx.author).colour.set(color)
         await self.update_cache(user_id=ctx.author.id)
+
+    @todo_set.command(name="preset")
+    async def todoset_preset(self, ctx: commands.Context, preset: PresetConverter):
+        """Set your todo settings to a preset
+        
+        **Types**
+        - >   preset: Choose either \"minimal\" or \"fancy\""""
+        conf = await self._get_user_config(ctx.author)
+        settings: dict
+        if preset == "minimal":
+            settings = {
+                "use_md": False,
+                "use_embeds": False,
+                "colour": None,
+                "autosort": False,
+                "combined_lists": False,
+                "detailed_pop": False,
+            }
+        else:
+            settings = {
+                "use_md": True,
+                "use_embeds": True,
+                "colour": None,
+                "autosort": True,
+                "combined_lists": True,
+                "detailed_pop": True,
+            }
+        for key, value in settings.items():
+            conf[key] = value # type:ignore
+        await self.config.user(ctx.author).set(conf)
+        await ctx.tick()
 
     @todo_set.command(aliases=["settings"])
     async def showsettings(self, ctx):

@@ -14,7 +14,7 @@ from redbot.core.utils.chat_formatting import bold, box
 from redbot.vendored.discord.ext import menus  # type:ignore[attr-defined]
 from jojo_utils import Menu
 
-__all__ = ["TodoPages", "todo_positive_int"]
+__all__ = ["PresetConverter", "TodoPages", "todo_positive_int"]
 
 
 class TodoPages(menus.ListPageSource):
@@ -55,6 +55,13 @@ class TodoPages(menus.ListPageSource):
         )
         embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
         return embed
+
+
+class PresetConverter(commands.Converter):
+    async def convert(self, ctx: commands.Context, argument: str) -> str:
+        if argument.lower() not in ("minimal", "fancy"):
+            raise commands.BadArgument('Preset must be either "minimal" or "fancy"')
+        return argument.lower()
 
 
 def todo_positive_int(arg: str) -> Optional[int]:

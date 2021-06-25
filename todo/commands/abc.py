@@ -29,7 +29,7 @@ class ToDoMixin(ABC):
     @abstractmethod
     async def _get_user_config(
         self, user: typing.Union[int, discord.Member, discord.User]
-    ) -> typing.Optional[typing.Dict[typing.Any, typing.Any]]:
+    ) -> typing.Optional[typing.Dict[str, typing.Any]]:
         ...
 
     @abstractmethod
