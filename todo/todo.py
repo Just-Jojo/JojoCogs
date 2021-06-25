@@ -18,7 +18,7 @@ from redbot.core.utils.chat_formatting import box, humanize_list, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from .commands import CompositeMetaclass, Deleting, Examples, Search, Settings
-from .utils import TodoPages, todo_positive_int
+from .utils import TodoPages, ToDoPositiveInt
 
 minor_version = int(jojo_version[-1])
 if minor_version > 4:
@@ -105,7 +105,7 @@ class ToDo(
     ### Listing commands ###
 
     @commands.group(invoke_without_command=True)
-    async def todo(self, ctx, index: todo_positive_int):  # type:ignore
+    async def todo(self, ctx, index: ToDoPositiveInt):  # type:ignore
         """Todo commands
 
         Add a todo to your list and manage your tasks
@@ -137,7 +137,7 @@ class ToDo(
     @todo.group(
         invoke_without_command=True, aliases=["c"], require_var_positional=True
     )  # `c` is easy to type
-    async def complete(self, ctx, *indexes: todo_positive_int):  # type:ignore[valid-type]
+    async def complete(self, ctx, *indexes: ToDoPositiveInt):  # type:ignore[valid-type]
         """Commands having to do with completed todos"""
         if not await self.config.user(ctx.author).todos():
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))

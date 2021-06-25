@@ -15,7 +15,7 @@ from redbot.vendored.discord.ext import menus  # type:ignore[attr-defined]
 from jojo_utils import Menu
 from enum import Enum
 
-__all__ = ["PresetConverter", "TodoPages", "todo_positive_int"]
+__all__ = ["PresetConverter", "TodoPages", "ToDoPositiveInt"]
 
 
 class TodoPages(menus.ListPageSource):
@@ -88,12 +88,13 @@ class PresetConverter(commands.Converter):
         return ret.value
 
 
-def todo_positive_int(arg: str) -> Optional[int]:
+class ToDoPositiveInt(commands.Converter):
     """A slightly modified type hint for the "todo" group command"""
-    try:
-        ret = int(arg)
-    except ValueError:
-        raise commands.UserInputError()
-    if ret <= 0:
-        raise commands.BadArgument(f"'{arg}' is not a positive integer")
-    return ret
+    async def convert(self, ctx: commands.Context, arg: str):
+        try:
+            ret = int(arg)
+        except ValueError:
+            raise commands.UserInputError()
+        if ret <= 0:
+            raise commands.BadArgument(f"'{arg}' is not a positive integer")
+        return ret
