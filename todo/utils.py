@@ -13,6 +13,7 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import bold, box
 from redbot.vendored.discord.ext import menus  # type:ignore[attr-defined]
 from jojo_utils import Menu
+from enum import Enum
 
 __all__ = ["PresetConverter", "TodoPages", "todo_positive_int"]
 
@@ -57,11 +58,34 @@ class TodoPages(menus.ListPageSource):
         return embed
 
 
+class Presets(Enum):
+    minimal = {
+        "use_md": False,
+        "use_embeds": False,
+        "colour": None,
+        "autosort": False,
+        "combined_lists": False,
+        "detailed_pop": False,
+    }
+    fancy = {
+        "use_md": True,
+        "use_embeds": True,
+        "colour": None,
+        "autosort": True,
+        "combined_lists": True,
+        "detailed_pop": True,
+    }
+
+
 class PresetConverter(commands.Converter):
     async def convert(self, ctx: commands.Context, argument: str) -> str:
-        if argument.lower() not in ("minimal", "fancy"):
+        if argument.lower() == "minimal":
+            ret = Presets.minimal
+        elif argument.lower() == "fancy":
+            ret = Presets.fancy
+        else:
             raise commands.BadArgument('Preset must be either "minimal" or "fancy"')
-        return argument.lower()
+        return ret.value
 
 
 def todo_positive_int(arg: str) -> Optional[int]:

@@ -97,30 +97,11 @@ class Settings(ToDoMixin):
     @todo_set.command(name="preset")
     async def todoset_preset(self, ctx: commands.Context, preset: PresetConverter):
         """Set your todo settings to a preset
-        
+
         **Types**
         - >   preset: Choose either \"minimal\" or \"fancy\""""
         conf = await self._get_user_config(ctx.author)
-        settings: dict
-        if preset == "minimal":
-            settings = {
-                "use_md": False,
-                "use_embeds": False,
-                "colour": None,
-                "autosort": False,
-                "combined_lists": False,
-                "detailed_pop": False,
-            }
-        else:
-            settings = {
-                "use_md": True,
-                "use_embeds": True,
-                "colour": None,
-                "autosort": True,
-                "combined_lists": True,
-                "detailed_pop": True,
-            }
-        for key, value in settings.items():
+        for key, value in preset.items():
             conf[key] = value # type:ignore
         await self.config.user(ctx.author).set(conf)
         await ctx.tick()
