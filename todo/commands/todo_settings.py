@@ -61,6 +61,14 @@ class Settings(ToDoMixin):
         already_set = f"Combined lists are already {toggled}"
         await self._toggler(ctx, toggle, "combined_lists", msg, already_set)
 
+    @todo_set.command(usage="<show timestamp>")
+    async def timestamp(self, ctx, toggle: bool):
+        """Toggle for Discord timestamps to be shown in `[p]todo add`."""
+        toggled = get_toggle(toggle)
+        msg = f"Timestamps are now {toggled}."
+        already_set = f"Timestamps are already {toggled}."
+        await self._toggler(ctx, toggle, "timestamp", msg, already_set)
+
     @todo_set.command(usage="<give more details>")
     async def details(self, ctx, toggle: bool):
         """Set your lists to give you extra details when adding and removing them"""
@@ -121,10 +129,11 @@ class Settings(ToDoMixin):
             "Combined lists": get_toggle(conf["combined_lists"]).capitalize(),
             "Extra details": get_toggle(conf["detailed_pop"]).capitalize(),
             "Colour": conf["colour"] or "Bot's embed colour",
+            "Non embed timestamps": get_toggle(conf["timestamp"]).capitalize(),
         }
         if private:
             return await self._private_send_settings(
-                ctx, use_embed=embedded, settings=settings
+                ctx, use_embed=embedded, settings=settings, timestamp=conf.get("timestamp", True)
             )
         if await ctx.embed_requested() and embedded:
             embed = discord.Embed(
@@ -143,8 +152,10 @@ class Settings(ToDoMixin):
             )
             msg = (
                 f"{self._embed_title.format(ctx)}\n\n"
-                f"{humanized_settings}\n<t:{round(datetime.now().timestamp())}>"
+                f"{humanized_settings}"
             )
+            if conf.get("timestamp", True):
+                msg += f"\n<t:{int(datetime.now().timestamp())}>"
             kwargs = {"content": msg}
         await ctx.send(**kwargs)
 
@@ -160,7 +171,7 @@ class Settings(ToDoMixin):
         await self.update_cache(user_id=ctx.author.id)
 
     async def _private_send_settings(
-        self, ctx: commands.Context, use_embed: bool, settings: Dict[str, str]
+        self, ctx: commands.Context, use_embed: bool, settings: Dict[str, str], timestamp: bool
     ):
         """I never said I was good at naming methods"""
         title = self._embed_title.format(ctx)
@@ -177,7 +188,9 @@ class Settings(ToDoMixin):
             ]
             kwargs = {"embed": embed}
         else:
-            kwargs = {"content": f"{title}\n\n{humanized_settings}\n<t:{round(datetime.now().timestamp())}"}
+            kwargs = {"content": f"{title}\n\n{humanized_settings}"}
+            if timestamp:
+                kwargs["content"] += f"\n<t:{int(datetime.now().timestamp())}>"
         try:
             await ctx.author.send(**kwargs)
         except discord.Forbidden:

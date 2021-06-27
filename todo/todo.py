@@ -39,6 +39,7 @@ _config_structure = {
     "combined_lists": False,
     "private": False,
     "colour": None,
+    "timestamp": True,
 }
 
 
@@ -60,7 +61,7 @@ class ToDo(
     )
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.2.28"
+    __version__ = "1.2.29"
     __suggesters__ = [
         "Blackbird#0001",
     ]
@@ -130,7 +131,9 @@ class ToDo(
             )
             kwargs = {"embed": embed}
         else:
-            msg = f"{title}\n{todo}\n<t:{round(datetime.now().timestamp())}>"
+            msg = f"{title}\n{todo}"
+            if conf.get("timestamp", True):
+                msg += f"\n<t:{int(datetime.now().timestamp())}>"
             kwargs = {"content": msg}
         await ctx.send(**kwargs)
 
@@ -183,7 +186,8 @@ class ToDo(
             )
             if details:
                 msg += "\n" + "\n".join(failed)
-        msg += f"\n<t:{round(datetime.now().timestamp())}>"
+        if conf.get("timestamp", True):
+            msg += f"\n<t:{int(datetime.now().timestamp())}>"
         await self._maybe_autosort(ctx)
         if len(msg) > 2000:
             await ctx.send_interactive(pagify(msg))
@@ -199,7 +203,12 @@ class ToDo(
             f"\n{humanize_list(self.__suggesters__)}"
             "\n\nSpecial thanks to Kreusada for helping me a lot with this cog ❤"
         )
-        kwargs = {"content": f"{msg}\n<t:{round(datetime.now().timestamp())}>"}
+        conf = await self._get_user_config(ctx.author)
+        kwargs = {
+            "content": msg
+        }
+        if conf.get("timestamp", True):
+            kwargs["content"] += f"\n<t:{int(datetime.now().timestamp())}>"
         if await ctx.embed_requested():
             em = discord.Embed(
                 title="Suggesters!", colour=await ctx.embed_colour(), description=msg,
@@ -221,7 +230,12 @@ class ToDo(
             "(here's the issue link <https://github.com/Just-Jojo/JojoCogs/issues/15> 😄)"
             f"\n~~You can also appear in the `{ctx.clean_prefix}todo suggesters` command :p~~"
         )
-        kwargs = {"content": f"{msg}\n<t:{round(datetime.now().timestamp())}>"}
+        conf = await self._get_user_config(ctx.author)
+        kwargs = {
+            "content": msg
+        }
+        if conf.get("timestamp", True):
+            kwargs["content"] += f"\n<t:{int(datetime.now().timestamp())}>"
         if await ctx.embed_requested():
             embed = discord.Embed(
                 title="Todo suggestions",
@@ -243,15 +257,14 @@ class ToDo(
         try:
             conf["todos"].append(todo)
         except KeyError:
-            conf["todos"] = [
-                todo,
-            ]
+            conf["todos"] = [todo]
 
         msg = "Added that as a todo"
         details = conf.get("detailed_pop", False)
         if details:
             msg += f"\n'{discord.utils.escape_markdown(todo)}'"
-        msg += f"\n<t:{round(datetime.now().timestamp())}>"
+        if conf.get("timestamp"):
+            msg += f"\n<t:{int(datetime.now().timestamp())}>"
         await self._maybe_autosort(ctx)
         if len(msg) > 2000:
             await ctx.send_interactive(pagify(msg))
@@ -298,7 +311,8 @@ class ToDo(
         msg = f"Moved a todo from index {index} to {to_place}"
         if conf["detailed_pop"]:
             msg += f"\n`{todo}`"
-        msg += f"\n<t:{round(datetime.now().timestamp())}>"
+        if conf.get("timestamp", True):
+            msg += f"\n<t:{int(datetime.now().timestamp())}>"
         await ctx.send_interactive(pagify(msg))
         if conf.get("autosort", False):
             await self.config.user(ctx.author).autosort.set(False)
@@ -344,6 +358,7 @@ class ToDo(
             use_embeds=use_embeds,
             private=private,
             colour=colour,
+            timestamp=conf.get("timestamp", True)
         )
 
     @complete.command(name="sort")
@@ -384,7 +399,12 @@ class ToDo(
             new = box(f"{index}. {new_todo}", "md")
         formatting = f"**Old**\n{old}\n**New**\n{new}"
         title = "Todo complete edit"
-        kwargs = {"content": f"**{title}**\n\n{formatting}\n<t:{round(datetime.now().timestamp())}>"}
+        no_embeds = f"**{title}**\n\n{formatting}"
+        kwargs = {
+            "content": no_embeds
+        }
+        if conf.get("timestamp", True):
+            kwargs["content"] += f"\n<t:{int(datetime.now().timestamp())}>"
         if await ctx.embed_requested() and conf.get("use_embeds", True):
             embed = discord.Embed(
                 title=title,
@@ -419,6 +439,7 @@ class ToDo(
                 use_embeds=use_embeds,
                 private=conf.get("private", False),
                 colour=colour,
+                timestamp=conf.get("timestamp", True),
             )
 
     @complete.command(name="reorder")
@@ -440,7 +461,8 @@ class ToDo(
         msg = f"Moved a todo from {index} to {to_place}."
         if conf.get("detailed_pop"):
             msg += f"\n`{todo}`"
-        msg += f"\n<t:{round(datetime.now().timestamp())}>"
+        if conf.get("timestamp", True):
+            msg += f"\n<t:{int(datetime.now().timestamp())}>"
         await ctx.send_interactive(pagify(msg))
         if conf.get("autosort"):
             await self.config.user(ctx.author).autosort.set(False)
@@ -479,8 +501,10 @@ class ToDo(
         colour = conf.get("colour", None) or await ctx.embed_colour()
         formatting = f"**Old**\n{old}**New**\n{new}"
         kwargs: dict = {
-            "content": f"**Todo edit**\n\n{formatting}\n<t:{round(datetime.now().timestamp())}"
+            "content": f"**Todo edit**\n\n{formatting}"
         }
+        if conf.get("timestamp", True):
+            kwargs["content"] += f"\n<t:{int(datetime.now().timestamp())}>"
         if await ctx.embed_requested() and use_embeds:
             embed = discord.Embed(
                 title="Todo edit", colour=colour, description=formatting, timestamp=datetime.utcnow()
@@ -514,6 +538,7 @@ class ToDo(
         use_embeds: bool,
         private: bool,
         colour: Optional[Union[str, int]],
+        timestamp: bool,
     ):
         if not use_md:
             completed = await self._cross_lists(completed)
@@ -527,6 +552,7 @@ class ToDo(
             use_embeds=use_embeds,
             private=private,
             colour=colour,
+            timestamp=timestamp,
         )
 
     async def page_logic(
@@ -539,6 +565,7 @@ class ToDo(
         use_embeds: bool,
         private: bool,
         colour: Optional[Union[str, int]],
+        timestamp: bool,
     ):
         data = self._pagified_list(data)
         source = TodoPages(
@@ -547,6 +574,7 @@ class ToDo(
             use_embeds=use_embeds,
             title=title,
             colour=colour,
+            timestamp=timestamp,
         )
         menu_kwargs = {"source": source}
         if minor_version != 6:  # 6 is the only borked version
