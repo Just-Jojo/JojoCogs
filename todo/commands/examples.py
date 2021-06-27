@@ -71,17 +71,21 @@ class Examples(ToDoMixin):
                 "Here's what your todo list would look like", embed=embed
             )
 
-        now = round(datetime.now().timestamp())
+        now = int(datetime.now().timestamp())
         if combined:
             msg = (
-                f"Here's what your todo list would look like\n{act_todos}\nPage 1/1\n<t:{now}>"
+                f"Here's what your todo list would look like\n{act_todos}\nPage 1/1"
             )
+            if conf.get("timestamp", True):
+                msg += f"\n<t:{now}>"
         else:
             msg = (
                 f"Here's what your todo list would look like\n{act_todos[0]}\nPage 1/1\n<t:{now}>"
                 f"\n\nAnd here's what your completed list would look like\n{act_todos[1]}"
-                f"\nPage 1/1\n<t:{now}>"
+                f"\nPage 1/1"
             )
+            if conf.get("timestamp", True):
+                msg += "\n<t:{now}>"
         await channel.send(msg)
 
     async def _handle_not_combined(
