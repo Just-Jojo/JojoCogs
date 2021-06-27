@@ -61,12 +61,12 @@ class Settings(ToDoMixin):
         already_set = f"Combined lists are already {toggled}"
         await self._toggler(ctx, toggle, "combined_lists", msg, already_set)
 
-    @todo_set.command(usage="<combine lists>")
+    @todo_set.command(usage="<show timestamp>")
     async def timestamp(self, ctx, toggle: bool):
         """Toggle for Discord timestamps to be shown in `[p]todo add`."""
         toggled = get_toggle(toggle)
-        msg = f"Combined lists are now {toggled}"
-        already_set = f"Combined lists are already {toggled}"
+        msg = f"Timestamps are now {toggled}"
+        already_set = f"Timestamps are already {toggled}."
         await self._toggler(ctx, toggle, "timestamp", msg, already_set)
 
     @todo_set.command(usage="<give more details>")
