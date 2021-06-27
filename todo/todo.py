@@ -39,6 +39,7 @@ _config_structure = {
     "combined_lists": False,
     "private": False,
     "colour": None,
+    "timestamp": True,
 }
 
 
@@ -243,15 +244,14 @@ class ToDo(
         try:
             conf["todos"].append(todo)
         except KeyError:
-            conf["todos"] = [
-                todo,
-            ]
+            conf["todos"] = [todo]
 
         msg = "Added that as a todo"
         details = conf.get("detailed_pop", False)
         if details:
             msg += f"\n'{discord.utils.escape_markdown(todo)}'"
-        msg += f"\n<t:{round(datetime.now().timestamp())}>"
+        if conf["timestamp"]:
+            msg += f"\n<t:{round(datetime.now().timestamp())}>"
         await self._maybe_autosort(ctx)
         if len(msg) > 2000:
             await ctx.send_interactive(pagify(msg))
