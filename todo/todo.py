@@ -61,7 +61,7 @@ class ToDo(
     )
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.2.29"
+    __version__ = "1.2.30"
     __suggesters__ = [
         "Blackbird#0001",
     ]
@@ -340,6 +340,7 @@ class ToDo(
                     use_embeds=use_embeds,
                     private=private,
                     colour=colour,
+                    timestamp=conf.get("timestamp", True)
                 )
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
 
