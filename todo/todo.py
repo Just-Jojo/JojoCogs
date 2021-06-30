@@ -558,7 +558,7 @@ class ToDo(
         if not todos:
             return await ctx.send(self._no_todo_message.format(ctx.clean_prefix))
         if not confirm:
-            await ctx.send("Would you like to get your todos (this will upload them as a file)")
+            await ctx.send("Would you like to get your todos (this will upload them as a file) (y/n)")
             pred = MessagePredicate.yes_or_no(ctx)
             try:
                 msg = await ctx.bot.wait_for("message", check=pred)
