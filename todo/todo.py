@@ -16,6 +16,8 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, humanize_list, pagify
 from redbot.core.utils.predicates import MessagePredicate
+import io
+from contextlib import suppress
 
 from .commands import CompositeMetaclass, Deleting, Examples, Search, Settings
 from .utils import TodoPages, ToDoPositiveInt
@@ -61,7 +63,7 @@ class ToDo(
     )
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.2.30"
+    __version__ = "1.2.31"
     __suggesters__ = [
         "Blackbird#0001",
     ]
@@ -514,19 +516,61 @@ class ToDo(
         await ctx.send(**kwargs)
         await self.config.user(ctx.author).todos.set(todos)
 
-    @todo.command(name="multiadd", aliases=("ma",))
-    async def todo_multi_add(self, ctx: commands.Context, *, todos: str):
-        """Add multiple todos. Todos will be broken up by newlines."""
+    @todo.command(name="multiadd", aliases=("ma",), usage="<todos or file>")
+    async def todo_multi_add(self, ctx: commands.Context, *, todos: str = None):
+        """Add multiple todos. Todos will be broken up by newlines.
+        
+        You can also upload a file to add them easily"""
+        used_files = False
+        if len(ctx.message.attachments) > 0:
+            # Files take priority
+            maybe_data = ctx.message.attachments[0]
+            if not maybe_data.filename.endswith(".txt"):
+                return await ctx.send("Please upload a `.txt` file")
+            used_files = True
+            try:
+                data = await maybe_data.read()
+                todos = data.decode(encoding="utf-8")
+            except UnicodeDecodeError:
+                return await ctx.send("Something went wrong while trying to decode your file. Sorry >.<")
+        if not todos and not used_files:
+            return await ctx.send_help(ctx.command)
+        elif not todos:
+            return await ctx.send("Hm, that file seems to be blank")
         to_add = todos.split("\n")
         if len(to_add) == 1:
             return await ctx.invoke(self.todo_add, todo=to_add[0])
         conf = await self._get_user_config(ctx.author)
         todos = conf.get("todos", [])
-        for todo in to_add:
-            todos.append(todo)
+        todos.extend(to_add)
         await ctx.send("Done. Added those as todos.")
         await self.config.user(ctx.author).todos.set(todos)
         await self._maybe_autosort(ctx)
+
+    @todo.command(name="gettodos")
+    @commands.bot_has_permissions(attach_files=True)
+    async def get_todos(self, ctx, *, confirm: bool = False):
+        """Get your todos in a clean text file (this does not include completed todos)
+
+        This can help with transfering todos from one bot to another"""
+        conf = await self._get_user_config(ctx.author)
+        todos = conf.get("todos")
+        if not todos:
+            return await ctx.send(self._no_todo_message.format(ctx.clean_prefix))
+        if not confirm:
+            await ctx.send("Would you like to get your todos (this will upload them as a file)")
+            check = MessagePredicate.yes_or_no(ctx)
+            try:
+                msg = await ctx.bot.wait_for("message", check=pred)
+            except asyncio.TimeoutError:
+                pass
+            if not pred.result:
+                return await ctx.send("Okay, I won't send your todos")
+            with suppress(discord.Forbidden):
+                await msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+        formatted = "\n".join(todos)
+        fp = io.BytesIO(formatted.encode(encoding="utf-8"))
+        await ctx.send("Here are your todos", file=discord.File(fp, filename="todos.txt"))
 
     ### Utility methods ###
 
