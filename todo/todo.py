@@ -63,7 +63,7 @@ class ToDo(
     )
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.2.31"
+    __version__ = "1.2.32"
     __suggesters__ = [
         "Blackbird#0001",
     ]
@@ -559,7 +559,7 @@ class ToDo(
             return await ctx.send(self._no_todo_message.format(ctx.clean_prefix))
         if not confirm:
             await ctx.send("Would you like to get your todos (this will upload them as a file)")
-            check = MessagePredicate.yes_or_no(ctx)
+            pred = MessagePredicate.yes_or_no(ctx)
             try:
                 msg = await ctx.bot.wait_for("message", check=pred)
             except asyncio.TimeoutError:
