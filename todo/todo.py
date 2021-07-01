@@ -171,7 +171,7 @@ class ToDo(
                             failed.append(f"`{index}`")
                         else:
                             comp += 1
-                            compled.append(f"`{rmd}`")
+                            compled.append(f"'{rmd}'")
                             completed.append(rmd)
                             conf["completed"].append(rmd)
         msg = "Done."
