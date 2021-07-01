@@ -627,7 +627,7 @@ class ToDo(
                 {
                     "delete_message_after": False,
                     "clear_reactions_after": True,
-                    "timeout": 15.0,
+                    "timeout": 30.0,
                 }
             )
         await Menu(**menu_kwargs).start(
