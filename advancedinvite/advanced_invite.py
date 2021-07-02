@@ -12,6 +12,7 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list
+
 from .utils import *
 
 log = logging.getLogger("red.JojoCogs.advanced_invite")
@@ -104,18 +105,27 @@ class AdvancedInvite(commands.Cog):
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def invite(self, ctx: commands.Context):
         """Invite [botname] to your server"""
-        core = self.bot.get_cog("Core")
+        core = self.bot.get_cog(
+            "Core"
+        )  # NOTE This will only break if someone is dumb enough to eval or debug out Core
         channel = await self.maybe_reset_cooldown(ctx)
         url = await core._invite_url()  # type:ignore
         inv = f"Here is {ctx.me}'s invite url: {url}"
-        message = self._settings_cache["custom_message"].format(bot_name=self.bot.user.name)
+        message = self._settings_cache["custom_message"].format(
+            bot_name=self.bot.user.name
+        )
         kwargs = {"content": f"{message}\n{inv}\n{timestamp_format()}"}
 
-        if await self.bot.embed_requested(channel, ctx.author) and self._settings_cache["embeds"]:
+        if (
+            await self.bot.embed_requested(channel, ctx.author)
+            and self._settings_cache["embeds"]
+        ):
             title = self._settings_cache["title"].format(bot_name=self.bot.user.name)
             embed = discord.Embed(
                 title=title,
-                description=(f"{message}\n" f"\nHere is **[{ctx.me.name}'s invite]({url})**"),
+                description=(
+                    f"{message}\n" f"\nHere is **[{ctx.me.name}'s invite]({url})**"
+                ),
                 colour=await ctx.embed_colour(),
                 timestamp=datetime.utcnow(),
             )
@@ -131,7 +141,9 @@ class AdvancedInvite(commands.Cog):
             await channel.send(**kwargs)
         except discord.Forbidden as e:
             if not self._settings_cache["send_in_channel"]:
-                await ctx.send("I cannot send you DMs. Please enable them so I can DM you.")
+                await ctx.send(
+                    "I cannot send you DMs. Please enable them so I can DM you."
+                )
             else:
                 await ctx.send("Hm, something went wrong...")
                 log.error("Error in command 'invite'", exc_info=e)
@@ -140,6 +152,7 @@ class AdvancedInvite(commands.Cog):
     @commands.is_owner()
     async def invite_settings(self, ctx: commands.Context):
         """Settings for the invite command"""
+        pass
 
     @invite_settings.command(name="url")
     async def invite_url(self, ctx: commands.Context, url: NoneConverter):
@@ -153,10 +166,10 @@ class AdvancedInvite(commands.Cog):
             if not url.endswith((".gif", ".png", ".jpg", ".jpeg")):
                 return await ctx.send("That url did not end with a supported image type.")
             try:
-                async with ctx.typing():
-                    async with aiohttp.request("GET", url) as re:
-                        if re.status != 200:
-                            return await ctx.send("I could not access that url.")
+                await ctx.trigger_typing()
+                async with aiohttp.request("GET", url) as re:
+                    if re.status != 200:
+                        return await ctx.send("I could not access that url.")
             except aiohttp.InvalidURL:
                 return await ctx.send("That was an invalid url.")
         await self.config.custom_url.set(url)
@@ -182,9 +195,7 @@ class AdvancedInvite(commands.Cog):
         await ctx.tick()
 
     @invite_settings.command(name="message")
-    async def invite_message(
-        self, ctx: commands.Context, *, msg: NoneConverter
-    ):
+    async def invite_message(self, ctx: commands.Context, *, msg: NoneConverter):
         r"""Set the message for invites.
 
         This will be before the invite url.
@@ -232,10 +243,10 @@ class AdvancedInvite(commands.Cog):
     @invite_settings.command(name="title")
     @commands.check(embed_check)
     async def invite_title(
-        self, ctx: commands.Context, *, title: NoneConverter(strict=True) # type:ignore
+        self, ctx: commands.Context, *, title: NoneConverter(strict=True)  # type:ignore
     ):
         r"""Set the title for the embed
-        
+
         **Arguments**
         \>   title: The title of the embed. Type `None` to reset it"""
         self._settings_cache["title"] = title
@@ -251,7 +262,11 @@ class AdvancedInvite(commands.Cog):
         )
         kwargs = {"content": msg, "embed": None}
         if await ctx.embed_requested():
-            embed = discord.Embed(title="Advanced Invite Version", colour=await ctx.embed_colour(), description=msg)
+            embed = discord.Embed(
+                title="Advanced Invite Version",
+                colour=await ctx.embed_colour(),
+                description=msg,
+            )
             kwargs.update({"embed": embed, "content": None})
         await ctx.send(**kwargs)
 
