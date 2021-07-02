@@ -52,7 +52,7 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 | Ducks          | Ducks! Who could ask for more?                         | Jojo#7791              | Fun      | O        |                          |
 | Depypher       | Encipher and Decipher codes and messages               | Jojo#7791              | Fun      | O        | Eh, it doesn't have much |
 | ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        | Why did I make it dynamic, oh god why                 |
-| UpdateUtils    | A cog used for updating jojo_utils                     | Jojo#7791              | Utility  | X        | This is mostly for developers and it really isn't needed to update utils, however it can be useful to check for updatess |
+| UpdateUtils    | A cog used for updating jojo_utils                     | Jojo#7791              | Utility  | X        | This is mostly for developers and it really isn't needed to update utils, however it can be useful to check for updates |
 
 ## Pull requests
 If you want to make a pull request, first thank you for contributing (because I need help) and second follow this list
