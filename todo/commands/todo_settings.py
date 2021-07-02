@@ -7,8 +7,8 @@ from typing import Dict, Optional, Union
 import discord
 from redbot.core import commands
 
+from ..utils import PresetConverter  # type:ignore
 from .abc import ToDoMixin
-from ..utils import PresetConverter # type:ignore
 
 
 def get_toggle(setting: bool) -> str:
@@ -107,10 +107,10 @@ class Settings(ToDoMixin):
         """Set your todo settings to a preset
 
         **Types**
-        - >   preset: Choose either \"minimal\" or \"fancy\""""
+        - >   preset: Choose either \"minimal\" or \"fancy\" """
         conf = await self._get_user_config(ctx.author)
         for key, value in preset.items():
-            conf[key] = value # type:ignore
+            conf[key] = value  # type:ignore
         await self.config.user(ctx.author).set(conf)
         await ctx.tick()
 
@@ -133,13 +133,16 @@ class Settings(ToDoMixin):
         }
         if private:
             return await self._private_send_settings(
-                ctx, use_embed=embedded, settings=settings, timestamp=conf.get("timestamp", True)
+                ctx,
+                use_embed=embedded,
+                settings=settings,
+                timestamp=conf.get("timestamp", True),
             )
         if await ctx.embed_requested() and embedded:
             embed = discord.Embed(
                 title=self._embed_title.format(ctx),
                 colour=conf["colour"] or await ctx.embed_colour(),
-                timestamp = datetime.utcnow(),
+                timestamp=datetime.utcnow(),
             )
             [
                 embed.add_field(name=key, value=value, inline=True)
@@ -150,10 +153,7 @@ class Settings(ToDoMixin):
             humanized_settings = "\n".join(
                 f"**{key}** {value}" for key, value in settings.items()
             )
-            msg = (
-                f"{self._embed_title.format(ctx)}\n\n"
-                f"{humanized_settings}"
-            )
+            msg = f"{self._embed_title.format(ctx)}\n\n" f"{humanized_settings}"
             if conf.get("timestamp", True):
                 msg += f"\n<t:{int(datetime.now().timestamp())}>"
             kwargs = {"content": msg}
@@ -171,7 +171,11 @@ class Settings(ToDoMixin):
         await self.update_cache(user_id=ctx.author.id)
 
     async def _private_send_settings(
-        self, ctx: commands.Context, use_embed: bool, settings: Dict[str, str], timestamp: bool
+        self,
+        ctx: commands.Context,
+        use_embed: bool,
+        settings: Dict[str, str],
+        timestamp: bool,
     ):
         """I never said I was good at naming methods"""
         title = self._embed_title.format(ctx)

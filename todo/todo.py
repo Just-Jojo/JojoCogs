@@ -4,7 +4,9 @@
 # Licensed under MIT
 
 import asyncio
+import io
 import logging
+from contextlib import suppress
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
@@ -16,8 +18,6 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, humanize_list, pagify
 from redbot.core.utils.predicates import MessagePredicate
-import io
-from contextlib import suppress
 
 from .commands import CompositeMetaclass, Deleting, Examples, Search, Settings
 from .utils import TodoPages, ToDoPositiveInt
@@ -128,8 +128,10 @@ class ToDo(
             todo = box(todo, "md")
         if embed and await ctx.embed_requested():
             embed = discord.Embed(
-                colour=await ctx.embed_colour(), title=title, description=todo,
-                timestamp=datetime.utcnow()
+                colour=await ctx.embed_colour(),
+                title=title,
+                description=todo,
+                timestamp=datetime.utcnow(),
             )
             kwargs = {"embed": embed}
         else:
@@ -206,15 +208,15 @@ class ToDo(
             "\n\nSpecial thanks to Kreusada for helping me a lot with this cog ❤"
         )
         conf = await self._get_user_config(ctx.author)
-        kwargs = {
-            "content": msg
-        }
+        kwargs = {"content": msg}
         if conf.get("timestamp", True):
             kwargs["content"] += f"\n<t:{int(datetime.now().timestamp())}>"
         if await ctx.embed_requested():
             em = discord.Embed(
-                title="Suggesters!", colour=await ctx.embed_colour(), description=msg,
-                timestamp=datetime.utcnow()
+                title="Suggesters!",
+                colour=await ctx.embed_colour(),
+                description=msg,
+                timestamp=datetime.utcnow(),
             )
             kwargs = {"embed": em}
         await ctx.send(**kwargs)
@@ -233,9 +235,7 @@ class ToDo(
             f"\n~~You can also appear in the `{ctx.clean_prefix}todo suggesters` command :p~~"
         )
         conf = await self._get_user_config(ctx.author)
-        kwargs = {
-            "content": msg
-        }
+        kwargs = {"content": msg}
         if conf.get("timestamp", True):
             kwargs["content"] += f"\n<t:{int(datetime.now().timestamp())}>"
         if await ctx.embed_requested():
@@ -342,7 +342,7 @@ class ToDo(
                     use_embeds=use_embeds,
                     private=private,
                     colour=colour,
-                    timestamp=conf.get("timestamp", True)
+                    timestamp=conf.get("timestamp", True),
                 )
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
 
@@ -361,7 +361,7 @@ class ToDo(
             use_embeds=use_embeds,
             private=private,
             colour=colour,
-            timestamp=conf.get("timestamp", True)
+            timestamp=conf.get("timestamp", True),
         )
 
     @complete.command(name="sort")
@@ -391,7 +391,9 @@ class ToDo(
         This isn't really *that* useful but I thought it would be"""
         conf = await self._get_user_config(ctx.author)
         if not (completed := conf.get("completed", [])):
-            return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
+            return await ctx.send(
+                self._no_completed_message.format(prefix=ctx.clean_prefix)
+            )
         act_index = index - 1
         try:
             old = box(f"{index}. {completed.pop(act_index)}", "md")
@@ -403,9 +405,7 @@ class ToDo(
         formatting = f"**Old**\n{old}\n**New**\n{new}"
         title = "Todo complete edit"
         no_embeds = f"**{title}**\n\n{formatting}"
-        kwargs = {
-            "content": no_embeds
-        }
+        kwargs = {"content": no_embeds}
         if conf.get("timestamp", True):
             kwargs["content"] += f"\n<t:{int(datetime.now().timestamp())}>"
         if await ctx.embed_requested() and conf.get("use_embeds", True):
@@ -413,7 +413,7 @@ class ToDo(
                 title=title,
                 description=formatting,
                 colour=conf.get("colour", None) or await ctx.embed_colour(),
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
@@ -503,14 +503,15 @@ class ToDo(
         use_embeds = conf.get("use_embeds", True)
         colour = conf.get("colour", None) or await ctx.embed_colour()
         formatting = f"**Old**\n{old}**New**\n{new}"
-        kwargs: dict = {
-            "content": f"**Todo edit**\n\n{formatting}"
-        }
+        kwargs: dict = {"content": f"**Todo edit**\n\n{formatting}"}
         if conf.get("timestamp", True):
             kwargs["content"] += f"\n<t:{int(datetime.now().timestamp())}>"
         if await ctx.embed_requested() and use_embeds:
             embed = discord.Embed(
-                title="Todo edit", colour=colour, description=formatting, timestamp=datetime.utcnow()
+                title="Todo edit",
+                colour=colour,
+                description=formatting,
+                timestamp=datetime.utcnow(),
             )
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
@@ -519,7 +520,7 @@ class ToDo(
     @todo.command(name="multiadd", aliases=("ma",), usage="<todos or file>")
     async def todo_multi_add(self, ctx: commands.Context, *, todos: str = None):
         """Add multiple todos. Todos will be broken up by newlines.
-        
+
         You can also upload a file to add them easily"""
         used_files = False
         if len(ctx.message.attachments) > 0:
@@ -532,7 +533,9 @@ class ToDo(
                 data = await maybe_data.read()
                 todos = data.decode(encoding="utf-8")
             except UnicodeDecodeError:
-                return await ctx.send("Something went wrong while trying to decode your file. Sorry >.<")
+                return await ctx.send(
+                    "Something went wrong while trying to decode your file. Sorry >.<"
+                )
         if not todos and not used_files:
             return await ctx.send_help(ctx.command)
         elif not todos:
@@ -558,7 +561,9 @@ class ToDo(
         if not todos:
             return await ctx.send(self._no_todo_message.format(ctx.clean_prefix))
         if not confirm:
-            await ctx.send("Would you like to get your todos (this will upload them as a file) (y/n)")
+            await ctx.send(
+                "Would you like to get your todos (this will upload them as a file) (y/n)"
+            )
             pred = MessagePredicate.yes_or_no(ctx)
             try:
                 msg = await ctx.bot.wait_for("message", check=pred)

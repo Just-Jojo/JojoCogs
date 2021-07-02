@@ -4,6 +4,7 @@
 # type:ignore[attr-defined]
 
 from datetime import datetime
+from enum import Enum
 from typing import Optional, Union
 
 import discord
@@ -12,8 +13,6 @@ from redbot.core import commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import bold, box
 from redbot.vendored.discord.ext import menus  # type:ignore[attr-defined]
-from jojo_utils import Menu
-from enum import Enum
 
 __all__ = ["PresetConverter", "TodoPages", "ToDoPositiveInt"]
 
@@ -26,7 +25,7 @@ class TodoPages(menus.ListPageSource):
         use_embeds: bool,
         title: str,
         colour: Optional[Union[str, int]],
-        timestamp: bool
+        timestamp: bool,
     ):
         super().__init__(data, per_page=1)
         self.md = use_md
@@ -45,19 +44,16 @@ class TodoPages(menus.ListPageSource):
             page = box(page, "md")
         footer = f"Page {menu.current_page + 1}/{self.get_max_pages()}"
         if not await ctx.embed_requested() or not self.use_embeds:
-            ret = (
-                f"{bold(self.title)}\n"
-                f"{page}\n"
-                f"{footer}"
-            )
+            ret = f"{bold(self.title)}\n" f"{page}\n" f"{footer}"
             if self.timestamp:
                 ret += f"\n<t:{int(datetime.now().timestamp())}>"
             return ret
 
         embed = discord.Embed(
-            title=self.title, colour=self.colour or await ctx.embed_colour(),
+            title=self.title,
+            colour=self.colour or await ctx.embed_colour(),
             description=page,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
         embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
         return embed
@@ -97,6 +93,7 @@ class PresetConverter(commands.Converter):
 
 class ToDoPositiveInt(commands.Converter):
     """A slightly modified type hint for the "todo" group command"""
+
     async def convert(self, ctx: commands.Context, arg: str):
         try:
             ret = int(arg)

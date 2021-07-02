@@ -3,8 +3,8 @@
 
 import logging
 import typing
-from typing import Union, Any, Optional, Dict
 from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional, Union
 
 import discord
 from redbot.core import Config, commands
