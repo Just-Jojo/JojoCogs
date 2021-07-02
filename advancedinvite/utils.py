@@ -42,6 +42,7 @@ def timestamp_format(dt: datetime = None, *, dt_format: TimestampFormats = None)
 
 class NoneConverter(commands.Converter):
     """A simple converter for NoneType args for commands"""
+
     def __init__(self, *, strict: bool = False):
         self.strict = strict
 

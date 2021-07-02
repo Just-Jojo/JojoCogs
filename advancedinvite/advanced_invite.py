@@ -31,8 +31,12 @@ _config_structure = {
     "footer": None,
     "title": _default_title,
 }
+
+
 def embed_check(ctx):
+    """Small fuction for command checks"""
     return ctx.cog._settings_cache["embeds"] is True
+
 
 class AdvancedInvite(commands.Cog):
     """An "advanced" invite cog.
@@ -76,16 +80,10 @@ class AdvancedInvite(commands.Cog):
             bot.add_command(INVITE_COMMAND)
         self.task.cancel()
 
-    @commands.group(invoke_without_command=True)
-    # This check is similar to the one core uses
-    # see https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/core/core_commands.py#L1490
-    @commands.check(lambda ctx: ctx.bot.get_cog("Core")._can_get_invite_url)
-    @commands.cooldown(1, 300, commands.BucketType.user)
-    async def invite(self, ctx: commands.Context):
-        """Invite [botname] to your server"""
-        core = self.bot.get_cog("Core")
+    async def maybe_reset_cooldown(self, ctx: commands.Context) -> discord.TextChannel:
+        """I abstracted this into its own function just because I didn't want too bulky of a function"""
         channel = ctx.channel
-        if not (send_invoked := self._settings_cache["send_in_channel"]):
+        if not self._settings_cache["send_in_channel"]:
             ctx.command.reset_cooldown(ctx)  # Don't need to have it if it's in dms
             channel = ctx.author.dm_channel
             if not channel:
@@ -97,10 +95,22 @@ class AdvancedInvite(commands.Cog):
             # This time, we have to check explicitly if it's in a dm
             # And then reset the cooldown
             ctx.command.reset_cooldown(ctx)
+        return channel
+
+    @commands.group(invoke_without_command=True)
+    # This check is similar to the one core uses
+    # see https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/core/core_commands.py#L1490
+    @commands.check(lambda ctx: ctx.bot.get_cog("Core")._can_get_invite_url)
+    @commands.cooldown(1, 300, commands.BucketType.user)
+    async def invite(self, ctx: commands.Context):
+        """Invite [botname] to your server"""
+        core = self.bot.get_cog("Core")
+        channel = await self.maybe_reset_cooldown(ctx)
         url = await core._invite_url()  # type:ignore
         inv = f"Here is {ctx.me}'s invite url: {url}"
         message = self._settings_cache["custom_message"].format(bot_name=self.bot.user.name)
         kwargs = {"content": f"{message}\n{inv}\n{timestamp_format()}"}
+
         if await self.bot.embed_requested(channel, ctx.author) and self._settings_cache["embeds"]:
             title = self._settings_cache["title"].format(bot_name=self.bot.user.name)
             embed = discord.Embed(
@@ -116,10 +126,11 @@ class AdvancedInvite(commands.Cog):
             if footer := self._settings_cache["footer"]:
                 embed.set_footer(text=footer)
             kwargs = {"embed": embed}
+
         try:
             await channel.send(**kwargs)
         except discord.Forbidden as e:
-            if not send_invoked:
+            if not self._settings_cache["send_in_channel"]:
                 await ctx.send("I cannot send you DMs. Please enable them so I can DM you.")
             else:
                 await ctx.send("Hm, something went wrong...")
@@ -131,20 +142,21 @@ class AdvancedInvite(commands.Cog):
         """Settings for the invite command"""
 
     @invite_settings.command(name="url")
-    async def invite_url(self, ctx: commands.Context, url: NoneConverter()): # type:ignore
-        """Set the invite url for the embed.
+    async def invite_url(self, ctx: commands.Context, url: NoneConverter):
+        r"""Set the invite url for the embed.
 
         **Arguments**
-        >   url: Sets the url for the embed thumbnail. Defaults to the bot's avatar.
+        \>   url: Sets the url for the embed thumbnail. Defaults to the bot's avatar.
             type "None" to reset the url"""
         # type:ignore
         if url:
             if not url.endswith((".gif", ".png", ".jpg", ".jpeg")):
                 return await ctx.send("That url did not end with a supported image type.")
             try:
-                async with aiohttp.request("GET", url) as re:
-                    if re.status != 200:
-                        return await ctx.send("I could not access that url.")
+                async with ctx.typing():
+                    async with aiohttp.request("GET", url) as re:
+                        if re.status != 200:
+                            return await ctx.send("I could not access that url.")
             except aiohttp.InvalidURL:
                 return await ctx.send("That was an invalid url.")
         await self.config.custom_url.set(url)
@@ -153,12 +165,12 @@ class AdvancedInvite(commands.Cog):
 
     @invite_settings.command(name="channel")
     async def invite_channel(self, ctx: commands.Context, toggle: bool):
-        """Sets if the invite should be sent in the channel the command was invoked in.
+        r"""Sets if the invite should be sent in the channel the command was invoked in.
 
         For example, if the toggle is true when a user types `[p]invite` it will send it in that channel
 
         **Arguments**
-        >   toggle: If the message should be sent in channel it was invoked in or not"""
+        \>   toggle: If the message should be sent in channel it was invoked in or not"""
         if toggle == self._settings_cache["send_in_channel"]:
             nt = "" if toggle else "doesn't "
             plural = "s" if toggle else ""
@@ -171,17 +183,14 @@ class AdvancedInvite(commands.Cog):
 
     @invite_settings.command(name="message")
     async def invite_message(
-        self,
-        ctx: commands.Context,
-        *,
-        msg: NoneConverter() #type:ignore
+        self, ctx: commands.Context, *, msg: NoneConverter()  # type:ignore
     ):
-        """Set the message for invites.
+        r"""Set the message for invites.
 
         This will be before the invite url.
 
         **Arguments**
-        >   msg: The custom message for the invite command. If no msg is given, it will revert to the default
+        \>   msg: The custom message for the invite command. If no msg is given, it will revert to the default
         'Thanks for choosing [botname]'
             If you want to include the botname, add `{bot_name}`"""
         if not msg and not self._settings_cache["custom_message"]:
@@ -196,10 +205,10 @@ class AdvancedInvite(commands.Cog):
 
     @invite_settings.command(name="embed")
     async def invite_embeds(self, ctx: commands.Context, toggle: bool):
-        """Set whether the invite command should use embeds
+        r"""Set whether the invite command should use embeds
 
         **Arguments**
-        >   toggle: Whether the invite command should use embeds"""
+        \>   toggle: Whether the invite command should use embeds"""
         if self._settings_cache["embeds"] == toggle:
             is_isnt = "" if toggle else "doesn't "
             plural = "s" if toggle else ""
@@ -210,26 +219,41 @@ class AdvancedInvite(commands.Cog):
     @invite_settings.command(name="footer")
     @commands.check(embed_check)
     async def invite_footer(
-        self,
-        ctx: commands.Context,
-        *,
-        footer: NoneConverter(strict=True) # type:ignore
+        self, ctx: commands.Context, *, footer: NoneConverter(strict=True)  # type:ignore
     ):
-        """Set the invite footer (note, this will only work if embeds are enabled. This might change later)
-        
+        r"""Set the invite footer (note, this will only work if embeds are enabled. This might change later)
+
         **Arguments**
-        >   footer: The footer for the embed. Type `None` to reset it."""
+        \>   footer: The footer for the embed. Type `None` to reset it."""
         self._settings_cache["footer"] = footer
         await self.config.footer.set(footer)
         await ctx.tick()
 
     @invite_settings.command(name="title")
     @commands.check(embed_check)
-    @create_doc(override=True)
-    async def invite_title(self, ctx: commands.Context, *, title: NoneConverter(strict=True)): #type:ignore
+    async def invite_title(
+        self, ctx: commands.Context, *, title: NoneConverter(strict=True) # type:ignore
+    ):
+        r"""Set the title for the embed
+        
+        **Arguments**
+        \>   title: The title of the embed. Type `None` to reset it"""
         self._settings_cache["title"] = title
         await self.config.title.set(title)
         await ctx.tick()
+
+    @commands.command(name="inviteversion")
+    async def invite_version(self, ctx: commands.Context):
+        """Get the version of Advanced Invite"""
+        msg = (
+            f"Advanced Invite Version: {self.__version__}"
+            f"\nThis cog was requested by DSC#6238, a good friend of mine."
+        )
+        kwargs = {"content": msg, "embed": None}
+        if await ctx.embed_requested():
+            embed = discord.Embed(title="Advanced Invite Version", colour=await ctx.embed_colour(), description=msg)
+            kwargs.update({"embed": embed, "content": None})
+        await ctx.send(**kwargs)
 
 
 async def setup(bot: Red):
