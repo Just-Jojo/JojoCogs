@@ -45,7 +45,7 @@ class AdvancedInvite(commands.Cog):
     This cog was requested by DSC#6238"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.3"
+    __version__ = "2.0.0"
 
     def format_help_for_context(self, ctx: commands.Context):
         pre = super().format_help_for_context(ctx)
