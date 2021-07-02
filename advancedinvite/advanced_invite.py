@@ -183,7 +183,7 @@ class AdvancedInvite(commands.Cog):
 
     @invite_settings.command(name="message")
     async def invite_message(
-        self, ctx: commands.Context, *, msg: NoneConverter()  # type:ignore
+        self, ctx: commands.Context, *, msg: NoneConverter
     ):
         r"""Set the message for invites.
 
