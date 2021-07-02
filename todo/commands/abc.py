@@ -3,6 +3,7 @@
 
 import logging
 import typing
+from typing import Union, Any, Optional, Dict
 from abc import ABC, abstractmethod
 
 import discord
@@ -28,8 +29,8 @@ class ToDoMixin(ABC):
 
     @abstractmethod
     async def _get_user_config(
-        self, user: typing.Union[int, discord.Member, discord.User]
-    ) -> typing.Optional[typing.Dict[str, typing.Any]]:
+        self, user: Union[int, discord.Member, discord.User]
+    ) -> Dict[str, typing.Any]:
         ...
 
     @abstractmethod
@@ -63,6 +64,8 @@ class ToDoMixin(ABC):
         use_md: bool,
         use_embeds: bool,
         private: bool,
+        colour: Optional[Union[str, int]],
+        timestamp: bool,
     ):
         ...
 

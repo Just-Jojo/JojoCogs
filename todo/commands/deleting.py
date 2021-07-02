@@ -90,7 +90,7 @@ class Deleting(ToDoMixin):
             await ctx.send(
                 "WARNING, this will remove **ALL** of your todos. Would you like to remove your todos? (y/n)"
             )
-            pred = MessagePredicate.yes_or_no()
+            pred = MessagePredicate.yes_or_no(ctx)
             try:
                 await self.bot.wait_for("message", check=pred)
             except asyncio.TimeoutError:
@@ -164,7 +164,7 @@ class Deleting(ToDoMixin):
             await ctx.send(
                 "WARNING, this will remove **ALL** of your completed todos. Would you like to remove them? (y/n)"
             )
-            pred = MessagePredicate.yes_or_no()
+            pred = MessagePredicate.yes_or_no(ctx)
             try:
                 await self.bot.wait_for("message", check=pred)
             except asyncio.TimeoutError:
@@ -177,3 +177,27 @@ class Deleting(ToDoMixin):
             self.settings_cache[ctx.author.id]["completed"] = []
         except KeyError:
             await self.update_cache(user_id=ctx.author.id)
+
+    # The reason why this is here is because it sorta 'fit in' with the other commands
+    # Also, call lmfao
+    @todo.command(name="completeall", aliases=["call"])
+    async def todo_complete_all(self, ctx: commands.Context, confirm: bool = False):
+        """Add all of your todos to your completed list"""
+        if not confirm:
+            await ctx.send(
+                "WARNING. This will complete **ALL** of your todos. Would you like me to do this? (y/n)"
+            )
+            pred = MessagePredicate.yes_or_no(ctx)
+            try:
+                await self.bot.wait_for("message", check=pred)
+            except ValueError:
+                pass
+            if not pred.result:
+                return await ctx.send("Okay. I will not complete your todos.")
+        await ctx.send("Completed all your todos.")
+        conf = await self._get_user_config(ctx.author)
+        completed = conf.get("completed", [])
+        completed.extend(conf.get("todos", []))
+        await self.config.user(ctx.author).completed.set(completed)
+        await self.config.user(ctx.author).todos.clear()
+        await self.update_cache(user_id=ctx.author.id)

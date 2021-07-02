@@ -26,12 +26,14 @@ class TodoPages(menus.ListPageSource):
         use_embeds: bool,
         title: str,
         colour: Optional[Union[str, int]],
+        timestamp: bool
     ):
         super().__init__(data, per_page=1)
         self.md = use_md
         self.use_embeds = use_embeds
         self.title = title
         self.colour = colour
+        self.timestamp = timestamp
 
     def is_paginating(self):
         return True
@@ -43,11 +45,14 @@ class TodoPages(menus.ListPageSource):
             page = box(page, "md")
         footer = f"Page {menu.current_page + 1}/{self.get_max_pages()}"
         if not await ctx.embed_requested() or not self.use_embeds:
-            return (
+            ret = (
                 f"{bold(self.title)}\n"
                 f"{page}\n"
-                f"{footer}\n<t:{round(datetime.now().timestamp())}>"
+                f"{footer}"
             )
+            if self.timestamp:
+                ret += f"\n<t:{int(datetime.now().timestamp())}>"
+            return ret
 
         embed = discord.Embed(
             title=self.title, colour=self.colour or await ctx.embed_colour(),
@@ -66,6 +71,7 @@ class Presets(Enum):
         "autosort": False,
         "combined_lists": False,
         "detailed_pop": False,
+        "timestamp": False,
     }
     fancy = {
         "use_md": True,
@@ -74,6 +80,7 @@ class Presets(Enum):
         "autosort": True,
         "combined_lists": True,
         "detailed_pop": True,
+        "timestamp": True,
     }
 
 

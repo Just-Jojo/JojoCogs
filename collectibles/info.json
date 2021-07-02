@@ -11,5 +11,6 @@
     ],
     "requirements": [
         "git+https://github.com/Just-Jojo/jojoutils@8f0773e"
-    ]
+    ],
+    "hidden": true
 }

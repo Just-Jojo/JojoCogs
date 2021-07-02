@@ -52,4 +52,5 @@ class Search(ToDoMixin):
             use_embeds=conf.get("use_embeds", True),
             private=False,
             colour=conf.get("colour", None),
+            timestamp=conf.get("timestamp", True),
         )
