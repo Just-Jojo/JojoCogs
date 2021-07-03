@@ -11,6 +11,7 @@ from .utils import Cache, TodoPage, TodoMenu, TodoPositiveInt, ViewTodo, timesta
 import logging
 
 from typing import Optional, Union, List, Dict, Tuple
+from contextlib import suppress
 
 
 _config_structure = {
@@ -41,7 +42,8 @@ class ToDo(commands.Cog, metaclass=MetaClass):
     __authors__ = [
         "Jojo#7791",
     ]
-    __version__ = "3.0.0.dev1"
+    __version__ = "3.0.0.dev2"
+    _no_todo_message = "You do not have any todos. You can add one with `{prefix}todo add`"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -50,6 +52,12 @@ class ToDo(commands.Cog, metaclass=MetaClass):
         self.cache = Cache(self.bot, self.config)
         self._startup_task = self.bot.loop.create_task(self._initialize())
         self.log = logging.getLogger("red.JojoCogs.todo")
+        with suppress(RuntimeError):
+            self.bot.add_dev_env_value("todo", lambda x: self)
+
+    def cog_unload(self):
+        with suppress(Exception):
+            self.bot.remove_dev_env_value("todo")
 
     def format_help_for_context(self, ctx: commands.Context):
         pre = super().format_help_for_context(ctx)
@@ -98,7 +106,7 @@ class ToDo(commands.Cog, metaclass=MetaClass):
         else:
             if todo is None:
                 return await ctx.send(
-                    f"You do not have any todos. Use `{ctx.clean_prefix}todo add <todo>` to add one."
+                    self._no_todo_message.format(prefix=ctx.clean_prefix)
                 )
         await ViewTodo(
             index,
@@ -137,25 +145,41 @@ class ToDo(commands.Cog, metaclass=MetaClass):
     @todo.command(name="list")
     async def todo_list(self, ctx: commands.Context):
         """List your todos
-        
+
         This will list them with pinned todos first and then whatever sorting you have
         """
+        data = await self.cache.get_user_data(ctx.author.id)
+        todos = data["todos"]
+        completed = data["completed"]
+        user_settings = data["user_settings"]
+        if not todos and not all([completed, user_settings["combine_lists"]]):
+            return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+        elif not todos:
+            return await self.__complete_list(completed, **user_settings)
+        todos = await self._get_todos(todos)
+        if user_settings["combine_lists"]:
+            completed.insert(0, "\N{WHITE HEAVY CHECK MARK} Completed todos")
+            todos.extend(completed)
+        await self.page_logic(ctx, todos, **user_settings)
 
     @staticmethod
     async def _get_todos(todos: List[dict], *, separate: bool = True) -> Union[List[str], Tuple[List[str], List[str]]]:
         """An internal function to get todos sorted by pins"""
-        ret = pinned = [] # type:ignore # Python is fucking awesome
+        ret = []
+        pinned = []
         if separate:
             pinned.append("\N{PUSHPIN} Pinned todos")
-            ret.append("Other todos")
         for todo in todos:
             task = todo["task"]
             if todo["pinned"]:
                 pinned.append(task)
                 continue
             ret.append(task)
+        if len(pinned) == 1:
+            return ret
         if not separate:
             return pinned, ret
+        ret.append("Other todos")
         pinned.extend(ret)
         return pinned
 
@@ -174,5 +198,11 @@ class ToDo(commands.Cog, metaclass=MetaClass):
         settings = data["user_settings"]
         if not settings["autosort"]:
             return
-        todos = await self._get_todos(data["todos"], separate=False)
-
+        if todos:
+            todos = await self._get_todos(data["todos"], separate=False)
+            todos.sort(reverse=settings["reverse_sort"])
+        if completed:
+            completed.sort(reverse=settings["reverse_sort"])
+        data["completed"] = completed
+        data["todos"] = todos
+        await self.cache.set_user_data(user, data)
