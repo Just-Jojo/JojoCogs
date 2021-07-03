@@ -87,6 +87,7 @@ class AdvancedBlacklist(commands.Cog):
 
     @commands.group(aliases=["localblocklist"])
     @commands.guild_only()
+    @commands.admin_or_permissions(administrator=True)
     async def localblacklist(self, ctx: commands.Context):
         """Add a user to a guild's blacklist list"""
         pass
