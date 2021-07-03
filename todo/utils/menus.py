@@ -133,9 +133,8 @@ class ViewTodo(menus.Menu):
             message=None,
         )
 
-    async def start(self, ctx: commands.Context):
-        self.ctx = ctx
-        self.message = await ctx.send(**await self._format_page())
+    async def send_initial_message(self, ctx: commands.Context, channel: discord.TextChannel):
+        return await ctx.send(**await self._format_page())
 
     async def _format_page(self) -> Dict[str, Union[str, discord.Embed]]:
         title = f"{self.ctx.author.name} Todo #{self.index}"
@@ -175,9 +174,9 @@ class ViewTodo(menus.Menu):
             return await self.ctx.send("Okay!", delete_after=5.0)
         self.stop()
         await self.update_message(message="Deleted todo!")
-        data = await self.cache.get_user_data(self.ctx.author.id)
+        data = await self.cache.get_user_item(self.ctx.author.id, "todos")
         del data[self.index - 1]
-        await self.cache.set_user_data(self.ctx.author, data)
+        await self.cache.set_user_item(self.ctx.author, "todos", data)
 
     async def update_message(self, message: str = None):
         if message:

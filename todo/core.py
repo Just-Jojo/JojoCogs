@@ -90,7 +90,7 @@ class ToDo(commands.Cog, metaclass=MetaClass):
         """
         act_index = index - 1
         try:
-            todo = await self.cache.get_todo_from_index(ctx.author, index)
+            todo = await self.cache.get_todo_from_index(ctx.author, act_index)
         except IndexError:
             return await ctx.send("You do not have a todo at that index.")
         else:
