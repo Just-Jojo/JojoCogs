@@ -1,6 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import discord
 from redbot.core import commands, Config
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, pagify
@@ -9,7 +10,7 @@ from .abc import MetaClass
 from .utils import Cache, TodoPage, TodoMenu, TodoPositiveInt, ViewTodo, timestamp_format
 import logging
 
-from typing import Optional
+from typing import Optional, Union, List, Dict, Tuple
 
 
 _config_structure = {
@@ -21,6 +22,7 @@ _config_structure = {
         "combine_lists": False,
         "extra_details": False,
         "private": False,
+        "reverse_sort": False,
         "use_embeds": True,
         "use_markdown": False,
         "use_timestamps": False,
@@ -130,7 +132,32 @@ class ToDo(commands.Cog, metaclass=MetaClass):
             await ctx.send_interactive(pagify(msg))
         else:
             await ctx.send(msg)
-        await self._maybe_autosort()
+        await self._maybe_autosort(ctx.author)
+
+    @todo.command(name="list")
+    async def todo_list(self, ctx: commands.Context):
+        """List your todos
+        
+        This will list them with pinned todos first and then whatever sorting you have
+        """
+
+    @staticmethod
+    async def _get_todos(todos: List[dict], *, separate: bool = True) -> Union[List[str], Tuple[List[str], List[str]]]:
+        """An internal function to get todos sorted by pins"""
+        ret = pinned = [] # type:ignore # Python is fucking awesome
+        if separate:
+            pinned.append("\N{PUSHPIN} Pinned todos")
+            ret.append("Other todos")
+        for todo in todos:
+            task = todo["task"]
+            if todo["pinned"]:
+                pinned.append(task)
+                continue
+            ret.append(task)
+        if not separate:
+            return pinned, ret
+        pinned.extend(ret)
+        return pinned
 
     async def page_logic(self, ctx: commands.Context, data: list, **settings):
         joined = "\n".join(data)
@@ -138,5 +165,14 @@ class ToDo(commands.Cog, metaclass=MetaClass):
         pages = TodoPage(pagified, **settings)
         await TodoMenu(pages).start(ctx)
 
-    async def _maybe_autosort(self):
-        ...
+    async def _maybe_autosort(self, user: Union[discord.Member, discord.User]):
+        data = await self.cache.get_user_data(user.id)
+        todos = data["todos"]
+        completed = data["completed"]
+        if not any([completed, todos]):
+            return
+        settings = data["user_settings"]
+        if not settings["autosort"]:
+            return
+        todos = await self._get_todos(data["todos"], separate=False)
+
