@@ -1,22 +1,18 @@
 {
     "name": "todo",
-    "short": "Customizable todo list!",
-    "description": "A simple, highly customizable todo list for keeping track of things to do",
-    "end_user_data_statement": "This cog stores reminders (or todos) based on user ids",
-    "install_msg": "Thankie for installing Jojo's ToDo cog!\nIf you would like to request a feature please make an issue on my github (<https://github.com/Just-Jojo/JojoCogs)\nUse `[p]todo explain` to see what the cog is about!\n\n(You can also check out Epic's todo cog <https://github.com/npc203/npc-cogs> :D)",
+    "short": "Keep track of things todo",
+    "description": "A board designed for keeping track of your tasks.",
+    "end_user_data_statement": "This cog stores \"tasks\" via user ids.",
+    "install_msg": "Thank you for installing Jojo's todo cog.\nUse `[p]help ToDo` to see the commands\n\nFor bug reports, please create an issue on my github repo\nThanks :)",
     "author": [
         "Jojo#7791"
     ],
     "required_cogs": {},
-    "requirements": [
-        "git+https://github.com/Just-Jojo/jojoutils.git"
-    ],
+    "requirements": [],
     "tags": [
-        "todo",
-        "utility",
-        "fun"
+        "todo", "utility"
     ],
-    "min_bot_version": "3.4.6",
+    "min_bot_version": "3.4.12",
     "hidden": false,
     "disabled": false,
     "type": "COG"
