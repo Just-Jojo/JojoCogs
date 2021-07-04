@@ -22,6 +22,7 @@ import logging
 __all__ = ["TodoPage", "TodoMenu", "ViewTodo"]
 log = logging.getLogger("red.JojoCogs.todo.menus")
 
+
 class TodoPage(menus.ListPageSource):
     def __init__(self, items: list, **settings):
         super().__init__(items, per_page=1)
@@ -44,7 +45,7 @@ class TodoPage(menus.ListPageSource):
             )
             embed.set_footer(text=footer)
             return embed
-        msg = f"**{title}**\n\n{page}\n{footer}"
+        msg = f"**{title}**\n{page}\n{footer}"
         if self.settings["use_timestamps"]:
             msg += f"\n{timestamp_format()}"
         return msg
@@ -69,7 +70,6 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):  # type:ignore
     async def send_initial_message(self, ctx, channel):
         page = await self.source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
-        log.debug(kwargs)
         return await channel.send(**kwargs)
 
     async def show_checked_page(self, page_number: int):
@@ -138,7 +138,15 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):  # type:ignore
 class ViewTodo(menus.Menu):
     ctx: commands.Context
 
-    def __init__(self, index: int, cache: Cache, todo_data: Union[dict, str], *, completed: bool = False, **settings):
+    def __init__(
+        self,
+        index: int,
+        cache: Cache,
+        todo_data: Union[dict, str],
+        *,
+        completed: bool = False,
+        **settings,
+    ):
         self.index = index
         self.cache = cache
         self.data = todo_data
@@ -153,7 +161,9 @@ class ViewTodo(menus.Menu):
             message=None,
         )
 
-    async def send_initial_message(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def send_initial_message(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
         return await ctx.send(**await self._format_page())
 
     def _skip_if_completed(self):
@@ -162,7 +172,7 @@ class ViewTodo(menus.Menu):
     async def _format_page(self) -> Dict[str, Union[str, discord.Embed]]:
         todo = "Completed Todo" if self.completed else "Todo"
         title = f"{self.ctx.author.name} {todo} #{self.index}"
-        task = self.data if self.completed else self.data["task"] # type:ignore
+        task = self.data if self.completed else self.data["task"]  # type:ignore
         if await self.ctx.embed_requested() and self.settings.get("use_embeds"):
             embed = discord.Embed(
                 title=title,
@@ -171,11 +181,11 @@ class ViewTodo(menus.Menu):
                 timestamp=datetime.utcnow(),
             )
             if not self.completed:
-                embed.add_field(name="Pinned", value=self.data["pinned"]) # type:ignore
+                embed.add_field(name="Pinned", value=self.data["pinned"])  # type:ignore
             return {"embed": embed}
         ret = f"**{title}**\n\n{task}"
         if not self.completed:
-            ret += f"\n\nPinned: {self.data['pinned']}" # type:ignore
+            ret += f"\n\nPinned: {self.data['pinned']}"  # type:ignore
         if self.settings.get("use_timestamps"):
             ret += f"\n{timestamp_format()}"
         return {"content": ret}
@@ -183,11 +193,11 @@ class ViewTodo(menus.Menu):
     @menus.button("\N{PUSHPIN}", skip_if=_skip_if_completed)
     async def pin_todo(self, payload):
         if self.completed:
-            return # Skip
+            return  # Skip
         self.data["pinned"] = not self.data["pinned"]
         data = await self.cache.get_user_data(self.ctx.author.id)
         data["todos"][self.index - 1] = self.data
-        await self.cache.set_user_data(data)
+        await self.cache.set_user_data(self._author_id, data)
         await self.update_message()
 
     @menus.button("\N{WASTEBASKET}\N{VARIATION SELECTOR-16}")
@@ -201,7 +211,9 @@ class ViewTodo(menus.Menu):
         with contextlib.suppress(discord.NotFound):
             await msg.delete()
         if not pred.result:
-            return await self.ctx.send("Okay, I will not delete that todo.", delete_after=5.0)
+            return await self.ctx.send(
+                "Okay, I will not delete that todo.", delete_after=5.0
+            )
         self.stop()
         await self.update_message(message="Deleted todo!")
         key = "completed" if self.completed else "todos"
@@ -212,7 +224,7 @@ class ViewTodo(menus.Menu):
     @menus.button("\N{WHITE HEAVY CHECK MARK}", skip_if=_skip_if_completed)
     async def completed_todo(self, payload):
         if self.completed:
-            return # Skip
+            return  # Skip
         msg = await self.ctx.send("Would you like to complete this todo? (y/N)")
         pred = MessagePredicate.yes_or_no(self.ctx)
         try:
@@ -222,7 +234,9 @@ class ViewTodo(menus.Menu):
         with contextlib.suppress(discord.NotFound):
             await msg.delete()
         if not pred.result:
-            return await self.ctx.send("Okay, I will not complete that todo.", delete_after=5.0)
+            return await self.ctx.send(
+                "Okay, I will not complete that todo.", delete_after=5.0
+            )
         self.completed = True
         self.data = self.data["task"]
         await self.update_message()

@@ -173,6 +173,19 @@ class Cache:
         await self.config.user_from_id(user).set(data)
         await self._load_items(user=user)
 
+    async def set_user_setting(self, user: User, key: str, setting: Union[Any, int]):
+        user = self._get_user(user)
+        data = await self.get_user_item(user, "user_settings")
+        if key not in data.keys():
+            raise KeyError(f"'{key}' was not in the user's settings")
+        data[key] = setting
+        await self.set_user_item(user, "user_settings", data)
+
+    async def get_user_setting(self, user: User, key: str):
+        user = self._get_user(user)
+        data = await self.get_user_item(user, "user_settings")
+        return data[key]
+
     @staticmethod
     def _get_user(user: User) -> int:
         """An internal function to get a user id based off of the type"""
