@@ -89,6 +89,7 @@ class ToDo(
         return (
             f"{pre}\n"
             f"Author{plural}: `{humanize_list(self.__authors__)}`\n"
+            "Suggestors: Use `[p]todo suggestors`!"
             f"Version: `{self.__version__}`"
         )
 
