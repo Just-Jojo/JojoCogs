@@ -34,7 +34,7 @@ _config_structure = {
 }
 
 
-class ToDo(Settings, commands.Cog, metaclass=MetaClass):
+class ToDo(Deleting, Settings, commands.Cog, metaclass=MetaClass):
     """A todo list for keeping track of tasks you have to do
 
     This cog is my oldest, still standing cog and holds a special place in my heart even though it's a pain to work on lol
@@ -46,7 +46,7 @@ class ToDo(Settings, commands.Cog, metaclass=MetaClass):
         "Jojo#7791",
     ]
     __version__ = "3.0.0.dev2"
-    _no_todo_message = "You do not have any todos. You can add one with `{prefix}todo add`"
+    _no_todo_message = "You do not have any todos. You can add one with `{prefix}todo add <task>`"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -59,7 +59,7 @@ class ToDo(Settings, commands.Cog, metaclass=MetaClass):
             self.bot.add_dev_env_value("todo", lambda x: self)
 
     def cog_unload(self):
-        with suppress(Exception):
+        with suppress(KeyError):
             self.bot.remove_dev_env_value("todo")
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -122,7 +122,7 @@ class ToDo(Settings, commands.Cog, metaclass=MetaClass):
 
         Don't store sensitive information here for Pete's sake
 
-        Arguments
+        **Arguments**
             - `pinned` A boolean value that sets it to be pinned or not. Defaults to False
             - `todo` The todo task
         """
