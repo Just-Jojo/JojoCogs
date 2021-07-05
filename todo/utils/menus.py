@@ -22,9 +22,10 @@ log = logging.getLogger("red.JojoCogs.todo.menus")
 
 
 class TodoPage(menus.ListPageSource):
-    def __init__(self, items: list, **settings):
+    def __init__(self, items: list, title: str, **settings):
         super().__init__(items, per_page=1)
         self.settings = settings
+        self.title = title
 
     async def format_page(self, menu: menus.MenuPages, page: str):
         ctx: commands.Context = menu.ctx
@@ -32,18 +33,17 @@ class TodoPage(menus.ListPageSource):
 
         if self.settings["use_markdown"]:
             page = box(page, "md")
-        title = f"{ctx.author.name}'s todos"
         footer = f"Page {menu.current_page + 1}/{self.get_max_pages()}"
         if await ctx.embed_requested() and self.settings["use_embeds"]:
             embed = discord.Embed(
-                title=title,
+                title=self.title,
                 colour=self.settings["colour"] or await ctx.embed_colour(),
                 description=page,
                 timestamp=datetime.utcnow(),
             )
             embed.set_footer(text=footer)
             return embed
-        msg = f"**{title}**\n{page}\n{footer}"
+        msg = f"**{self.title}**\n{page}\n{footer}"
         if self.settings["use_timestamps"]:
             msg += f"\n{timestamp_format()}"
         return msg

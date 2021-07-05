@@ -9,11 +9,11 @@ from typing import Dict, List, Optional, Tuple, Union
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import escape, humanize_list, pagify
+from redbot.core.utils.chat_formatting import escape, humanize_list, pagify, text_to_file
 
 from .abc import MetaClass
 from .commands import *
-from .utils import Cache, TodoMenu, TodoPage, TodoPositiveInt, ViewTodo, timestamp_format, formatting
+from .utils import Cache, TodoMenu, TodoPage, TodoPositiveInt, ViewTodo, timestamp_format, formatting, PositiveInt
 
 _config_structure = {
     "todos": [],  # List[Dict[str, Any]] "task": str, "pinned": False
@@ -34,7 +34,13 @@ _config_structure = {
 }
 
 
-class ToDo(Deleting, Settings, commands.Cog, metaclass=MetaClass):
+def attach_or_in_dm(ctx: commands.Context):
+    if not ctx.guild:
+        return True
+    return ctx.channel.permissions_for(ctx.me).attach_files
+
+
+class ToDo(Complete, Deleting, Settings, commands.Cog, metaclass=MetaClass):
     """A todo list for keeping track of tasks you have to do
 
     This cog is my oldest, still standing cog and holds a special place in my heart even though it's a pain to work on lol
@@ -165,7 +171,70 @@ class ToDo(Deleting, Settings, commands.Cog, metaclass=MetaClass):
             completed = await formatting._format_completed(completed, combined=True, **user_settings)
             todos.extend(completed)
 
-        await self.page_logic(ctx, todos, **user_settings)
+        await self.page_logic(ctx, todos, f"{ctx.author.name}'s Todos", **user_settings)
+
+    @todo.command(name="multiadd")
+    async def todo_multi_add(self, ctx: commands.Context, *, todos: str = None):
+        """Add multiple todos in one command!"""
+        if ctx.message.reference and not any([todos is not None, ctx.message.attachments]):
+            # Message references get checked first
+            msg = ctx.message.reference.resolved
+            if not msg.attachments:
+                return await ctx.send("That message does not have files!")
+            maybe_file = msg.attachments[0]
+            if not maybe_file.filename.endswith(".txt"):
+                return await ctx.send("File format must be `.txt`")
+            todos = await maybe_file.read()
+            todos = todos.decode()
+        elif ctx.message.attachments:
+            maybe_file = ctx.message.attachments[0]
+            if not maybe_file.filename.endswith(".txt"):
+                return await ctx.send("File format must be `.txt`")
+            todos = await maybe_file.read()
+            todos = todos.decode()
+        todos = todos.split("\n")
+        todos = [{"pinned": False, "task": t} for t in todos]
+        current = await self.cache.get_user_item(ctx.author, "todos")
+        current.extend(todos)
+        await self.cache.set_user_item(ctx.author, "todos", current)
+        await ctx.send("Done. Added those as todos")
+        await self._maybe_autosort(ctx.author)
+
+    @todo.command(name="gettodos", aliases=["todotofile"])
+    @commands.check(attach_or_in_dm)
+    async def todo_get_todos(self, ctx: commands.Context):
+        """Grab your todos in a clean file format.
+
+        This is handy for moving todos over from bot to bot
+        """
+        todos = await self.cache.get_user_item(ctx.author, "todos")
+        if not todos:
+            return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+        todos = "\n".join([t["task"] for t in todos])
+        await ctx.send("Here are your todos", file=text_to_file(todos, "todo.txt"))
+
+    @todo.command(name="reorder", aliases=["move"], usage="<from> <to>")
+    async def todo_reorder(self, ctx: commands.Context, original: PositiveInt, new: PositiveInt):
+        """Move a todo from one index to another
+        
+        This will error if the index is larger than your todo list
+
+        **Arguments**
+            - `from` The index of the todo
+            - `to` The new index of the todo
+        """
+        todos = await self.cache.get_user_item(ctx.author, "todos")
+        if not todos:
+            return await ctx.send(self._no_todo_message.format(ctx.clean_prefix))
+        act_orig = original - 1
+        act_new = new - 1
+        try:
+            task = todos.pop(act_orig)
+        except IndexError:
+            return await ctx.send(f"I could not find a todo at index `{original}`")
+        todos.insert(act_new, task)
+        await ctx.send(f"Moved a todo from index {original} to {new}")
+        await self.cache.set_user_item(ctx.author, "todos", todos)
 
     @staticmethod
     async def _get_todos(todos: List[dict]) -> Tuple[List[str], List[str]]:
@@ -179,10 +248,10 @@ class ToDo(Deleting, Settings, commands.Cog, metaclass=MetaClass):
                 extra.append(todo["task"])
         return pinned, extra
 
-    async def page_logic(self, ctx: commands.Context, data: list, **settings):
+    async def page_logic(self, ctx: commands.Context, data: list, title: str, **settings):
         joined = "\n".join(data)
         pagified = list(pagify(joined))
-        pages = TodoPage(pagified, **settings)
+        pages = TodoPage(pagified, title, **settings)
         await TodoMenu(pages).start(ctx)
 
     async def _maybe_autosort(self, user: Union[discord.Member, discord.User]):
