@@ -6,7 +6,6 @@
 from datetime import datetime
 from enum import Enum
 
-
 __all__ = ["TimestampFormats", "timestamp_format"]
 
 

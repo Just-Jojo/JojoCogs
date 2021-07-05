@@ -2,11 +2,12 @@
 # Licensed under MIT
 
 from abc import ABC, abstractmethod
-
-from redbot.core import commands, Config
-from redbot.core.bot import Red
-from .utils import Cache
 from logging import Logger
+
+from redbot.core import Config, commands
+from redbot.core.bot import Red
+
+from .utils import Cache
 
 """ABCDEFG"""
 

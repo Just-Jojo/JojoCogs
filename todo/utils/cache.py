@@ -1,12 +1,11 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+from typing import Any, Dict, Optional, Union
+
 import discord
-
-from redbot.core import commands, Config
+from redbot.core import Config, commands
 from redbot.core.bot import Red
-
-from typing import Dict, Any, Union, Optional
 
 User = Union[int, discord.Member, discord.User]
 __all__ = [
@@ -173,7 +172,25 @@ class Cache:
         await self.config.user_from_id(user).set(data)
         await self._load_items(user=user)
 
-    async def set_user_setting(self, user: User, key: str, setting: Union[Any, int]):
+    async def set_user_setting(self, user: User, key: str, setting: Any):
+        """|coro|
+
+        Set a setting for a user
+
+        Arguments
+        ---------
+        user: :class:`int`|:class:`User`|:class:`Member`
+            The user that the setting is being set for
+        key: :class:`str`
+            The actual setting to be set
+        setting: :class:`Any`
+            The value for the setting
+
+        Raises
+        ------
+        KeyError
+            The key was not in the user's settings
+        """
         user = self._get_user(user)
         data = await self.get_user_item(user, "user_settings")
         if key not in data.keys():
@@ -181,7 +198,28 @@ class Cache:
         data[key] = setting
         await self.set_user_item(user, "user_settings", data)
 
-    async def get_user_setting(self, user: User, key: str):
+    async def get_user_setting(self, user: User, key: str) -> Any:
+        """|coro|
+
+        Get a setting of a user
+
+        Arguments
+        ---------
+        user: :class:`int`|:class:`User`|:class:`Member`
+            The user to get the setting from
+        key: :class:`str`
+            The setting to get
+
+        Returns
+        -------
+        Any
+            The setting's value
+
+        Raises
+        ------
+        KeyError
+            The key was not in the user's settings
+        """
         user = self._get_user(user)
         data = await self.get_user_item(user, "user_settings")
         return data[key]
