@@ -1,18 +1,22 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import asyncio
+from contextlib import suppress
+
 from redbot.core import commands
+from redbot.core.utils.predicates import MessagePredicate
 
 from ..abc import TodoMixin
-from ..utils import TodoPositiveInt, PositiveInt
+from ..utils import PositiveInt, TodoPositiveInt
 from ..utils.formatting import _format_completed
-
 
 __all__ = ["Complete"]
 
 
 class Complete(TodoMixin):
     """Commands that have to do with completed todos"""
+
     _no_completed_message = "You do not have any completed todos. You can add one with `{prefix}todo complete <indexes...>`"
 
     @commands.group()
@@ -61,7 +65,9 @@ class Complete(TodoMixin):
         indexes = [i - 1 for i in indexes]
         completed = await self.cache.get_user_item(ctx.author, "completed")
         if not completed:
-            return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
+            return await ctx.send(
+                self._no_completed_message.format(prefix=ctx.clean_prefix)
+            )
         for index in indexes:
             try:
                 completed.pop(index)
@@ -74,6 +80,33 @@ class Complete(TodoMixin):
         await ctx.send(f"Deleted {amount} completed todo{plural}")
         await self.cache.set_user_item(ctx.author, "completed", completed)
 
+    @complete.command(name="deleteall", aliases=["delall", "removeall"])
+    async def complete_remove_all(self, ctx: commands.Context, confirm: bool = False):
+        """Remove all of your completed todos
+
+
+        \u200b
+        **Arguments**
+            - `confirm` Skips the confirmation check. Defaults to False
+        """
+        if not confirm:
+            msg = await ctx.send(
+                "Are you sure you would like to remove all of your completed todos? (y/N)"
+            )
+            pred = MessagePredicate.yes_or_no(ctx)
+            try:
+                umsg = await self.bot.wait_for("message", check=pred)
+            except asyncio.TimeoutError:
+                pass
+            finally:
+                with suppress(discord.NotFound, discord.Forbidden):
+                    await msg.delete()
+                    await umsg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+            if not pred.result:
+                return await ctx.send("Okay, I will not remove your completed todos.")
+        await self.cache.set_user_item(ctx.author, "completed", [])
+        await ctx.send("Done. Removed all of your completed todos.")
+
     @complete.command(name="list")
     async def complete_list(self, ctx: commands.Context):
         """List your completed todos
@@ -83,13 +116,19 @@ class Complete(TodoMixin):
         data = await self.cache.get_user_data(ctx.author.id)
         completed = data["completed"]
         if not completed:
-            return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
+            return await ctx.send(
+                self._no_completed_message.format(prefix=ctx.clean_prefix)
+            )
         settings = data["user_settings"]
         completed = await _format_completed(completed, False, **settings)
-        await self.page_logic(ctx, completed, f"{ctx.author.name}'s Completed Todos", **settings)
+        await self.page_logic(
+            ctx, completed, f"{ctx.author.name}'s Completed Todos", **settings
+        )
 
     @complete.command(name="reorder", aliases=["move"], usage="<from> <to>")
-    async def complete_reorder(self, ctx: commands.Context, original: PositiveInt, new: PositiveInt):
+    async def complete_reorder(
+        self, ctx: commands.Context, original: PositiveInt, new: PositiveInt
+    ):
         """Move a completed todo from one index to another
 
         This will error if the index is larger than your completed todo list
@@ -99,16 +138,22 @@ class Complete(TodoMixin):
             - `to` The new index of the completed todo
         """
         if original == new:
-            return await ctx.send("You cannot move a todo from one index... to the same index")
+            return await ctx.send(
+                "You cannot move a todo from one index... to the same index"
+            )
         completed = await self.cache.get_user_item(ctx.author, "completed")
         if not completed:
-            return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
+            return await ctx.send(
+                self._no_completed_message.format(prefix=ctx.clean_prefix)
+            )
         act_orig = original - 1
         act_new = new - 1
         try:
             task = completed.pop(act_orig)
         except IndexError:
-            return await ctx.send(f"I could not find a completed todo at index `{original}`")
+            return await ctx.send(
+                f"I could not find a completed todo at index `{original}`"
+            )
         completed.insert(act_new, task)
         msg = f"Moved a completed todo from {original} to {new}"
         await ctx.send(msg)

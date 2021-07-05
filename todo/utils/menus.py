@@ -159,7 +159,9 @@ class ViewTodo(menus.Menu):
             message=None,
         )
 
-    async def send_initial_message(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def send_initial_message(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
         return await ctx.send(**await self._format_page())
 
     def _skip_if_completed(self):
@@ -207,7 +209,9 @@ class ViewTodo(menus.Menu):
         with contextlib.suppress(discord.NotFound):
             await msg.delete()
         if not pred.result:
-            return await self.ctx.send("Okay, I will not delete that todo.", delete_after=5.0)
+            return await self.ctx.send(
+                "Okay, I will not delete that todo.", delete_after=5.0
+            )
         self.stop()
         await self.update_message(message="Deleted todo!")
         key = "completed" if self.completed else "todos"
@@ -228,7 +232,9 @@ class ViewTodo(menus.Menu):
         with contextlib.suppress(discord.NotFound):
             await msg.delete()
         if not pred.result:
-            return await self.ctx.send("Okay, I will not complete that todo.", delete_after=5.0)
+            return await self.ctx.send(
+                "Okay, I will not complete that todo.", delete_after=5.0
+            )
         self.completed = True
         self.data = self.data["task"]
         await self.update_message()

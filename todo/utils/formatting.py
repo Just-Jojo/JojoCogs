@@ -3,7 +3,6 @@
 
 from typing import List
 
-
 __all__ = ["_format_todos", "_format_completed", "_build_underline"]
 
 
@@ -47,12 +46,15 @@ async def _format_todos(pinned: List[str], other: List[str], **settings) -> List
         )
         if should_insert_todos:
             ret.insert(
-                to_insert, f"\n{fmt}Other todos{fmt}" + _build_underline("Other todos", use_md, False)
+                to_insert,
+                f"\n\N{RADIO BUTTON} {fmt}Other todos{fmt}"
+                + _build_underline("🔘 Other todos", use_md, True),
             )
     else:
         ret.insert(
             0,
-            f"{fmt}Todos{fmt}" + _build_underline("Todos", use_md, False)
+            f"\N{RADIO BUTTON} {fmt}Todos{fmt}"
+            + _build_underline("🔘 Todos", use_md, True),
         )
     return ret
 

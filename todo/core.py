@@ -10,10 +10,20 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import escape, humanize_list, pagify, text_to_file
+from redbot.core.utils.predicates import MessagePredicate
 
 from .abc import MetaClass
 from .commands import *
-from .utils import Cache, TodoMenu, TodoPage, TodoPositiveInt, ViewTodo, timestamp_format, formatting, PositiveInt
+from .utils import (
+    Cache,
+    PositiveInt,
+    TodoMenu,
+    TodoPage,
+    TodoPositiveInt,
+    ViewTodo,
+    formatting,
+    timestamp_format,
+)
 
 _config_structure = {
     "todos": [],  # List[Dict[str, Any]] "task": str, "pinned": False
@@ -40,7 +50,9 @@ def attach_or_in_dm(ctx: commands.Context):
     return ctx.channel.permissions_for(ctx.me).attach_files
 
 
-class ToDo(Complete, Deleting, Settings, commands.Cog, metaclass=MetaClass):
+class ToDo(
+    Complete, Deleting, Settings, Miscellaneous, commands.Cog, metaclass=MetaClass
+):
     """A todo list for keeping track of tasks you have to do
 
     This cog is my oldest, still standing cog and holds a special place in my heart even though it's a pain to work on lol
@@ -51,8 +63,11 @@ class ToDo(Complete, Deleting, Settings, commands.Cog, metaclass=MetaClass):
     __authors__ = [
         "Jojo#7791",
     ]
-    __version__ = "3.0.0.dev2"
-    _no_todo_message = "You do not have any todos. You can add one with `{prefix}todo add <task>`"
+    __suggestors__ = ["Blackbird#0001"]
+    __version__ = "3.0.0"
+    _no_todo_message = (
+        "You do not have any todos. You can add one with `{prefix}todo add <task>`"
+    )
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -114,7 +129,9 @@ class ToDo(Complete, Deleting, Settings, commands.Cog, metaclass=MetaClass):
             return await ctx.send("You do not have a todo at that index.")
         else:
             if todo is None:
-                return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+                return await ctx.send(
+                    self._no_todo_message.format(prefix=ctx.clean_prefix)
+                )
         await ViewTodo(
             index,
             self.cache,
@@ -137,6 +154,7 @@ class ToDo(Complete, Deleting, Settings, commands.Cog, metaclass=MetaClass):
         payload = {"task": todo, "pinned": pinned}
         data["todos"].append(payload)
         await self.cache.set_user_item(ctx.author, "todos", data["todos"])
+
         data = data["user_settings"]
         msg = f"Added that as a todo."
         if data["extra_details"]:
@@ -168,7 +186,9 @@ class ToDo(Complete, Deleting, Settings, commands.Cog, metaclass=MetaClass):
         pinned, todos = await self._get_todos(todos)
         todos = await formatting._format_todos(pinned, todos, **user_settings)
         if completed and user_settings["combine_lists"]:
-            completed = await formatting._format_completed(completed, combined=True, **user_settings)
+            completed = await formatting._format_completed(
+                completed, combined=True, **user_settings
+            )
             todos.extend(completed)
 
         await self.page_logic(ctx, todos, f"{ctx.author.name}'s Todos", **user_settings)
@@ -176,7 +196,9 @@ class ToDo(Complete, Deleting, Settings, commands.Cog, metaclass=MetaClass):
     @todo.command(name="multiadd")
     async def todo_multi_add(self, ctx: commands.Context, *, todos: str = None):
         """Add multiple todos in one command!"""
-        if ctx.message.reference and not any([todos is not None, ctx.message.attachments]):
+        if ctx.message.reference and not any(
+            [todos is not None, ctx.message.attachments]
+        ):
             # Message references get checked first
             msg = ctx.message.reference.resolved
             if not msg.attachments:
@@ -214,9 +236,11 @@ class ToDo(Complete, Deleting, Settings, commands.Cog, metaclass=MetaClass):
         await ctx.send("Here are your todos", file=text_to_file(todos, "todo.txt"))
 
     @todo.command(name="reorder", aliases=["move"], usage="<from> <to>")
-    async def todo_reorder(self, ctx: commands.Context, original: PositiveInt, new: PositiveInt):
+    async def todo_reorder(
+        self, ctx: commands.Context, original: PositiveInt, new: PositiveInt
+    ):
         """Move a todo from one index to another
-        
+
         This will error if the index is larger than your todo list
 
         **Arguments**
@@ -235,6 +259,36 @@ class ToDo(Complete, Deleting, Settings, commands.Cog, metaclass=MetaClass):
         todos.insert(act_new, task)
         await ctx.send(f"Moved a todo from index {original} to {new}")
         await self.cache.set_user_item(ctx.author, "todos", todos)
+
+    @todo.command(name="sort")
+    async def todo_sort(self, ctx: commands.Context, reverse: bool = None):
+        """Sort your todos by alphabetical order
+
+        You can optionally set it to sort in reverse
+
+        **Arguments**
+            - `reverse` Whether to set it to be reversed. Defaults to False
+        """
+        if reverse is None:
+            msg = await ctx.send("Would you like to sort your todos in reverse? (y/N)")
+            pred = MessagePredicate.yes_or_no(ctx)
+            try:
+                umsg = await self.bot.wait_for("message", check=pred)
+            except asyncio.TimeoutError:
+                pass
+            with suppress(discord.NotFound, discord.Forbidden):
+                await msg.delete()
+                await umsg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+            reverse = bool(
+                pred.result
+            )  # Calling bool because `pred.result` starts as `None`
+        await self.cache.set_user_setting(ctx.author, "reverse_sort", reverse)
+        await self.cache.set_user_setting(ctx.author, "autosorting", True)
+        have_not = "have" if reverse else "have not"
+        await ctx.send(
+            f"Your todos are now sorted. They {have_not} been sorted in reverse"
+        )
+        await self._maybe_autosort(ctx.author)
 
     @staticmethod
     async def _get_todos(todos: List[dict]) -> Tuple[List[str], List[str]]:
@@ -266,10 +320,19 @@ class ToDo(Complete, Deleting, Settings, commands.Cog, metaclass=MetaClass):
             return
 
         if todos:
-            todos, extra = await self._get_todos(data["todos"])
-            todos.sort(reverse=settings["reverse_sort"])
-            extra.sort(reverse=settings["reverse_sort"])
-            todos.extend(extra)
+            pinned = []
+            extra = []
+            for todo in todos:
+                if todo["pinned"]:
+                    pinned.append(todo)
+                else:
+                    extra.append(todo)
+            todos = sorted(
+                pinned, key=lambda x: x["task"], reverse=settings["reverse_sort"]
+            )
+            todos.extend(
+                sorted(extra, key=lambda x: x["task"], reverse=settings["reverse_sort"])
+            )
         if completed:
             completed.sort(reverse=settings["reverse_sort"])
 
