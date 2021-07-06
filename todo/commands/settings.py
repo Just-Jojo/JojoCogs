@@ -144,7 +144,7 @@ class Settings(TodoMixin):
         if current == value:
             return await ctx.send(f"Pretty todos are already {enabled}")
         await ctx.send(f"Pretty todos are now {enabled}")
-        await self.cache.set_user_setting(ctx.author, "pretty", value)
+        await self.cache.set_user_setting(ctx.author, "pretty_todos", value)
 
     @todo_settings.command(name="details")
     async def todo_extra_details(self, ctx: commands.Context, value: bool):
