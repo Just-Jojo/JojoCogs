@@ -64,7 +64,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001"]
-    __version__ = "3.0.0"
+    __version__ = "3.0.0.dev1"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
