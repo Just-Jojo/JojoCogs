@@ -1,203 +1,75 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-# type:ignore[assignment, attr-defined]
-
 import asyncio
+from contextlib import suppress
 
 import discord
-from jojo_utils import __version__ as jojo_version
 from redbot.core import commands
-from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.predicates import MessagePredicate
 
-from .abc import ToDoMixin
+from ..abc import TodoMixin
+from ..utils import PositiveInt
 
-if int(jojo_version[-1]) > 4:
-    from jojo_utils.general import PositiveInt as positive_int
-else:
-    from jojo_utils.general import positive_int
+__all__ = ["Deleting"]
 
 
-class Deleting(ToDoMixin):
-    """Commands having to do with deletion of todos"""
-
-    # Since this is a mixin I have to define the command groups here
-    # they'll be overridden by the main class though
+class Deleting(TodoMixin):
+    """Commands for deleting todos :D"""
 
     @commands.group()
-    async def todo(self, ctx):
+    async def todo(self, *args):
         pass
 
-    @todo.group()
-    async def complete(self, ctx, *indexes: positive_int):
-        pass
+    @todo.command(name="delete", aliases=["del", "remove"])
+    async def todo_delete(self, ctx: commands.Context, *indexes: PositiveInt):
+        """Delete a todo task
 
-    @todo.command(require_var_positional=True, aliases=["del", "rm", "delete"])
-    async def remove(self, ctx, *indexes: positive_int):
-        """Remove todos from your list.
+        This will remove it from your list entirely
 
-        **Examples**
-        1. `[p]todo remove 1`
-        2. `[p]todo remove 1 2 5 8`"""
-        conf = await self._get_user_config(ctx.author)
-        tds = conf.get("todos", [])
-        if not tds:
+        **Arguments**
+            - `indexes` The indexes of the todos you want to delete
+        """
+        indexes = [i - 1 for i in indexes]
+        data = await self.cache.get_user_data(ctx.author.id)
+        todos = data.get("todos")
+        if not todos:
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
-        async with ctx.typing():
-            async with self.config.user(ctx.author).todos() as todos:
-                indexes = [x - 1 for x in indexes]
-                indexes.sort(reverse=True)
-                fails, failed, comp, completed = 0, [], 0, []
-                for index in indexes:
-                    try:
-                        tds.pop(index)
-                        completed.append(f"`{todos.pop(index)}`")
-                    except IndexError:
-                        fails += 1
-                        failed.append(f"`{index}`")
-                    else:
-                        comp += 1
-        msg = "Done."
-        details = conf.get("detailed_pop", False)
-        if comp:
-            plural = "" if comp == 1 else "s"
-            msg += f"\nRemoved {comp} todo{plural}"
-            if details:
-                msg += "\n" + "\n".join(completed)
-        if fails:
-            plural = "" if fails else "s"
-            msg += f"\nFailed to removed {fails} todo{plural} {self._failure_explanation}"
-            if details:
-                msg += "\n" + "\n".join(failed)
-        await self._maybe_autosort(ctx)
-        if len(msg) > 2000:
-            await ctx.send_interactive(pagify(msg))
-        else:
-            await ctx.send(msg)
-        try:
-            self.settings_cache[ctx.author.id]["todos"] = tds
-        except KeyError:
-            await self.update_cache(user_id=ctx.author.id)
+        for index in indexes:
+            try:
+                del todos[index]
+            except IndexError:
+                pass
+            except Exception as e:
+                self.log.error("Exception in 'todo delete'", exc_info=e)
+        amount = len(indexes)
+        plural = "" if amount == 1 else "s"
+        msg = f"Done. Deleted {amount} todo{plural}"
+        await self.cache.set_user_item(ctx.author, "todos", todos)
+        await ctx.send(msg)
 
-    @todo.command(aliases=["delall"])
-    async def removeall(self, ctx, confirm: bool = False):
+    @todo.command(name="deleteall", aliases=["delall", "removeall"])
+    async def todo_delete_all(self, ctx: commands.Context, confirm: bool = False):
         """Remove all of your todos
 
+
+        \u200b
         **Arguments**
-        >   confirm: If True it will skip the yes or no check. Defaults to False"""
+            - `confirm` Skips the confirmation check. Defaults to False
+        """
         if not confirm:
-            await ctx.send(
-                "WARNING, this will remove **ALL** of your todos. Would you like to remove your todos? (y/n)"
+            msg = await ctx.send(
+                "Are you sure you would like to remove all of your todos? (y/N)"
             )
             pred = MessagePredicate.yes_or_no(ctx)
             try:
-                await self.bot.wait_for("message", check=pred)
+                umsg = await self.bot.wait_for("message", check=pred)
             except asyncio.TimeoutError:
                 pass
+            with suppress(discord.NotFound, discord.Forbidden):
+                await msg.delete()
+                await umsg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
             if not pred.result:
-                return await ctx.send("Okay, I won't delete your todos")
-        await self.config.user(ctx.author).todos.clear()
-        await ctx.send("Removed your todos.")
-        try:
-            self.settings_cache[ctx.author.id]["todos"] = []
-        except KeyError:
-            await self.update_cache(user_id=ctx.author.id)
-
-    @complete.command(
-        require_var_positional=True, name="remove", aliases=["del", "rm", "delete"]
-    )
-    async def complete_delete(self, ctx, *indexes: positive_int):
-        """Remove your completed todos.
-
-        **Examples**
-        1. `[p]todo complete remove 1`
-        2. `[p]todo complete remove 1 3 5 6`"""
-        conf = await self._get_user_config(ctx.author)
-        if not (comp := conf.get("completed", [])):
-            return await ctx.send(
-                self._no_completed_message.format(prefix=ctx.clean_prefix)
-            )
-        async with ctx.typing():
-            async with self.config.user(ctx.author).completed() as cd:
-                indexes = [x - 1 for x in indexes]
-                indexes.sort(reverse=True)
-                fails, failed, removes, removed = 0, [], 0, []
-                for index in indexes:
-                    try:
-                        removed.append(f"`{cd.pop(index)}`")
-                        comp.pop(index)
-                    except IndexError:
-                        fails += 1
-                        failed.append(f"`{index}`")
-                    else:
-                        removes += 1
-        msg = "Done."
-        details = conf.get("detailed_pop", False)
-        if removes:
-            plural = "" if removes == 1 else "s"
-            msg += f"\nRemoved {removes} todo{plural}"
-            if details:
-                msg += "\n" + "\n".join(removed)
-        if fails:
-            plural = "" if fails == 1 else "s"
-            msg += f"\nFailed to remove {fails} todo{plural} {self._failure_explanation}"
-            if details:
-                msg += "\n" + "\n".join(failed)
-        await self._maybe_autosort(ctx)
-        if len(msg) > 2000:
-            await ctx.send_interactive(pagify(msg))
-        else:
-            await ctx.send(msg)
-        try:
-            self.settings_cache[ctx.author.id]["completed"] = comp
-        except KeyError:
-            await self.update_cache(user_id=ctx.author.id)
-
-    @complete.command(name="removeall", aliases=["delall", "rma"])
-    async def complete_removeall(self, ctx, confirm: bool = False):
-        """Remove all of your completed todos
-
-        **Arguments**
-        >   confirm: If True it will skip the yes or no check. Defaults to False"""
-        if not confirm:
-            await ctx.send(
-                "WARNING, this will remove **ALL** of your completed todos. Would you like to remove them? (y/n)"
-            )
-            pred = MessagePredicate.yes_or_no(ctx)
-            try:
-                await self.bot.wait_for("message", check=pred)
-            except asyncio.TimeoutError:
-                pass
-            if not pred.result:
-                return await ctx.send("Okay, I won't delete your completed todos")
-        await self.config.user(ctx.author).completed.clear()
-        await ctx.send("Removed your completed todos.")
-        try:
-            self.settings_cache[ctx.author.id]["completed"] = []
-        except KeyError:
-            await self.update_cache(user_id=ctx.author.id)
-
-    # The reason why this is here is because it sorta 'fit in' with the other commands
-    # Also, call lmfao
-    @todo.command(name="completeall", aliases=["call"])
-    async def todo_complete_all(self, ctx: commands.Context, confirm: bool = False):
-        """Add all of your todos to your completed list"""
-        if not confirm:
-            await ctx.send(
-                "WARNING. This will complete **ALL** of your todos. Would you like me to do this? (y/n)"
-            )
-            pred = MessagePredicate.yes_or_no(ctx)
-            try:
-                await self.bot.wait_for("message", check=pred)
-            except ValueError:
-                pass
-            if not pred.result:
-                return await ctx.send("Okay. I will not complete your todos.")
-        await ctx.send("Completed all your todos.")
-        conf = await self._get_user_config(ctx.author)
-        completed = conf.get("completed", [])
-        completed.extend(conf.get("todos", []))
-        await self.config.user(ctx.author).completed.set(completed)
-        await self.config.user(ctx.author).todos.clear()
-        await self.update_cache(user_id=ctx.author.id)
+                return await ctx.send("Okay. I will not remove your todos.")
+        await self.cache.set_user_item(ctx.author, "todos", [])
+        await ctx.send("Done. Removed all of your todos.")
