@@ -30,7 +30,7 @@ class TodoMixin(ABC):
         ...
 
 
-class MetaClass(type(commands.Cog), type(ABC)):  # type:ignore
+class MetaClass(type(commands.Cog), type(ABC)):
     """Meta class for main class"""
 
     pass

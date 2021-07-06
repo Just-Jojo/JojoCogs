@@ -76,8 +76,6 @@ class ToDo(
         self.cache = Cache(self.bot, self.config)
         self._startup_task = self.bot.loop.create_task(self._initialize())
         self.log = logging.getLogger("red.JojoCogs.todo")
-        with suppress(RuntimeError):
-            self.bot.add_dev_env_value("todo", lambda x: self)
 
     def cog_unload(self):
         with suppress(KeyError):
@@ -97,6 +95,8 @@ class ToDo(
         """This is based off of Obi-Wan3's migration method in their github cog
         https://github.com/Obi-Wan3/OB13-Cogs/blob/main/github/github.py#L88"""
 
+        with suppress(RuntimeError):
+            self.bot.add_dev_env_value("todo", lambda x: self)
         for uid in (await self.config.all_users()).keys():
             async with self.config.user_from_id(uid).all() as data:
                 if data.get("migrated"):
@@ -321,15 +321,8 @@ class ToDo(
             return
 
         if todos:
-            pinned = []
-            extra = []
-            for todo in todos:
-                if todo["pinned"]:
-                    pinned.append(todo)
-                else:
-                    extra.append(todo)
             todos = sorted(
-                pinned, key=lambda x: x["task"], reverse=settings["reverse_sort"]
+                todos, key=lambda x: x["task"], reverse=settings["reverse_sort"]
             )
             todos.extend(
                 sorted(extra, key=lambda x: x["task"], reverse=settings["reverse_sort"])

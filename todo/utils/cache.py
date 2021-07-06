@@ -14,7 +14,7 @@ __all__ = [
 
 
 class Cache:
-    """An \"Advanced\" cache for todo as the old one was just a dictionary and was hard to work with"""
+    r"""An "Advanced" cache for todo as the old one was just a dictionary and was hard to work with"""
 
     def __init__(self, bot: Red, config: Config):
         self.bot = bot

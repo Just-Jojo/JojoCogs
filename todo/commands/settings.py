@@ -116,7 +116,13 @@ class Settings(TodoMixin):
 
     @todo_settings.command(name="combine", aliases=["combined"])
     async def todo_combined(self, ctx: commands.Context, value: bool):
-        """ """
+        """Combine your todo list with your completed list
+
+        **NOTE** this will only be in effect if you have completed todos
+
+        **Arguments**
+            - `value` Whether to combine your lists or not
+        """
         current = await self.cache.get_user_setting(ctx.author, "combine_lists")
         enabled = self._get_enabled_status(value)
         if current == value:
@@ -142,7 +148,13 @@ class Settings(TodoMixin):
 
     @todo_settings.command(name="details")
     async def todo_extra_details(self, ctx: commands.Context, value: bool):
-        """ """
+        """Have your todo list send you extra details.
+
+        This may be removed at a later date
+
+        **Arguments**
+            - `value` Whether you should recieve extra details
+        """
         current = await self.cache.get_user_setting(ctx.author, "extra_details")
         enabled = self._get_enabled_status(value)
         if current == value:
