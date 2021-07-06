@@ -2,6 +2,7 @@
 # Licensed under MIT
 
 from datetime import datetime
+from enum import Enum
 from typing import Union
 
 import discord
@@ -9,6 +10,36 @@ from redbot.core import commands
 
 from ..abc import TodoMixin
 from ..utils import timestamp_format
+
+
+class PresetsEnum(Enum):
+    minimal = {
+        "combine_lists": False,
+        "extra_details": False,
+        "pretty_todos": False,
+        "number_todos": False,
+        "use_markdown": False,
+        "use_timestamps": False,
+    }
+    pretty = {
+        "combine_lists": True,
+        "extra_details": True,
+        "pretty_todos": True,
+        "number_todos": True,
+        "use_markdown": True,
+        "use_timestamps": True,
+    }
+
+
+class PresetConverter(commands.Converter):
+    async def convert(self, ctx: commands.Context, arg: str):
+        if arg.lower() not in ("pretty", "minimal"):
+            raise commands.BadArgument(
+                f'Argument must be "minimal" or "pretty" not "{arg}"'
+            )
+        if arg.lower() == "pretty":
+            return PresetsEnum.pretty
+        return PresetsEnum.minimal
 
 
 class Settings(TodoMixin):
@@ -161,6 +192,21 @@ class Settings(TodoMixin):
             return await ctx.send(f"Extra details is already {enabled}")
         await ctx.send(f"Extra details are now {enabled}")
         await self.cache.set_user_setting(ctx.author, "extra_details", value)
+
+    @todo_settings.command(name="preset")
+    async def preset(self, ctx: commands.Context, preset: PresetConverter):
+        """Set you settings to a preset
+
+        Current presets are `minimal` and `pretty`
+
+        **Arguments**
+            - `preset` The preset for your settings. Must be either `minimal` or `pretty` as of right now.
+        """
+        data = preset.value  # type:ignore
+        old_settings = await self.cache.get_user_item(ctx.author, "user_settings")
+        old_settings.update(data)
+        await self.cache.set_user_item(ctx.author, "user_settings", old_settings)
+        await ctx.send(f'Done. Your settings are now set to the preset "{preset.name}"')
 
     @todo_settings.command(name="showsettings")
     async def todo_show_settings(self, ctx: commands.Context):

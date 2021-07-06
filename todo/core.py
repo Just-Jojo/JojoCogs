@@ -51,7 +51,7 @@ def attach_or_in_dm(ctx: commands.Context):
 
 
 class ToDo(
-    Complete, Deleting, Settings, Miscellaneous, commands.Cog, metaclass=MetaClass
+    Complete, Deleting, Miscellaneous, Settings, commands.Cog, metaclass=MetaClass
 ):
     """A todo list for keeping track of tasks you have to do
 
@@ -64,7 +64,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001"]
-    __version__ = "3.0.0.dev1"
+    __version__ = "3.0.0"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -98,23 +98,39 @@ class ToDo(
         with suppress(RuntimeError):
             self.bot.add_dev_env_value("todo", lambda x: self)
         for uid in (await self.config.all_users()).keys():
-            async with self.config.user_from_id(uid).all() as data:
-                if data.get("migrated"):
-                    continue
-                self.log.debug(data)
-
-                new_data = {
-                    "todos": None,
-                    "user_settings": data["user_settings"],
-                    "migrated": True,
-                    "completed": data["completed"],
+            data = await self.config.user_from_id(uid).all()
+            if data.get("migrated_v2"):
+                continue
+            self.log.debug(data)
+            if not (user_settings := data.get("user_settings")):  # Old system
+                user_settings = {
+                    "extra_details": data["detailed_pop"],
+                    "autosorting": data["autosort"],
+                    "use_markdown": data["use_md"],
+                    "use_embeds": data["use_embeds"],
+                    "use_timestamps": data["timestamp"],
+                    "colour": data["colour"],
+                    "combine_lists": data["combined_lists"],
+                    "private": False,  # Private does nothing at this point
+                    "reverse_sort": data["reverse_sort"],
                 }
-                todos = []
-                for todo in data["todos"]:
+
+            new_data = {
+                "todos": None,
+                "user_settings": user_settings,
+                "migrated_v2": True,
+                "completed": data["completed"],
+            }
+            todos = []
+            for todo in data["todos"]:
+                if isinstance(todo, dict):
+                    todos.append(todo)
+                else:
                     todos.append({"task": todo, "pinned": False})
-                new_data["todos"] = todos
-                self.log.debug(new_data)
-                data.update(new_data)
+            new_data["todos"] = todos
+            self.log.debug(new_data)
+            await self.config.user_from_id(uid).clear()
+            await self.config.user_from_id(uid).set(new_data)
 
     @commands.group(invoke_without_command=True)
     async def todo(self, ctx: commands.Context, index: TodoPositiveInt):
