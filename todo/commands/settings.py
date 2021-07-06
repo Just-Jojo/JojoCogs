@@ -139,7 +139,7 @@ class Settings(TodoMixin):
         **Arguments**
             - `value` Whether pretty should be enabled
         """
-        current = await self.cache.get_user_setting(ctx.author, "pretty")
+        current = await self.cache.get_user_setting(ctx.author, "pretty_todos")
         enabled = self._get_enabled_status(value)
         if current == value:
             return await ctx.send(f"Pretty todos are already {enabled}")
