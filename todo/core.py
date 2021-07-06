@@ -136,7 +136,7 @@ class ToDo(
         await ViewTodo(
             index,
             self.cache,
-            todo,  # type:ignore
+            todo,
             **await self.cache.get_user_item(ctx.author, "user_settings"),
         ).start(ctx)
 
