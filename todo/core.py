@@ -163,7 +163,7 @@ class ToDo(
         if data["use_timestamps"]:
             msg += f"\n{timestamp_format()}"
         if len(msg) > 2000:
-            await ctx.send_interactive(pagify(msg))
+            await ctx.send_interactive(pagify(msg, page_length=500))
         else:
             await ctx.send(msg)
         await self._maybe_autosort(ctx.author)
