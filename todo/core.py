@@ -163,7 +163,7 @@ class ToDo(
         if data["use_timestamps"]:
             msg += f"\n{timestamp_format()}"
         if len(msg) > 2000:
-            await ctx.send_interactive(pagify(msg, page_length=500))
+            await ctx.send_interactive(pagify(msg))
         else:
             await ctx.send(msg)
         await self._maybe_autosort(ctx.author)
@@ -304,7 +304,7 @@ class ToDo(
 
     async def page_logic(self, ctx: commands.Context, data: list, title: str, **settings):
         joined = "\n".join(data)
-        pagified = list(pagify(joined))
+        pagified = list(pagify(joined, page_length=500))
         pages = TodoPage(pagified, title, **settings)
         await TodoMenu(pages).start(ctx)
 
