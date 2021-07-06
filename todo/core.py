@@ -136,7 +136,7 @@ class ToDo(
         await ViewTodo(
             index,
             self.cache,
-            todo,  # type:ignore
+            todo,
             **await self.cache.get_user_item(ctx.author, "user_settings"),
         ).start(ctx)
 
@@ -215,8 +215,7 @@ class ToDo(
                 return await ctx.send("File format must be `.txt`")
             todos = await maybe_file.read()
             todos = todos.decode()
-        todos = todos.split("\n")
-        todos = [{"pinned": False, "task": t} for t in todos]
+        todos = [{"pinned": False, "task": t} for t in todos.split("\n")]
         current = await self.cache.get_user_item(ctx.author, "todos")
         current.extend(todos)
         await self.cache.set_user_item(ctx.author, "todos", current)
