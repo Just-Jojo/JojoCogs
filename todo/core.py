@@ -33,7 +33,7 @@ _config_structure = {
         "colour": None,
         "combine_lists": False,
         "extra_details": False,
-        "number_todos": False,
+        "number_todos": True,
         "pretty_todos": False,
         "private": False,
         "reverse_sort": False,
@@ -64,7 +64,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001"]
-    __version__ = "3.0.0"
+    __version__ = "3.0.1"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -250,6 +250,54 @@ class ToDo(
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         todos = "\n".join([t["task"] for t in todos])
         await ctx.send("Here are your todos", file=text_to_file(todos, "todo.txt"))
+
+    @todo.command(name="pin", aliases=["unpin"])
+    async def todo_pin(self, ctx: commands.Context, index: PositiveInt):
+        """Pin or unpin a todo
+
+        This will stick it at the top of the list whenever you view it
+
+        **Arguments**
+            - `index` The index of the todo you want to pin/unpin
+        """
+        act_index = index - 1
+        if not (todos := await self.cache.get_user_item(ctx.author, "todos")):
+            return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+        try:
+            todo = todos.pop(act_index)
+        except IndexError:
+            return await ctx.send("That index was bigger than your todo list!")
+        todo["pinned"] = not todo["pinned"]
+        pinned = "" if todo["pinned"] else "un"
+        await ctx.send(f"Done. That todo is now {pinned}pinned")
+        todos.insert(act_index, todo)
+        await self.cache.set_user_item(ctx.author, "todos", todos)
+
+    @todo.command(name="edit")
+    async def todo_edit(self, ctx: commands.Context, index: PositiveInt, *, todo: str):
+        """Edit a todo"""
+        act_index = index - 1
+        if not (todos := await self.cache.get_user_item(ctx.author, "todos")):
+            return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+
+        try:
+            _todo = todos.pop(act_index)
+        except IndexError:
+            return await ctx.send("That index was bigger than your todo list!")
+        old_task = _todo["task"]
+        _todo["task"] = todo
+        todos.insert(act_index, _todo)
+        await self.cache.set_user_item(ctx.author, "todos", todos)
+
+        msg = (
+            f"**Todo Edit**\n\n"
+            f"**Old Todo**\n'{old_task}'\n"
+            f"**New Todo**\n'{todo}'"
+        )
+        if len(msg) <= 2000:
+            await ctx.send(msg)
+        else:
+            await ctx.send_interactive(pagify(msg))
 
     @todo.command(name="reorder", aliases=["move"], usage="<from> <to>")
     async def todo_reorder(
