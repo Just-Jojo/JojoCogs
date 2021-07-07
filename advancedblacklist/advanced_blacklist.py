@@ -102,7 +102,9 @@ class AdvancedBlacklist(commands.Cog):
         elif await self.bot.is_owner(user):
             return await ctx.send("You cannot add an owner of this bot to the blocklist.")
         elif ctx.guild.owner == user:
-            return await ctx.send("You cannot add the owner of this server to the blocklist.")
+            return await ctx.send(
+                "You cannot add the owner of this server to the blocklist."
+            )
         elif await self.bot.is_mod(user):
             return await ctx.send("You cannot add a moderator to the blocklist.")
         user = user.id

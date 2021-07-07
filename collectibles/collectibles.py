@@ -6,19 +6,12 @@ from datetime import datetime
 from typing import Literal, Optional, Union
 
 import discord
-from jojo_utils import Menu
-from jojo_utils import __version__ as jojo_version
-
-if int(jojo_version[-1]) > 4:
-    from jojo_utils.general import PositiveInt as positive_int
-else:
-    from jojo_utils.general import positive_int  # type:ignore
 
 from redbot.core import Config, bank, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, pagify
 
-from .utils import Page
+from .utils import Page, Menu, PositiveInt
 
 log = logging.getLogger("red.JojoCogs.collectibles")
 log.setLevel(logging.DEBUG)
@@ -38,7 +31,7 @@ class Collectibles(commands.Cog):
     """Collect trinkets and items!"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -151,7 +144,7 @@ class Collectibles(commands.Cog):
         ctx: commands.Context,
         name: str,
         emoji: str,
-        cost: positive_int,
+        cost: PositiveInt,
     ):
         """Add a Collectible to the global list"""
         async with self.config.collectibles() as coll:
@@ -181,7 +174,7 @@ class Collectibles(commands.Cog):
         ctx: commands.Context,
         name: str,
         emoji: str,
-        cost: positive_int,
+        cost: PositiveInt,
     ):
         """Add a Collectible to your guild's cache"""
         async with self.config.guild(ctx.guild).collectibles() as coll:

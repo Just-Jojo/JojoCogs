@@ -11,20 +11,13 @@ from typing import List, Optional
 
 import discord
 from discord.ext import tasks
-from jojo_utils import Menu
-from jojo_utils import __version__ as jojo_version
-
-if int(jojo_version[-1]) > 4:
-    from jojo_utils.general import PositiveInt as positive_int
-else:
-    from jojo_utils.general import positive_int
 
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
-from .menus import Pages
+from .menus import Pages, Menu, PositiveInt
 
 log = logging.getLogger("red.JojoCogs.cyclestatus")
 _config_structure = {
@@ -46,7 +39,7 @@ class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.7"
+    __version__ = "1.0.8"
     # These people have suggested something for this cog!
     __suggesters__ = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
 
@@ -119,7 +112,7 @@ class CycleStatus(commands.Cog):
         await ctx.tick()
 
     @status.command(name="remove", aliases=["del", "rm", "delete"])
-    async def status_remove(self, ctx, num: positive_int = None):  # type:ignore
+    async def status_remove(self, ctx, num: PositiveInt = None):  # type:ignore
         """Remove a status from the list"""
         if num is None:
             return await ctx.invoke(self.status_list)
