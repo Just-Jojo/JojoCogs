@@ -377,6 +377,7 @@ class ToDo(
         completed = data["completed"]
         if not any([completed, todos]):
             return
+        settings = data["user_settings"]
 
         if todos:
             todos = sorted(
