@@ -64,7 +64,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001"]
-    __version__ = "3.0.1"
+    __version__ = "3.0.2"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -374,12 +374,19 @@ class ToDo(
 
     async def _maybe_autosort(self, user: Union[discord.Member, discord.User]):
         """An internal function to maybe autosort todos"""
+
+        # Okay, so I modified this a bit just for a few reasons
+        # A) Todos need to be "sorted" by pinned todos as otherwise the indexes won't match up
+        # B) I hate myself
+
         data = await self.cache.get_user_data(user.id)
         todos = data["todos"]
         completed = data["completed"]
         if not any([completed, todos]):
             return
         settings = data["user_settings"]
+        reverse = settings["reverse_sort"]
+        autosort = settings["autosorting"]
 
         if todos:
             pinned = []
@@ -389,14 +396,15 @@ class ToDo(
                     pinned.append(todo)
                 else:
                     extra.append(todo)
-            todos = sorted(
-                todos, key=lambda x: x["task"], reverse=settings["reverse_sort"]
-            )
-            todos.extend(
-                sorted(extra, key=lambda x: x["task"], reverse=settings["reverse_sort"])
-            )
-        if completed:
-            completed.sort(reverse=settings["reverse_sort"])
+            if autosort:
+                pinned = sorted(
+                    pinned, key=lambda x: x["task"], reverse=reverse
+                )
+                extra = sorted(extra, key=lambda x: x["task"], reverse=reverse)
+            todos = pinned
+            todos.extend(extra)
+        if completed and autosort:
+            completed.sort(reverse=reverse)
 
         data["completed"] = completed
         data["todos"] = todos

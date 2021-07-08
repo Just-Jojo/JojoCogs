@@ -189,7 +189,7 @@ class Settings(TodoMixin):
         current = await self.cache.get_user_setting(ctx.author, "extra_details")
         enabled = self._get_enabled_status(value)
         if current == value:
-            return await ctx.send(f"Extra details is already {enabled}")
+            return await ctx.send(f"Extra details are already {enabled}")
         await ctx.send(f"Extra details are now {enabled}")
         await self.cache.set_user_setting(ctx.author, "extra_details", value)
 
@@ -207,6 +207,23 @@ class Settings(TodoMixin):
         old_settings.update(data)
         await self.cache.set_user_item(ctx.author, "user_settings", old_settings)
         await ctx.send(f'Done. Your settings are now set to the preset "{preset.name}"')
+
+    @todo_settings.command(name="autosort")
+    async def todo_autosort(self, ctx: commands.Context, value: bool):
+        """Set your todo list to auto sort
+
+        **NOTE** This command won't autosort your todos. Use `[p]todo sort` to sort your todos
+
+        **Arguments**
+            - `value` Whether your todo list should auto sort
+        """
+
+        current = await self.cache.get_user_setting(ctx.author, "autosorting")
+        enabled = self._get_enabled_status(value)
+        if current == value:
+            return await ctx.send(f"Autosorting is already {enabled}")
+        await self.cache.set_user_setting(ctx.author, "autosorting", value)
+        await ctx.send(f"Autosorting is now {enabled}")
 
     @todo_settings.command(name="showsettings")
     async def todo_show_settings(self, ctx: commands.Context):
