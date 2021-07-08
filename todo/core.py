@@ -29,7 +29,6 @@ _config_structure = {
     "todos": [],  # List[Dict[str, Any]] "task": str, "pinned": False
     "completed": [],  # List[str]
     "user_settings": {
-        "autosorting": False,
         "colour": None,
         "combine_lists": False,
         "extra_details": False,
@@ -347,7 +346,6 @@ class ToDo(
                 pred.result
             )  # Calling bool because `pred.result` starts as `None`
         await self.cache.set_user_setting(ctx.author, "reverse_sort", reverse)
-        await self.cache.set_user_setting(ctx.author, "autosorting", True)
         have_not = "have" if reverse else "have not"
         await ctx.send(
             f"Your todos are now sorted. They {have_not} been sorted in reverse"
@@ -378,9 +376,6 @@ class ToDo(
         todos = data["todos"]
         completed = data["completed"]
         if not any([completed, todos]):
-            return
-        settings = data["user_settings"]
-        if not settings["autosorting"]:
             return
 
         if todos:
