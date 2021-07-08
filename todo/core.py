@@ -382,7 +382,13 @@ class ToDo(
         settings = data["user_settings"]
 
         if todos:
-            todos, extra = await self._get_todos(todos)
+            pinned = []
+            extra = []
+            for todo in todos:
+                if todo["pinned"]:
+                    pinned.append(todo)
+                else:
+                    extra.append(todo)
             todos = sorted(
                 todos, key=lambda x: x["task"], reverse=settings["reverse_sort"]
             )
