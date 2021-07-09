@@ -4,6 +4,8 @@
 from abc import ABC, abstractmethod
 from logging import Logger
 
+import discord
+
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
@@ -22,11 +24,17 @@ class TodoMixin(ABC):
         self.cache: Cache
         self.config: Config
         self.log: Logger
+        self._no_todo_message: str
+        self._no_completed_message: str
 
     # The best thing about this is it that I don't have to reimpliment this every time
     # I create a new subclass, just in the main class which will be a subclass of every other class
     @abstractmethod
     async def page_logic(self, ctx: commands.Context, data: list, **settings):
+        ...
+
+    @abstractmethod
+    async def _embed_requested(self, ctx: commands.Context, user: discord.User) -> bool:
         ...
 
 

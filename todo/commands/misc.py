@@ -30,7 +30,7 @@ class Miscellaneous(TodoMixin):
     async def todo_suggestions(self, ctx: commands.Context):
         """Get information about how you can suggest features for this cog"""
         url = "https://github.com/Just-Jojo/JojoCogs/issues/15"
-        hyper_link = f"[link]({url})" if await ctx.embed_requested() else f"link: <{url}>"
+        hyper_link = f"[link]({url})" if await self._embed_requested(ctx, ctx.author) else f"link: <{url}>"
         msg = (
             f"First, thanks! Suggestions help me keep todo user friendly and fun to work with\n"
             f"For suggestions, you can follow this {hyper_link}\n"
@@ -49,7 +49,7 @@ class Miscellaneous(TodoMixin):
 
     async def maybe_send_embed(self, ctx: commands.Context, msg: str, *, title: str = ""):
         kwargs = {"content": f"**{title}**\n\n{msg}", "embed": None}
-        if await ctx.embed_requested():
+        if await self._embed_requested(ctx, ctx.author):
             colour = await self.cache.get_user_setting(ctx.author, "colour")
             colour = colour if colour is not None else await ctx.embed_colour()
             embed = discord.Embed(

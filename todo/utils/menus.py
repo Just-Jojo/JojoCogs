@@ -34,7 +34,7 @@ class TodoPage(menus.ListPageSource):
         if self.settings["use_markdown"]:
             page = box(page, "md")
         footer = f"Page {menu.current_page + 1}/{self.get_max_pages()}"
-        if await ctx.embed_requested() and self.settings["use_embeds"]:
+        if await ctx.cog._embed_requested(ctx, ctx.author):
             embed = discord.Embed(
                 title=self.title,
                 colour=self.settings["colour"] or await ctx.embed_colour(),
@@ -171,7 +171,7 @@ class ViewTodo(menus.Menu):
         todo = "Completed Todo" if self.completed else "Todo"
         title = f"{self.ctx.author.name} {todo} #{self.index}"
         task = self.data if self.completed else self.data["task"]  # type:ignore
-        if await self.ctx.embed_requested() and self.settings.get("use_embeds"):
+        if await self.ctx.cog._embed_requested(self.ctx, self.ctx.author):
             embed = discord.Embed(
                 title=title,
                 colour=self.settings["colour"] or await self.ctx.embed_colour(),
@@ -251,7 +251,7 @@ class ViewTodo(menus.Menu):
 
     async def update_message(self, message: str = None):
         if message:
-            if await self.ctx.embed_requested() and self.settings.get("use_embeds"):
+            if await self.ctx.cog._embed_requested(self.ctx, self.ctx.author):
                 embed = discord.Embed(
                     title=f"{self.ctx.author.name} Todo #{self.index}",
                     colour=self.settings["colour"] or await self.ctx.embed_colour(),

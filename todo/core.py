@@ -64,7 +64,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001"]
-    __version__ = "3.0.4"
+    __version__ = "3.0.5"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -198,7 +198,7 @@ class ToDo(
         if not todos and not all([completed, user_settings["combine_lists"]]):
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         elif not todos:
-            return await self.__complete_list(completed, **user_settings)
+            return await ctx.invoke(self.complete_list)
 
         pinned, todos = await self._get_todos(todos)
         todos = await formatting._format_todos(pinned, todos, **user_settings)
@@ -407,3 +407,9 @@ class ToDo(
         data["completed"] = completed
         data["todos"] = todos
         await self.cache.set_user_data(user, data)
+
+    async def _embed_requested(self, ctx: commands.Context, user: discord.User) -> bool:
+        """An slightly rewritten method for checking if a command should embed or not"""
+        if ctx.guild and not ctx.channel.permissions_for(ctx.me).embed_links:
+            return False
+        return await self.cache.get_user_setting(user, "use_embeds")
