@@ -397,8 +397,8 @@ class ToDo(
                 else:
                     extra.append(todo)
             if autosort:
-                pinned.sort(key=lambda x: x["task"])
-                extra.sort(key=lambda x: x["task"])
+                pinned.sort(key=lambda x: x["task"], reverse=reverse)
+                extra.sort(key=lambda x: x["task"], reverse=reverse)
             todos = pinned
             todos.extend(extra)
         if completed and autosort:
