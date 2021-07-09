@@ -64,7 +64,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001"]
-    __version__ = "3.0.2"
+    __version__ = "3.0.3"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -397,10 +397,8 @@ class ToDo(
                 else:
                     extra.append(todo)
             if autosort:
-                pinned = sorted(
-                    pinned, key=lambda x: x["task"], reverse=reverse
-                )
-                extra = sorted(extra, key=lambda x: x["task"], reverse=reverse)
+                pinned.sort(key=lambda x: x["task"])
+                extra.sort(key=lambda x: x["task"])
             todos = pinned
             todos.extend(extra)
         if completed and autosort:

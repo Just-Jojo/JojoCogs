@@ -63,6 +63,7 @@ class Complete(TodoMixin):
             - `indexes` A list of integers for the indexes of your completed todos
         """
         indexes = [i - 1 for i in indexes]
+        indexes.sort(reverse=True)
         completed = await self.cache.get_user_item(ctx.author, "completed")
         if not completed:
             return await ctx.send(
