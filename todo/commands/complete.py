@@ -1,6 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import discord
 import asyncio
 from contextlib import suppress
 
@@ -47,11 +48,20 @@ class Complete(TodoMixin):
                 self.log.error("Error in command 'todo complete'", exc_info=e)
         amount = len(completed)
         plural = "" if amount == 1 else "s"
-        await ctx.send(f"Completed {amount} todo{plural}")
+        msg = f"Completed {amount} todo{plural}."
+        if data["user_settings"]["extra_details"]:
+            msg += "\n" + "\n".join(f"`{task}`" for task in completed)
+        task = None
+        if len(msg) <= 2000:
+            await ctx.send(msg)
+        else:
+            task = self.bot.loop.create_task(ctx.send_interactive(pagify(msg)))
         data["completed"].extend(completed)
         data["todos"] = todos
         await self.cache.set_user_data(ctx.author, data)
         await self._maybe_autosort(ctx.author)
+        if task is not None and not task.done():
+            await task
 
     @complete.command(name="delete", aliases=["del", "remove"])
     async def complete_delete(self, ctx: commands.Context, *indexes: PositiveInt):

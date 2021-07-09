@@ -7,6 +7,9 @@ from contextlib import suppress
 import discord
 from redbot.core import commands
 from redbot.core.utils.predicates import MessagePredicate
+from redbot.core.utils.chat_formatting import pagify
+
+from typing import Optional
 
 from ..abc import TodoMixin
 from ..utils import PositiveInt
@@ -36,9 +39,10 @@ class Deleting(TodoMixin):
         todos = data.get("todos")
         if not todos:
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+        removed = []
         for index in indexes:
             try:
-                del todos[index]
+                removed.append(todos.pop(index)["task"])
             except IndexError:
                 pass
             except Exception as e:
@@ -46,8 +50,16 @@ class Deleting(TodoMixin):
         amount = len(indexes)
         plural = "" if amount == 1 else "s"
         msg = f"Done. Deleted {amount} todo{plural}"
+        if data["user_settings"]["extra_details"]:
+            msg += "\n" + "\n".join(f"`{task}`" for task in removed)
+        task: Optional[asyncio.Task] = None
+        if len(msg) <= 2000:
+            await ctx.send(msg)
+        else:
+            task = self.bot.loop.create_task(ctx.send_interactive(pagify(msg)))
         await self.cache.set_user_item(ctx.author, "todos", todos)
-        await ctx.send(msg)
+        if task is not None and not task.done():
+            await task
 
     @todo.command(name="deleteall", aliases=["delall", "removeall"])
     async def todo_delete_all(self, ctx: commands.Context, confirm: bool = False):
