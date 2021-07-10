@@ -1,5 +1,5 @@
 @echo off
-call .venv\Scripts\activate.bat
+call %userprofile%\redenv\Scripts\activate.bat
 
 if [%1] == [] goto help
 
