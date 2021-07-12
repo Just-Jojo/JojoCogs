@@ -62,3 +62,8 @@ class Ducks(commands.Cog):
             embed.set_footer(text="Ducks!")
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
+
+    @commands.command()
+    async def duckshttp(self, ctx: commands.Context, code: int):
+        """Get a duck http status code"""
+        valid_codes = []
