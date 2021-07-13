@@ -64,7 +64,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001"]
-    __version__ = "3.0.5"
+    __version__ = "3.0.5.sql"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -73,13 +73,14 @@ class ToDo(
         self.bot = bot
         self.config = Config.get_conf(self, 19924714019, True)
         self.config.register_user(**_config_structure)
-        self.cache = Cache(self.bot, self.config)
         self._startup_task = self.bot.loop.create_task(self._initialize())
         self.log = logging.getLogger("red.JojoCogs.todo")
+        self.cache: Cache
 
     def cog_unload(self):
         with suppress(KeyError):
             self.bot.remove_dev_env_value("todo")
+        self.bot.loop.create_task(self.cache.teardown())
 
     def format_help_for_context(self, ctx: commands.Context):
         pre = super().format_help_for_context(ctx)
@@ -97,6 +98,7 @@ class ToDo(
 
         with suppress(RuntimeError):
             self.bot.add_dev_env_value("todo", lambda x: self)
+        self.cache = await Cache.init(self)
         for uid in (await self.config.all_users()).keys():
             data = await self.config.user_from_id(uid).all()
             if data.get("migrated_v2"):
@@ -129,8 +131,7 @@ class ToDo(
                     todos.append({"task": todo, "pinned": False})
             new_data["todos"] = todos
             self.log.debug(new_data)
-            await self.config.user_from_id(uid).clear()
-            await self.config.user_from_id(uid).set(new_data)
+            await self.cache.set_user_data(uid, new_data)
 
     @commands.group(invoke_without_command=True)
     async def todo(self, ctx: commands.Context, index: TodoPositiveInt):

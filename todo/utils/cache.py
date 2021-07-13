@@ -4,8 +4,11 @@
 from typing import Any, Dict, Optional, Union
 
 import discord
-from redbot.core import Config, commands
-from redbot.core.bot import Red
+
+import json
+import asqlite
+
+from redbot.core.data_manager import cog_data_path
 
 User = Union[int, discord.Member, discord.User]
 __all__ = [
@@ -13,218 +16,130 @@ __all__ = [
 ]
 
 
+CREATE_TABLE = """CREATE TABLE IF NOT EXISTS todo (
+    user_id INT PRIMARY KEY,
+    todos TEXT NOT NULL,
+    completed TEXT NOT NULL,
+    user_settings TEXT NOT NULL
+);
+"""
+_keys = {
+    "todos": [],
+    "completed": [],
+    "user_settings": {
+        "autosorting": False,
+        "colour": None,
+        "combine_lists": False,
+        "extra_details": False,
+        "number_todos": True,
+        "pretty_todos": False,
+        "private": False,
+        "reverse_sort": False,
+        "use_embeds": False,
+        "use_markdown": False,
+        "use_timestamps": False,
+    }
+}
+CREATE_USER_DATA = """INSERT INTO todo VALUES (?, ?, ?, ?)"""
+SELECT_DATA = """SELECT todos, completed, user_settings FROM todo WHERE user_id = ?"""
+UPDATE_USER = """UPDATE todo
+SET todos = ?, completed = ?, user_settings = ?
+WHERE user_id = ?
+"""
+
+
 class Cache:
-    r"""An "Advanced" cache for todo as the old one was just a dictionary and was hard to work with"""
+    def __init__(self):
+        self._connection: asqlite.Connection
+        self._cursor: asqlite.Cursor
+        self._started = False
+        self._data = {}
 
-    def __init__(self, bot: Red, config: Config):
-        self.bot = bot
-        self.config = config
-        self._data: Dict[int, Dict[str, Any]] = {}
+    @classmethod
+    async def init(cls, cog):
+        self = cls()
+        data_path = cog_data_path(cog)
+        self._connection = await asqlite.connect(f"{data_path}/test.db")
+        self._cursor = await self._connection.cursor()
+        await self._fill_cache()
+        return self
 
-    async def get_user_data(self, user_id: int) -> Dict[str, Any]:
-        """|coro|
+    async def teardown(self):
+        await self._cursor.close()
+        await self._connection.close()
 
-        Get a user's data from the cache. This is preferred over grabbing it directly from the cache
+    async def _fill_cache(self, *, user_id: int = None):
+        if not self._started:
+            await self._cursor.execute(CREATE_TABLE)
+            await self._connection.commit()
+            self._started = True
 
-        Arguments
-        ---------
-        user_id: :class:`int`
-            The id of the user to grab data for
-
-        Raises
-        ------
-        TypeError
-            The user type was not an int
-
-        Returns
-        -------
-        :class:`dict`
-            The user's data
-        """
-        if not isinstance(user_id, int):
-            raise TypeError(f"User id must be 'int' not {user_id.__class__!r}")
-        if user_id not in self._data.keys():
-            await self._load_items(user=user_id)
-        return self._data[user_id]
-
-    async def get_user_item(self, user: User, key: str):
-        """|coro|
-
-        Get an item from a user's config
-
-        Arguments
-        ---------
-        user: :class:`int`|:class:`User`|:class:`Member`
-            The user to grab the item from
-        key: :class:`str`
-            The key to get
-
-        Returns
-        -------
-        Any
-            The item from the user's config
-
-        Raises
-        ------
-        KeyError
-            The key was not in the user's config
-        """
-        user = self._get_user(user)
-        data = await self.get_user_data(user)
-        return data[key]
-
-    async def get_todo_from_index(
-        self, user: User, index: int, completed: bool = False
-    ) -> Optional[Union[Dict[str, Any], str]]:
-        """|coro|
-
-        Get a todo from a user's id
-
-        Arguments
-        ---------
-        user: :class:`int`|:class:`User`|:class:`Member`
-            The user from which you are getting the todo
-        index: :class:`int`
-            The index of the todo
-        completed: Optional[:class:`bool`]
-            Whether to get from the completed list or the todo list. Defaults to False (grabbing from todos)
-
-        Raises
-        ------
-        IndexError
-            The index was out of range
-
-        Returns
-        ------
-        Union[dict, str]
-            The todo dictionary or the completed task
-        """
-        user = self._get_user(user)
-        data = await self.get_user_data(user)
-        key = "todos"
-        if completed:
-            key = "completed"
-        if not data.get(key):
-            return None
-        return data.get(key)[index]  # type:ignore
-
-    async def _load_items(self, *, user: int = None):
-        """|coro|
-
-        An internal method to load the data into the cache.
-        Optionally, you can load a user's data into the cache
-
-        Arguments
-        ---------
-        user: :class:`int`
-            This is not required. The user to load the items into the cache
-
-        Raises
-        ------
-        TypeError
-            The user was not an integer"""
-        if user is not None and not isinstance(user, int):
-            raise TypeError(f"User must be int not {user.__class__!r}")
-        if not user:
-            self._data = await self.config.all()
+        if user_id:
+            if not isinstance(user_id, int):
+                raise TypeError(f"'user_id' must be type int not {user_id.__class__!r}")
+            await self._cursor.execute(SELECT_DATA, user_id)
+            data = await self._cursor.fetchone()
+            payload = {}
+            for key, value in zip(_keys.keys(), data):
+                payload[key] = json.loads(value)
+            self._data[user_id] = payload
             return
-        self._data[user] = await self.config.user_from_id(user).all()
+        await self._cursor.execute("SELECT * FROM todo")
+        data = await self._cursor.fetchall()
+        for row in data:
+            row = list(row)
+            uid = row.pop(0)
+            self._data[uid] = {}
+            for key, value in zip(_keys.keys(), row):
+                value = json.loads(value)
+                self._data[uid][key] = value
+
+    async def set_user_data(self, user: User, data: dict):
+        uid = self._get_uid(user)
+        if not data.keys() == _keys.keys():
+            raise ValueError("The payload's keys must be equal to the default's keys")
+        payload = [json.dumps(value) for value in data.values()]
+        payload.append(uid)
+        await self._cursor.execute(UPDATE_USER, *payload)
+        await self._connection.commit()
+        await self._fill_cache(user_id=uid)
 
     async def set_user_item(self, user: User, key: str, data: Any):
-        """|coro|
+        uid = self._get_uid(user)
+        payload = await self.get_user_data(uid)
+        payload[key] = data
+        await self.set_user_data(uid, payload)
 
-        Save a user item via key
+    async def set_user_setting(self, user: User, key: str, data: Any):
+        uid = self._get_uid(user)
+        payload = await self.get_user_item(uid, "user_settings")
+        payload[key] = data
+        await self.set_user_item(uid, "user_settings", payload)
 
-        Arguments
-        ---------
-        user: :class:`int`|:class:`User`|:class:`Member`
-            The user you are saving the data for
-        data: :class:`Any`
-            Data that's being saved
+    async def get_user_data(self, user: Union[User]):
+        uid = self._get_uid(user)
+        if uid not in self._data.keys():
+            data = [uid] + [json.dumps(v) for v in _keys.values()]
+            print(0 in data)
+            await self._cursor.execute(CREATE_USER_DATA, *data)
+            await self._connection.commit()
+            await self._fill_cache(user_id=uid)
+        return self._data[uid]
 
-        Raises
-        ------
-        KeyError
-            The key was not found in the user's settings
-
-        See :meth:`get_user_data` for more
-        """
-        user = self._get_user(user)
-        user_data = await self.get_user_data(user)
-        if key not in user_data.keys():
-            raise KeyError(f"'{key}' is not a registered value or group")
-        await self.config.user_from_id(user).set_raw(key, value=data)
-        await self._load_items(user=user)
-
-    async def set_user_data(self, user: User, data: Dict[str, Any]):
-        """|coro|
-
-        Sets a user's data. NOTE This should probably not be used as it can break a user's config
-
-        Arguments
-        ---------
-        user: :class:`int`|:class:`User`|:class:`Member`
-            The user to set the data of
-        data: :class:`dict`
-            The data to save to the user's config
-        """
-        user = self._get_user(user)
-        await self.config.user_from_id(user).set(data)
-        await self._load_items(user=user)
-
-    async def set_user_setting(self, user: User, key: str, setting: Any):
-        """|coro|
-
-        Set a setting for a user
-
-        Arguments
-        ---------
-        user: :class:`int`|:class:`User`|:class:`Member`
-            The user that the setting is being set for
-        key: :class:`str`
-            The actual setting to be set
-        setting: :class:`Any`
-            The value for the setting
-
-        Raises
-        ------
-        KeyError
-            The key was not in the user's settings
-        """
-        user = self._get_user(user)
-        data = await self.get_user_item(user, "user_settings")
-        if key not in data.keys():
-            raise KeyError(f"'{key}' was not in the user's settings")
-        data[key] = setting
-        await self.set_user_item(user, "user_settings", data)
-
-    async def get_user_setting(self, user: User, key: str) -> Any:
-        """|coro|
-
-        Get a setting of a user
-
-        Arguments
-        ---------
-        user: :class:`int`|:class:`User`|:class:`Member`
-            The user to get the setting from
-        key: :class:`str`
-            The setting to get
-
-        Returns
-        -------
-        Any
-            The setting's value
-
-        Raises
-        ------
-        KeyError
-            The key was not in the user's settings
-        """
-        user = self._get_user(user)
-        data = await self.get_user_item(user, "user_settings")
+    async def get_user_item(self, user: User, key: str):
+        uid = self._get_uid(user)
+        data = await self.get_user_data(uid)
         return data[key]
 
-    @staticmethod
-    def _get_user(user: User) -> int:
-        """An internal function to get a user id based off of the type"""
-        return user if isinstance(user, int) else user.id
+    async def get_user_setting(self, user: User, setting: str):
+        uid = self._get_uid(user)
+        data = await self.get_user_item(uid, "user_settings")
+        return data[setting]
+
+    async def get_todo_from_index(self, user: User, index: int):
+        uid = self._get_uid(user)
+        data = await self.get_user_item(uid, "todos")
+        return data[index]
+
+    def _get_uid(self, user_or_id: User):
+        return user_or_id if isinstance(user_or_id, int) else user_or_id.id
