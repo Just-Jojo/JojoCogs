@@ -21,6 +21,10 @@ class Cache:
         self.config = config
         self._data: Dict[int, Dict[str, Any]] = {}
 
+    async def delete_data(self, user_id: int):
+        await self.config.user_from_id(user_id).clear()
+        self._data.pop(user_id, None)
+
     async def get_user_data(self, user_id: int) -> Dict[str, Any]:
         """|coro|
 

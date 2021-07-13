@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from contextlib import suppress
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, Literal
 
 import discord
 from redbot.core import Config, commands
@@ -64,7 +64,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001"]
-    __version__ = "3.0.6"
+    __version__ = "3.0.7"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -90,6 +90,14 @@ class ToDo(
             "Suggestors: Use `[p]todo suggestors`!"
             f"Version: `{self.__version__}`"
         )
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+        await self.cache.delete_data(user_id)
 
     async def _initialize(self):
         """This is based off of Obi-Wan3's migration method in their github cog
