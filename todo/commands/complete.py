@@ -168,4 +168,5 @@ class Complete(TodoMixin):
         completed.insert(act_new, task)
         msg = f"Moved a completed todo from {original} to {new}"
         await ctx.send(msg)
+        await self.cache.set_user_setting(ctx.author, "autosorting", False)
         await self.cache.set_user_item(ctx.author, "completed", completed)

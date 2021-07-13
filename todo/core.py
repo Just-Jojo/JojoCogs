@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from contextlib import suppress
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, Literal
 
 import discord
 from redbot.core import Config, commands
@@ -64,7 +64,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001"]
-    __version__ = "3.0.5.sql"
+    __version__ = "3.0.6.sql"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -91,6 +91,14 @@ class ToDo(
             "Suggestors: Use `[p]todo suggestors`!"
             f"Version: `{self.__version__}`"
         )
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+        await self.cache.delete_data(user_id)
 
     async def _initialize(self):
         """This is based off of Obi-Wan3's migration method in their github cog
@@ -323,6 +331,7 @@ class ToDo(
             return await ctx.send(f"I could not find a todo at index `{original}`")
         todos.insert(act_new, task)
         await ctx.send(f"Moved a todo from index {original} to {new}")
+        await self.cache.set_user_setting(ctx.author, "autosorting", False)
         await self.cache.set_user_item(ctx.author, "todos", todos)
 
     @todo.command(name="sort")

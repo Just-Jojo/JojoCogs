@@ -8,6 +8,7 @@ import discord
 import json
 import asqlite
 
+from redbot.core import commands
 from redbot.core.data_manager import cog_data_path
 
 User = Union[int, discord.Member, discord.User]
@@ -54,10 +55,12 @@ class Cache:
         self._cursor: asqlite.Cursor
         self._started = False
         self._data = {}
+        self._cog: commands.Cog
 
     @classmethod
-    async def init(cls, cog):
+    async def init(cls, cog: commands.Cog):
         self = cls()
+        self._cog = cog
         data_path = cog_data_path(cog)
         self._connection = await asqlite.connect(f"{data_path}/test.db")
         self._cursor = await self._connection.cursor()
@@ -115,6 +118,16 @@ class Cache:
         payload = await self.get_user_item(uid, "user_settings")
         payload[key] = data
         await self.set_user_item(uid, "user_settings", payload)
+
+    async def delete_data(self, user_id: int):
+        DELETE = "DELETE FROM todo WHERE user_id = ?"
+        try:
+            await self._cursor.execute(DELETE, user_id)
+        except Exception as e:
+            self._cog.log.debug("Error in deleting user data", exc_info=e)
+        else:
+            await self._connection.commit()
+        self._data.pop(user_id, None)
 
     async def get_user_data(self, user: Union[User]):
         uid = self._get_uid(user)
