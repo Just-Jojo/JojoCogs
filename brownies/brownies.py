@@ -19,7 +19,7 @@ from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import humanize_list
 
-from .utils import PositiveInt
+from .converters import PositiveInt
 
 log = logging.getLogger("red.mcoc-v3.brownies")
 _config_structure = {
