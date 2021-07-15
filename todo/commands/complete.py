@@ -1,10 +1,10 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import discord
 import asyncio
 from contextlib import suppress
 
+import discord
 from redbot.core import commands
 from redbot.core.utils.predicates import MessagePredicate
 
@@ -47,6 +47,10 @@ class Complete(TodoMixin):
             except Exception as e:
                 self.log.error("Error in command 'todo complete'", exc_info=e)
         amount = len(completed)
+        if amount == 0:
+            return await ctx.send(
+                "Hm, somehow I wasn't able to complete those todos. Please make sure that the inputted indexes are valid"
+            )
         plural = "" if amount == 1 else "s"
         msg = f"Completed {amount} todo{plural}."
         if data["user_settings"]["extra_details"]:
@@ -63,7 +67,9 @@ class Complete(TodoMixin):
         if task is not None and not task.done():
             await task
 
-    @complete.command(name="delete", aliases=["del", "remove"])
+    @complete.command(
+        name="delete", aliases=["del", "remove"], require_var_positional=True
+    )
     async def complete_delete(self, ctx: commands.Context, *indexes: PositiveInt):
         """Delete completed todos
 
@@ -87,6 +93,10 @@ class Complete(TodoMixin):
             except Exception as e:
                 self.log.error("Exception in command 'todo complete delete'", exc_info=e)
         amount = len(indexes)
+        if amount == 0:
+            return await ctx.send(
+                "Hm, somehow I wasn't able to delete those todos. Please make sure that the inputted indexes are valid"
+            )
         plural = "" if amount == 1 else "s"
         await ctx.send(f"Deleted {amount} completed todo{plural}")
         await self.cache.set_user_item(ctx.author, "completed", completed)

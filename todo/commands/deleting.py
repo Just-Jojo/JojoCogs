@@ -3,13 +3,12 @@
 
 import asyncio
 from contextlib import suppress
+from typing import Optional
 
 import discord
 from redbot.core import commands
-from redbot.core.utils.predicates import MessagePredicate
 from redbot.core.utils.chat_formatting import pagify
-
-from typing import Optional
+from redbot.core.utils.predicates import MessagePredicate
 
 from ..abc import TodoMixin
 from ..utils import PositiveInt
@@ -24,7 +23,7 @@ class Deleting(TodoMixin):
     async def todo(self, *args):
         pass
 
-    @todo.command(name="delete", aliases=["del", "remove"])
+    @todo.command(name="delete", aliases=["del", "remove"], require_var_positional=True)
     async def todo_delete(self, ctx: commands.Context, *indexes: PositiveInt):
         """Delete a todo task
 
@@ -48,6 +47,10 @@ class Deleting(TodoMixin):
             except Exception as e:
                 self.log.error("Exception in 'todo delete'", exc_info=e)
         amount = len(indexes)
+        if amount == 0:
+            return await ctx.send(
+                "Hm, somehow I wasn't able to delete those todos. Please make sure that the inputted indexes are valid"
+            )
         plural = "" if amount == 1 else "s"
         msg = f"Done. Deleted {amount} todo{plural}"
         if data["user_settings"]["extra_details"]:

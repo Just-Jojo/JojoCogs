@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 from logging import Logger
 
 import discord
-
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
