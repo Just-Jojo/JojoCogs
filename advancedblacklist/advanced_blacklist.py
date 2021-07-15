@@ -123,7 +123,7 @@ class AdvancedBlacklist(commands.Cog):
         await ctx.tick()
 
     @localblacklist.command(name="remove", alises=["del", "delete"])
-    async def local_blacklist_remove(self, ctx: commands.Context, user: discord.Member):
+    async def local_blacklist_remove(self, ctx: commands.Context, user: discord.User):
         """Remove a user from this guild's blacklist
 
         This will allow them to use commands again
