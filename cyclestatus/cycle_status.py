@@ -11,13 +11,12 @@ from typing import List, Optional
 
 import discord
 from discord.ext import tasks
-
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
-from .menus import Pages, Menu, PositiveInt
+from .menus import Menu, Pages, PositiveInt
 
 log = logging.getLogger("red.JojoCogs.cyclestatus")
 _config_structure = {
@@ -59,9 +58,7 @@ class CycleStatus(commands.Cog):
         self.random = await self.config.random()
 
     def cog_unload(self):
-        if not self.task.done():
-            self.task.cancel()
-            return  # Worst case :/
+        self.task.cancel()
         self.main_task.cancel()
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -92,7 +89,12 @@ class CycleStatus(commands.Cog):
 
     @status.command(name="usehelp")
     async def status_set(self, ctx, toggle: bool = None):
-        """Change whether the status should have ` | [p]help`"""
+        """Change whether the status should have ` | [p]help`
+
+        \u200b
+        **Arguments**
+            - `toggle` Whether help should be used or not.
+        """
         if toggle is None:
             msg = f"Added help is {'enabled' if await self.config.use_help() else 'disabled'}"
             return await ctx.send(msg)
@@ -103,9 +105,10 @@ class CycleStatus(commands.Cog):
     async def status_add(self, ctx, *, status: str):
         """Add a status to the list
 
-        Put `{bot_guild_count}` or `{bot_member_count}` in your message to have the user
-        count and guild count of your bot! You can also put `{bot_prefix}` in your message to have
-        the bot's prefix be displayed (eg. `{bot_prefix}ping`)
+        Put `{bot_guild_count}` or `{bot_member_count}` in your message to have the user count and guild count of your bot! You can also put `{bot_prefix}` in your message to have the bot's prefix be displayed (eg. `{bot_prefix}ping`)
+
+        **Arguments**
+            - `status` The status to add to the cycle.
         """
         async with self.config.statuses() as s:
             s.append(status)
@@ -113,7 +116,12 @@ class CycleStatus(commands.Cog):
 
     @status.command(name="remove", aliases=["del", "rm", "delete"])
     async def status_remove(self, ctx, num: PositiveInt = None):  # type:ignore
-        """Remove a status from the list"""
+        """Remove a status from the list
+
+        \u200b
+        **Arguments**
+            - `num` The index of the status you want to remove.
+        """
         if num is None:
             return await ctx.invoke(self.status_list)
         num -= 1
@@ -149,7 +157,13 @@ class CycleStatus(commands.Cog):
 
     @status.command(name="random")
     async def status_random(self, ctx: commands.Context, value: bool):
-        """Have the bot cycle to a random status"""
+        """Have the bot cycle to a random status
+
+        \u200b
+        **Arguments**
+            - `value` Whether to have random statuses be enabled or not
+        """
+
         if value == self.random:
             enabled = "enabled" if value else "disabled"
             return await ctx.send(f"Random statuses are already {enabled}")
@@ -162,7 +176,11 @@ class CycleStatus(commands.Cog):
     async def status_toggle(self, ctx: commands.Context, value: bool):
         """Toggle whether the status should be cycled.
 
-        This is handy for if you want to keep your statuses but don't want them displayed at the moment"""
+        This is handy for if you want to keep your statuses but don't want them displayed at the moment
+
+        **Arguments**
+            - `value` Whether to toggle cycling statues
+        """
         if value == self.toggled:
             enabled = "enabled" if value else "disabled"
             return await ctx.send(f"Cycling statuses is already {enabled}")
@@ -232,11 +250,15 @@ class CycleStatus(commands.Cog):
         return
 
     async def _status_add(self, status: str, use_help: bool) -> None:
-        status = status.replace(_bot_guild_var, str(len(self.bot.guilds)))
-        status = status.replace(_bot_member_var, str(len(self.bot.users)))
+        status = status.replace(_bot_guild_var, str(len(self.bot.guilds))).replace(
+            _bot_member_var, str(len(self.bot.users))
+        )
+
         prefix = (await self.bot.get_valid_prefixes())[0]
         prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
+
         status = status.replace(_bot_prefix_var, prefix)
+
         if use_help:
             status += f" | {prefix}help"
         game = discord.Game(name=status)

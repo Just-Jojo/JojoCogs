@@ -6,12 +6,11 @@ from datetime import datetime
 from typing import Literal, Optional, Union
 
 import discord
-
 from redbot.core import Config, bank, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, pagify
 
-from .utils import Page, Menu, PositiveInt
+from .utils import Menu, Page, PositiveInt
 
 log = logging.getLogger("red.JojoCogs.collectibles")
 log.setLevel(logging.DEBUG)
