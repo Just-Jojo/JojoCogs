@@ -66,4 +66,4 @@ class Ducks(commands.Cog):
     @commands.command()
     async def duckshttp(self, ctx: commands.Context, code: int):
         """Get a duck http status code"""
-        valid_codes = []
+        await ctx.send(f"{duck_image_api}/http/{code}")

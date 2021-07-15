@@ -53,61 +53,102 @@ class Depypher(commands.Cog):
         )
 
     @commands.command()
-    async def caesar(self, ctx, *, to_cipher: str):
+    async def caesar(self, ctx, *, message: str):
         """IRGVCTX E QIWWEKI AMXL E GEIWEV GMTLIV
-        (hint, use `[p]deceaser <this docstring>` to find out what it means!)
+
+        (hint, use `[p]deceaser <the above message>` to find out what it means!)
+
+        **Arguments**
+            - `message` The message to encipher.
         """
         await self._process_message(
-            ctx, _caesar.encipher(string=to_cipher, keep_punct=True), to_cipher
+            ctx, _caesar.encipher(string=message, keep_punct=True), message
         )
 
     @commands.command()
     async def decaesar(self, ctx, *, cipher: str):
-        """Decrypt a message with Caesar"""
+        """Decrypt a message with Caesar
+
+        \u200b
+        **Arguments**
+            - `cipher` The ciphered message to decipher.
+        """
         await self._process_message(
             ctx, _caesar.decipher(string=cipher, keep_punct=True), cipher
         )
 
     @commands.command()
-    async def atbash(self, ctx, *, cipher: str):
+    async def atbash(self, ctx, *, message: str):
         """VMXIBKG Z NVHHZTV DRGS ZGYZHS
+
         (hint, use `[p]deatbash <this docstring>` to find out what it means!)
+
+        **Arguments**
+            - `message` The message to encipher.
         """
         await self._process_message(
-            ctx, _atbash.encipher(string=cipher, keep_punct=True), cipher
+            ctx, _atbash.encipher(string=message, keep_punct=True), message
         )
 
     @commands.command()
     async def deatbash(self, ctx, *, cipher: str):
-        """Decipher a message encrypted with Atbash"""
+        """Decipher a message encrypted with Atbash
+
+        \u200b
+        **Arguments**
+            - `cipher` The ciphered message to decipher.
+        """
         await self._process_message(
             ctx, _atbash.decipher(string=cipher, keep_punct=True), cipher
         )
 
     @commands.command()
-    async def vigenere(self, ctx, keyword: str, *, cipher: str):
+    async def vigenere(self, ctx, keyword: str, *, message: str):
         """HREZNWXUEOVQHTJIYZRWOLKGECGXZMVYYZXBAQIB
-        (hint, use `[p]devigenere decrypt <this docstring>` to find out what it means!)
+
+        (hint, use `[p]devigenere decrypt <the above message>` to find out what it means!)
+
+        **Arguments**
+            - `keyword` The keyword for the encryption.
+            - `message` The message to encipher.
         """
-        await self._process_message(ctx, _vigenere(key=keyword).encipher(cipher), cipher)
+        await self._process_message(
+            ctx, _vigenere(key=keyword).encipher(message), message
+        )
 
     @commands.command()
     async def devigenere(self, ctx, keyword: str, *, cipher: str):
-        """Decipher a message encrypted in Vigenere with a keyword"""
-        await self._process_message(ctx, _vigenere(key=keyword).decipher(cipher), cipher)
+        """Decipher a message encrypted in Vigenere with a keyword
+
+        \u200b
+        **Arguments**
+            - `keyword` The keyword for the decryption.
+            - `cipher` The ciphered message to decipher.
+        """
+        await self._process_message(ctx, _vigenere(key=keyvword).decipher(cipher), cipher)
 
     @commands.command()
-    async def porta(self, ctx, keyword: str, *, cipher: str):
+    async def porta(self, ctx, keyword: str, *, message: str):
         """SLQJMIKOOSKGUPSHWLTMQSAAJHUYWAVZF
         (hint, use `[p]deporta decrypt <this docstring>` to find out what it means!)
+
+        **Arguments**
+            - `keyword` The keyword for the encryption.
+            - `message` The message to encipher.
         """
         await self._process_message(
-            ctx, _porta(key=keyword).encipher(string=cipher), cipher
+            ctx, _porta(key=keyword).encipher(string=message), message
         )
 
     @commands.command()
     async def deporta(self, ctx, keyword: str, *, cipher: str):
-        """Decrypt a message with the Porta cipher!"""
+        """Decrypt a message with the Porta cipher!
+
+        \u200b
+        **Arguments**
+            - `keyword` The keyword for the decryption.
+            - `cipher` The ciphered message to decipher.
+        """
         await self._process_message(
             ctx, _porta(key=keyword).decipher(string=cipher), cipher
         )

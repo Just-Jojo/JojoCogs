@@ -14,17 +14,12 @@ from typing import Literal, Optional
 
 import aiohttp
 import discord
-from jojo_utils import __version__ as jojo_version
-
-if int(jojo_version[-1]) > 4:
-    from jojo_utils.general import PositiveInt as positive_int
-else:
-    from jojo_utils.general import positive_int  # type:ignore
-
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import humanize_list
+
+from .converters import PositiveInt
 
 log = logging.getLogger("red.mcoc-v3.brownies")
 _config_structure = {
@@ -145,13 +140,13 @@ class Brownies(commands.Cog):
         """Change the Brownie settings for your guild"""
 
     @setbrownie.command()
-    async def stealcd(self, ctx, seconds: positive_int):
+    async def stealcd(self, ctx, seconds: PositiveInt):
         """Set the cooldown for stealing"""
         await ctx.send(f"Cooldown is now {seconds}")
         await self.config.guild(ctx.guild).StealCD.set(seconds)
 
     @setbrownie.command()
-    async def browniecd(self, ctx, seconds: positive_int):
+    async def browniecd(self, ctx, seconds: PositiveInt):
         """Set the cooldown for finding brownies"""
         await ctx.send(f"Cooldown is now {seconds}")
         await self.config.guild(ctx.guild).BrownieCD.set(seconds)
@@ -159,7 +154,7 @@ class Brownies(commands.Cog):
     @setbrownie.command()
     async def settings(self, ctx):
         """Get the settings for Brownie and Steal cooldown"""
-        settings = await self.config.guild(ctx.guild).get_raw()
+        settings = await self.config.guild(ctx.guild).all()
         embed = await self.default_embed(
             ctx, title=f"{ctx.guild.name} Settings", thumbnail=ctx.guild.icon_url
         )
@@ -171,9 +166,7 @@ class Brownies(commands.Cog):
     async def brownies(self, ctx):
         """See how many brownies you have!"""
         brownies = await self.config.member(ctx.author).brownies()
-        if brownies == 0:
-            msg = "You have 0 brownie points!"
-        elif brownies == 1:
+        if brownies == 1:
             msg = "You have 1 brownie point!"
         else:
             msg = f"You have {brownies} brownie points!"
@@ -198,7 +191,7 @@ class Brownies(commands.Cog):
         await ctx.send(msg)
 
     @commands.command(aliases=("giveb", "gib"))
-    async def givebrownies(self, ctx, user: discord.Member, brownies: positive_int):
+    async def givebrownies(self, ctx, user: discord.Member, brownies: PositiveInt):
         """Give a user brownies!"""
         if user.id == ctx.author.id:
             return await ctx.send("You can't give yourself brownies")
@@ -243,7 +236,7 @@ class Brownies(commands.Cog):
 
     @commands.command()
     async def brownieversion(self, ctx):
-        await ctx.send("Idk")
+        await ctx.send(f"Version: `{self.__version__}`")
 
     async def steal_logic(
         self, ctx: commands.Context, user: discord.Member, author: discord.Member
