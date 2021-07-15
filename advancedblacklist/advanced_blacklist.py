@@ -95,7 +95,7 @@ class AdvancedBlacklist(commands.Cog):
         *,
         reason: str = "No reason provided.",
     ):
-        r"""Add a user to this guild's blacklist
+        """Add a user to this guild's blacklist
 
         This will stop them from being able to use commands on this server
 
