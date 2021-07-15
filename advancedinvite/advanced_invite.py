@@ -156,11 +156,12 @@ class AdvancedInvite(commands.Cog):
 
     @invite_settings.command(name="url")
     async def invite_url(self, ctx: commands.Context, url: NoneConverter):
-        r"""Set the invite url for the embed.
+        """Set the invite url for the embed.
 
+        \u200b
         **Arguments**
-        \>   url: Sets the url for the embed thumbnail. Defaults to the bot's avatar.
-            type "None" to reset the url"""
+            - `url` Sets the url for the embed thumbnail. Defaults to the bot's avatar. Type `None` to reset the url
+        """
         # type:ignore
         if url:
             if not url.endswith((".gif", ".png", ".jpg", ".jpeg")):
@@ -178,12 +179,13 @@ class AdvancedInvite(commands.Cog):
 
     @invite_settings.command(name="channel")
     async def invite_channel(self, ctx: commands.Context, toggle: bool):
-        r"""Sets if the invite should be sent in the channel the command was invoked in.
+        """Sets if the invite should be sent in the channel the command was invoked in.
 
         For example, if the toggle is true when a user types `[p]invite` it will send it in that channel
 
         **Arguments**
-        \>   toggle: If the message should be sent in channel it was invoked in or not"""
+            - `toggle` If the message should be sent in channel it was invoked in or not
+        """
         if toggle == self._settings_cache["send_in_channel"]:
             nt = "" if toggle else "doesn't "
             plural = "s" if toggle else ""
@@ -196,14 +198,14 @@ class AdvancedInvite(commands.Cog):
 
     @invite_settings.command(name="message")
     async def invite_message(self, ctx: commands.Context, *, msg: NoneConverter):
-        r"""Set the message for invites.
+        """Set the message for invites.
 
         This will be before the invite url.
 
         **Arguments**
-        \>   msg: The custom message for the invite command. If no msg is given, it will revert to the default
-        'Thanks for choosing [botname]'
-            If you want to include the botname, add `{bot_name}`"""
+            - `msg` The custom message for the invite command. Type `None` to revert to the default 'Thanks for choosing [botname]'
+            **NOTE** If you want to include the botname, add `{bot_name}`
+        """
         if not msg and not self._settings_cache["custom_message"]:
             return await ctx.send(
                 "The message is already set to default. If you would like to view the help for this command, "
@@ -216,10 +218,12 @@ class AdvancedInvite(commands.Cog):
 
     @invite_settings.command(name="embed")
     async def invite_embeds(self, ctx: commands.Context, toggle: bool):
-        r"""Set whether the invite command should use embeds
+        """Set whether the invite command should use embeds
 
+        \u200b
         **Arguments**
-        \>   toggle: Whether the invite command should use embeds"""
+            - `toggle` Whether the invite command should use embeds
+        """
         if self._settings_cache["embeds"] == toggle:
             is_isnt = "" if toggle else "doesn't "
             plural = "s" if toggle else ""
@@ -232,10 +236,12 @@ class AdvancedInvite(commands.Cog):
     async def invite_footer(
         self, ctx: commands.Context, *, footer: NoneConverter(strict=True)  # type:ignore
     ):
-        r"""Set the invite footer (note, this will only work if embeds are enabled. This might change later)
+        """Set the invite footer (note, this will only work if embeds are enabled. This might change later)
 
+        \u200b
         **Arguments**
-        \>   footer: The footer for the embed. Type `None` to reset it."""
+            - `footer` The footer for the embed. Type `None` to reset it.
+        """
         self._settings_cache["footer"] = footer
         await self.config.footer.set(footer)
         await ctx.tick()
@@ -248,7 +254,8 @@ class AdvancedInvite(commands.Cog):
         r"""Set the title for the embed
 
         **Arguments**
-        \>   title: The title of the embed. Type `None` to reset it"""
+            - `title` The title of the embed. Type `None` to reset it
+        """
         self._settings_cache["title"] = title
         await self.config.title.set(title)
         await ctx.tick()
