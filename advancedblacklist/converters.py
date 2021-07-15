@@ -22,9 +22,9 @@ class _NonBotMixin(commands.Converter):
         return maybe_user
 
 
-class NonBotUser(commands.Converter):
+class NonBotUser(_NonBotMixin):
     converter_type = commands.UserConverter
 
 
-class NonBotMember(commands.Converter):
+class NonBotMember(_NonBotMixin):
     converter_type = commands.MemberConverter
