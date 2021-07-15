@@ -300,7 +300,7 @@ class AdvancedBlacklist(commands.Cog):
         *,
         reason: str = "No reason provided",
     ):
-        r"""Add a user to the blacklist
+        """Add a user to the blacklist
 
         This will remove their ability to use commands with the bot
 
