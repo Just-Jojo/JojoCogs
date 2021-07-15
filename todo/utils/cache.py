@@ -17,6 +17,7 @@ __all__ = [
 ]
 
 
+<<<<<<< HEAD
 CREATE_TABLE = """CREATE TABLE IF NOT EXISTS todo (
     user_id INT PRIMARY KEY,
     todos TEXT NOT NULL,
@@ -47,6 +48,45 @@ UPDATE_USER = """UPDATE todo
 SET todos = ?, completed = ?, user_settings = ?
 WHERE user_id = ?
 """
+=======
+class Cache:
+    r"""An "Advanced" cache for todo as the old one was just a dictionary and was hard to work with"""
+
+    def __init__(self, bot: Red, config: Config):
+        self.bot = bot
+        self.config = config
+        self._data: Dict[int, Dict[str, Any]] = {}
+
+    async def delete_data(self, user_id: int):
+        await self.config.user_from_id(user_id).clear()
+        self._data.pop(user_id, None)
+
+    async def get_user_data(self, user_id: int) -> Dict[str, Any]:
+        """|coro|
+
+        Get a user's data from the cache. This is preferred over grabbing it directly from the cache
+
+        Arguments
+        ---------
+        user_id: :class:`int`
+            The id of the user to grab data for
+
+        Raises
+        ------
+        TypeError
+            The user type was not an int
+
+        Returns
+        -------
+        :class:`dict`
+            The user's data
+        """
+        if not isinstance(user_id, int):
+            raise TypeError(f"User id must be 'int' not {user_id.__class__!r}")
+        if user_id not in self._data.keys():
+            await self._load_items(user=user_id)
+        return self._data[user_id]
+>>>>>>> c1e7254b1f5cc4142ab1dd5bf5e5eb3564051b74
 
 
 class Cache:

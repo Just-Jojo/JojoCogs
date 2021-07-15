@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from contextlib import suppress
-from typing import Dict, List, Optional, Tuple, Union, Literal
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import discord
 from redbot.core import Config, commands
@@ -64,7 +64,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001"]
-    __version__ = "3.0.6.sql"
+    __version__ = "3.0.7.sql"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -240,6 +240,8 @@ class ToDo(
                 return await ctx.send("File format must be `.txt`")
             todos = await maybe_file.read()
             todos = todos.decode()
+        elif todos is None:  # No files or anything
+            raise commands.UserInputError
         todos = [{"pinned": False, "task": t} for t in todos.split("\n")]
         current = await self.cache.get_user_item(ctx.author, "todos")
         current.extend(todos)
@@ -299,9 +301,7 @@ class ToDo(
         await self.cache.set_user_item(ctx.author, "todos", todos)
 
         msg = (
-            f"**Todo Edit**\n\n"
-            f"**Old Todo**\n'{old_task}'\n"
-            f"**New Todo**\n'{todo}'"
+            f"**Todo Edit**\n\n" f"**Old Todo**\n'{old_task}'\n" f"**New Todo**\n'{todo}'"
         )
         if len(msg) <= 2000:
             await ctx.send(msg)

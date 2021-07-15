@@ -30,7 +30,11 @@ class Miscellaneous(TodoMixin):
     async def todo_suggestions(self, ctx: commands.Context):
         """Get information about how you can suggest features for this cog"""
         url = "https://github.com/Just-Jojo/JojoCogs/issues/15"
-        hyper_link = f"[link]({url})" if await self._embed_requested(ctx, ctx.author) else f"link: <{url}>"
+        hyper_link = (
+            f"[link]({url})"
+            if await self._embed_requested(ctx, ctx.author)
+            else f"link: <{url}>"
+        )
         msg = (
             f"First, thanks! Suggestions help me keep todo user friendly and fun to work with\n"
             f"For suggestions, you can follow this {hyper_link}\n"
