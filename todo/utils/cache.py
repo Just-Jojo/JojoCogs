@@ -133,7 +133,6 @@ class Cache:
         uid = self._get_uid(user)
         if uid not in self._data.keys():
             data = [uid] + [json.dumps(v) for v in _keys.values()]
-            print(0 in data)
             await self._cursor.execute(CREATE_USER_DATA, *data)
             await self._connection.commit()
             await self._fill_cache(user_id=uid)
