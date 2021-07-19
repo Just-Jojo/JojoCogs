@@ -3,7 +3,7 @@
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Iterable
 
 import discord
 from redbot.core import Config, commands
@@ -28,22 +28,21 @@ _config_structure = {
         "names": {},  # Dict[str, bool]. The search pattern and if it's a regex or not
     }
 }
-BLACKLIST_COMMAND: Optional[commands.Command] = None
-LOCAL_BLACKLIST_COMMAND: Optional[commands.Command] = None
 
 
 class AdvancedBlacklist(commands.Cog):
     """An advanced blacklist cog"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.4"
+    __version__ = "1.0.5"
 
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(**_config_structure["global"])
-        self.task: asyncio.Task = self.bot.loop.create_task(self.init())
+        self.task: asyncio.Task = self.bot.loop.create_task(self._startup())
         self.blacklist_name_cache: Dict[str, List[bool]] = {}
+        self._cmds: List[commands.Command] = []
 
     def format_help_for_context(self, ctx: commands.Context):
         pre_processed = super().format_help_for_context(ctx)
@@ -59,19 +58,23 @@ class AdvancedBlacklist(commands.Cog):
         return
 
     def cog_unload(self):
-        global BLACKLIST_COMMAND, LOCAL_BLACKLIST_COMMAND
-        self.task.cancel()
-        cmds = [BLACKLIST_COMMAND, LOCAL_BLACKLIST_COMMAND]
-        for cmd, name in zip(cmds, ("blacklist", "localblacklist")):
+        for cmd in self._cmds:
             if cmd:
                 try:
-                    self.bot.remove_command(name)
+                    self.bot.remove_command(cmd.name)
                 except Exception as e:
-                    log.debug(f"Error in removing command: {name}", exc_info=e)
+                    log.debug(f"Error in removing command: {cmd.name}", exc_info=e)
                 finally:
                     self.bot.add_command(cmd)
 
-    async def init(self):
+    @classmethod
+    async def init(cls, bot: Red):
+        self = cls(bot)
+        for cmd in ["blocklist", "localblocklist"]:
+            self._cmds.append(self.bot.remove_command(cmd))
+        return self
+
+    async def _startup(self):
         async with self.config.blacklist() as bl:
             blacklist = await self.bot._whiteblacklist_cache.get_blacklist()
             for uid in blacklist:
@@ -80,18 +83,18 @@ class AdvancedBlacklist(commands.Cog):
                 bl[str(uid)] = "No reason provided"
         self.blacklist_name_cache = await self.config.names()
 
-    @commands.group(aliases=["localblocklist"])
+    @commands.group(aliases=["localblacklist"])
     @commands.guild_only()
     @commands.admin_or_permissions(administrator=True)
-    async def localblacklist(self, ctx: commands.Context):
+    async def localblocklist(self, ctx: commands.Context):
         """Add a user to a guild's blacklist list"""
         pass
 
-    @localblacklist.command(name="add")
-    async def local_blacklist_add(
+    @localblocklist.command(name="add")
+    async def local_blocklist_add(
         self,
         ctx: commands.Context,
-        user: NonBotMember,
+        users: commands.Greedy[NonBotMember],
         *,
         reason: str = "No reason provided.",
     ):
@@ -103,27 +106,35 @@ class AdvancedBlacklist(commands.Cog):
             - `user` The user to blacklist. This cannot be a bot.
             - `reason` The reason for adding a user to the blacklist. Defaults to "No reason provided."
         """
-        if ctx.guild.owner == user:
-            return await ctx.send(
-                "You cannot add the owner of this server to the blocklist."
-            )
-        elif await self.bot.is_mod(user):
-            return await ctx.send("You cannot add a moderator to the blocklist.")
-        user = user.id
+        async def sorter(items: Iterable[discord.Member]) -> List[discord.Member]:
+            ret = []
+            for item in items:
+                if await self.bot.is_owner(item):
+                    continue
+                elif await self.bot.is_mod(item):
+                    continue
+                ret.append(item)
+            return ret
+
+        users = await sorter(users)
+        if not users:
+            raise commands.UserInputError
+        users = [u.id for u in users]
         # as much as I dislike this I have to use this until Red releases an api method for this
         await self.bot._whiteblacklist_cache.add_to_blacklist(
-            guild=ctx.guild, role_or_user=(user,)
+            guild=ctx.guild, role_or_user=users
         )
         gid = str(ctx.guild.id)
         async with self.config.local_blacklist() as lbl:
-            try:
-                lbl[gid][str(user)] = reason
-            except KeyError:
-                lbl[gid] = {str(user): reason}
+            for user in users:
+                try:
+                    lbl[gid][str(user)] = reason
+                except KeyError:
+                    lbl[gid] = {str(user): reason}
         await ctx.tick()
 
-    @localblacklist.command(name="remove", alises=["del", "delete"])
-    async def local_blacklist_remove(self, ctx: commands.Context, user: discord.User):
+    @localblocklist.command(name="remove", alises=["del", "delete"])
+    async def local_blocklist_remove(self, ctx: commands.Context, *users: discord.User):
         """Remove a user from this guild's blacklist
 
         This will allow them to use commands again
@@ -131,31 +142,31 @@ class AdvancedBlacklist(commands.Cog):
         **Arguments**
             - `user` The user to remove from the blacklist.
         """
-        user = user.id
+        users = [u.id for u in users]
         await self.bot._whiteblacklist_cache.remove_from_blacklist(
-            guild=ctx.guild, role_or_user=(user,)
+            guild=ctx.guild, role_or_user=users
         )
         async with self.config.local_blacklist() as lbl:
-            try:
-                del lbl[str(ctx.guild.id)][str(user)]
-            except KeyError:
-                pass
+            for user in users:
+                try:
+                    del lbl[str(ctx.guild.id)][str(user)]
+                except KeyError:
+                    pass
         await ctx.tick()
 
-    @localblacklist.command(name="list")
-    async def local_blacklist_list(self, ctx: commands.Context):
+    @localblocklist.command(name="list")
+    async def local_blocklist_list(self, ctx: commands.Context):
         """List the users who are blacklisted in this guild"""
         lbl = (await self.config.local_blacklist()).get(str(ctx.guild.id))
         if not lbl:
             await ctx.send("There are no users on the blacklist")
-        users = []
+        sending = "Locally blacklisted users"
         for uid, reason in lbl.items():
-            users.append([f"{uid} ({await self._get_user_name(uid)})", reason])
-        tabulated = tabulate(users, ("User", "Reason"), "plain")
-        await ctx.send_interactive(pagify(tabulated), box_lang="")
+            sending += f"\n- [{uid}] {await self._get_user_name(uid)}: {reason}"
+        await ctx.send_interactive(pagify(sending, page_length=1995), box_lang="yaml")
 
-    @localblacklist.command(name="reason")
-    async def local_blacklist_reason(
+    @localblocklist.command(name="reason")
+    async def local_blocklist_reason(
         self, ctx: commands.Context, user: discord.User, *, reason: str
     ):
         """Add a reason to a user that is locally blacklisted
@@ -178,8 +189,8 @@ class AdvancedBlacklist(commands.Cog):
             lb[gid] = lbl
         await ctx.tick()
 
-    @localblacklist.command(name="clear")
-    async def local_blacklist_clear(self, ctx: commands.Context):
+    @localblocklist.command(name="clear")
+    async def local_blocklist_clear(self, ctx: commands.Context):
         """Clear this guild's blacklist
 
         **Warning** this will allow the previously blacklisted users to use commands again
@@ -200,31 +211,30 @@ class AdvancedBlacklist(commands.Cog):
                 pass
 
     @commands.is_owner()
-    @commands.group(aliases=["blocklist"])  # Meh, might as well
-    async def blacklist(self, ctx: commands.Context):
+    @commands.group(aliases=["blacklist"])
+    async def blocklist(self, ctx: commands.Context):
         """Add/remove users from the blacklist"""
         pass
 
-    @blacklist.command(name="list")
-    async def blacklist_list(self, ctx: commands.Context):
+    @blocklist.command(name="list")
+    async def blocklist_list(self, ctx: commands.Context):
         """List the users in your blacklist"""
         blacklist = await self.config.blacklist()
         if not blacklist:
             return await ctx.send("The blacklist is empty.")
-        users = []
+        sending = "Blacklisted users\n"
         for uid, reason in blacklist.items():
-            users.append([f"{uid} ({await self._get_user_name(uid)})", reason])
-        tabulated = tabulate(users, ("User", "Reason"), "plain")
-        await ctx.send_interactive(pagify(tabulated), box_lang="")
+            sending += f"- [{uid}] {await self._get_user_name(uid)}: {reason}\n"
+        await ctx.send_interactive(pagify(sending, page_length=1995), box_lang="yaml")
 
     async def _get_user_name(self, uid: int) -> str:
         try:
-            return await self.bot.get_or_fetch_user(uid)
+            return (await self.bot.get_or_fetch_user(uid)).name
         except discord.NotFound:
             return "Unknown or Deleted User."
 
-    @blacklist.group(name="name", aliases=["names"])
-    async def blacklist_name(self, ctx: commands.Context):
+    @blocklist.group(name="name", aliases=["names"])
+    async def blocklist_name(self, ctx: commands.Context):
         """Blacklist users by names.
 
         For example, you can add `Jojo` to it and it would blacklist anyone with the name `Jojo`
@@ -232,7 +242,7 @@ class AdvancedBlacklist(commands.Cog):
         """
         pass
 
-    @blacklist_name.command(
+    @blocklist_name.command(
         name="add", usage="[use_regex=False] [lower_case=True] <pattern>"
     )
     async def blacklist_name_add(
@@ -264,7 +274,7 @@ class AdvancedBlacklist(commands.Cog):
         async with self.config.names() as names:
             names[pattern] = [use_regex, lower_case]
 
-    @blacklist_name.command(name="list")
+    @blocklist_name.command(name="list")
     async def blacklist_name_list(self, ctx: commands.Context):
         """List the blacklisted names."""
         if not self.blacklist_name_cache:
@@ -275,7 +285,7 @@ class AdvancedBlacklist(commands.Cog):
         tabulated = tabulate(ret, ("Pattern", "Regex? | Case sensitve?"))
         await ctx.send_interactive(pagify(tabulated), box_lang="")
 
-    @blacklist_name.command(name="remove", aliases=["del", "delete"])
+    @blocklist_name.command(name="remove", aliases=["del", "delete"])
     async def blacklist_name_remove(self, ctx: commands.Context, *, pattern: str):
         """Remove a pattern from the blacklisted names cache.
 
@@ -292,11 +302,11 @@ class AdvancedBlacklist(commands.Cog):
             self.blacklist_name_cache.pop(pattern)
         await ctx.tick()
 
-    @blacklist.command(name="add")
+    @blocklist.command(name="add")
     async def blacklist_add(
         self,
         ctx: commands.Context,
-        user: NonBotUser,
+        users: commands.Greedy[NonBotUser],
         *,
         reason: str = "No reason provided",
     ):
@@ -308,15 +318,16 @@ class AdvancedBlacklist(commands.Cog):
             - `user` The user to blacklist.
             - `reason` The reason for blacklisting the user. Defaults to "No reason provided.".
         """
-        user = user.id
+        users = [u.id for u in users]
         await self.bot._whiteblacklist_cache.add_to_blacklist(
-            guild=None, role_or_user=(user,)
+            guild=None, role_or_user=users
         )
         async with self.config.blacklist() as blacklist:
-            blacklist[str(user)] = reason
+            for user in users:
+                blacklist[str(user)] = reason
         await ctx.tick()
 
-    @blacklist.command(name="clear")
+    @blocklist.command(name="clear")
     async def blacklist_clear(self, ctx: commands.Context):
         """Clear the blacklist
 
@@ -335,8 +346,8 @@ class AdvancedBlacklist(commands.Cog):
             bl.clear()
         await ctx.tick()
 
-    @blacklist.command(name="remove", aliases=["del", "rm"])
-    async def blacklist_remove(self, ctx: commands.Context, user: discord.User):
+    @blocklist.command(name="remove", aliases=["del", "rm"], require_var_positional=True)
+    async def blacklist_remove(self, ctx: commands.Context, *users: discord.User):
         """Remove users from the blacklist
 
         The user will be able to use commands again
@@ -344,18 +355,19 @@ class AdvancedBlacklist(commands.Cog):
         **Arguments**
             - `user` The user to remove from the blacklist
         """
-        user = user.id
+        users = [u.id for u in users]
         await self.bot._whiteblacklist_cache.remove_from_blacklist(
-            guild=None, role_or_user=(user,)
+            guild=None, role_or_user=users
         )
         async with self.config.blacklist() as blacklist:
-            try:
-                del blacklist[str(user)]
-            except KeyError:
-                return await ctx.send("That user is not blacklisted")
+            for user in users:
+                try:
+                    del blacklist[str(user)]
+                except KeyError:
+                    pass
         await ctx.tick()
 
-    @blacklist.command(name="reason")
+    @blocklist.command(name="reason")
     async def blacklist_reason(
         self, ctx: commands.Context, user: discord.User, *, reason: str
     ):
@@ -396,10 +408,3 @@ class AdvancedBlacklist(commands.Cog):
                         f"Blacklisted {msg.author.name} as they had a blacklisted name."
                     )
                     return
-
-
-def setup(bot: Red):
-    global BLACKLIST_COMMAND, LOCAL_BLACKLIST_COMMAND
-    BLACKLIST_COMMAND = bot.remove_command("blocklist")
-    LOCAL_BLACKLIST_COMMAND = bot.remove_command("localblocklist")
-    bot.add_cog(AdvancedBlacklist(bot))
