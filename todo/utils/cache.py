@@ -22,6 +22,15 @@ class Cache:
         self._data: Dict[int, Dict[str, Any]] = {}
 
     async def delete_data(self, user_id: int):
+        """|coro|
+
+        Delete data for a user. This should only really be used when :meth:`red_delete_data_for_user` gets called
+
+        Parameters
+        ----------
+        user_id: :class:`int`
+            The user to clear the data for
+        """
         await self.config.user_from_id(user_id).clear()
         self._data.pop(user_id, None)
 
