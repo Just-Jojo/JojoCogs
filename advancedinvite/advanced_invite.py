@@ -39,6 +39,12 @@ def embed_check(ctx):
     return ctx.cog._settings_cache["embeds"] is True
 
 
+def can_invite():
+    async def inner_spirit_animal(ctx: commands.Context):
+        return await ctx.bot.get_cog("Core")._can_get_invite_url(ctx)
+    return commands.check(inner_spirit_animal)
+
+
 class AdvancedInvite(commands.Cog):
     """An "advanced" invite cog.
 
@@ -101,7 +107,7 @@ class AdvancedInvite(commands.Cog):
     @commands.group(invoke_without_command=True)
     # This check is similar to the one core uses
     # see https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/core/core_commands.py#L1490
-    @commands.check(lambda ctx: ctx.bot.get_cog("Core")._can_get_invite_url)
+    @can_invite()
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def invite(self, ctx: commands.Context):
         """Invite [botname] to your server"""
