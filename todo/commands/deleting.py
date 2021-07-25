@@ -46,7 +46,7 @@ class Deleting(TodoMixin):
                 pass
             except Exception as e:
                 self.log.error("Exception in 'todo delete'", exc_info=e)
-        amount = len(indexes)
+        amount = len(removed)
         if amount == 0:
             return await ctx.send(
                 "Hm, somehow I wasn't able to delete those todos. Please make sure that the inputted indexes are valid"

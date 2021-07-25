@@ -28,6 +28,7 @@ from .utils import (
 _config_structure = {
     "todos": [],  # List[Dict[str, Any]] "task": str, "pinned": False
     "completed": [],  # List[str]
+    "managers": [], # List[int] Discord member id's
     "user_settings": {
         "autosorting": False,
         "colour": None,
@@ -51,7 +52,7 @@ def attach_or_in_dm(ctx: commands.Context):
 
 
 class ToDo(
-    Complete, Deleting, Miscellaneous, Settings, commands.Cog, metaclass=MetaClass
+    Complete, Deleting, Managers, Miscellaneous, Settings, SharedTodos, commands.Cog, metaclass=MetaClass
 ):
     """A todo list for keeping track of tasks you have to do
 
@@ -64,7 +65,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001"]
-    __version__ = "3.0.8"
+    __version__ = "3.0.9"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -175,7 +176,7 @@ class ToDo(
             - `todo` The todo task
         """
         data = await self.cache.get_user_data(ctx.author.id)
-        pinned = pinned is not None and pinned is True
+        pinned = bool(pinned)
         payload = {"task": todo, "pinned": pinned}
         data["todos"].append(payload)
         await self.cache.set_user_item(ctx.author, "todos", data["todos"])
@@ -183,7 +184,7 @@ class ToDo(
         data = data["user_settings"]
         msg = f"Added that as a todo."
         if data["extra_details"]:
-            msg += f"\n'{todo}'"
+            msg += f"\n'{discord.utils.escape_markdown(todo)}'"
         if data["use_timestamps"]:
             msg += f"\n{timestamp_format()}"
         if len(msg) > 2000:
