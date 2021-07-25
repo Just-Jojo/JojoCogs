@@ -242,7 +242,7 @@ class ToDo(
             todos = todos.decode()
         elif todos is None:  # No files or anything
             raise commands.UserInputError
-        todos = [{"pinned": False, "task": t} for t in todos.split("\n")]
+        todos = [{"pinned": False, "task": t} for t in todos.split("\n") if t]
         current = await self.cache.get_user_item(ctx.author, "todos")
         current.extend(todos)
         await self.cache.set_user_item(ctx.author, "todos", current)
