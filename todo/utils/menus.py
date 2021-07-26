@@ -143,10 +143,12 @@ class ViewTodo(menus.Menu):
         todo_data: Union[dict, str],
         *,
         completed: bool = False,
+        user: discord.Member = None,
         **settings,
     ):
         self.index = index
         self.cache = cache
+        self.user = user
         self.data = todo_data
         self.settings = settings
         self.completed = completed
@@ -162,6 +164,7 @@ class ViewTodo(menus.Menu):
     async def send_initial_message(
         self, ctx: commands.Context, channel: discord.TextChannel
     ):
+        self.user = self.user or ctx.author
         return await ctx.send(**await self._format_page())
 
     def _skip_if_completed(self):
@@ -169,7 +172,7 @@ class ViewTodo(menus.Menu):
 
     async def _format_page(self) -> Dict[str, Union[str, discord.Embed]]:
         todo = "Completed Todo" if self.completed else "Todo"
-        title = f"{self.ctx.author.name} {todo} #{self.index}"
+        title = f"{self.user.name} {todo} #{self.index}"
         task = self.data if self.completed else self.data["task"]  # type:ignore
         if await self.ctx.cog._embed_requested(self.ctx, self.ctx.author):
             embed = discord.Embed(

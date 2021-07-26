@@ -3,25 +3,19 @@
 
 from redbot.core import commands
 
-__all__ = ["PositiveInt", "TodoPositiveInt", "NonBotMember"]
+__all__ = ["PositiveInt", "NonBotMember"]
 
 
 class PositiveInt(commands.Converter):
+    def __init__(self, strict: bool = True):
+        self.strict = strict
+
     async def convert(self, ctx: commands.Context, arg: str):
         try:
             ret = int(arg)
         except ValueError:
-            raise commands.BadArgument("That was not an integer.")
-        if ret <= 0:
-            raise commands.BadArgument(f"'{arg}' is not a positive integer.")
-        return ret
-
-
-class TodoPositiveInt(commands.Converter):
-    async def convert(self, ctx: commands.Context, arg: str):
-        try:
-            ret = int(arg)
-        except ValueError:
+            if self.strict:
+                raise commands.BadArgument("That was not an integer.")
             raise commands.UserInputError
         if ret <= 0:
             raise commands.BadArgument(f"'{arg}' is not a positive integer.")

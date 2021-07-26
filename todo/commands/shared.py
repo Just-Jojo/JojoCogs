@@ -7,7 +7,7 @@ from redbot.core import commands
 from redbot.core.utils.chat_formatting import pagify
 
 from ..abc import TodoMixin
-from ..utils import NonBotMember, timestamp_format, PositiveInt
+from ..utils import NonBotMember, timestamp_format, PositiveInt, ViewTodo
 from ..utils.formatting import _format_todos, _format_completed
 
 from typing import Optional
@@ -74,6 +74,75 @@ class SharedTodos(TodoMixin):
         await self._maybe_autosort(user)
         if task is not None:
             await task
+
+    @shared.command(name="pin", aliases=["unpin"])
+    async def todo_shared_pin(self, ctx: commands.Context, user: NonBotMember, index: PositiveInt):
+        """Pin a user's todo
+
+        This will only work if you manage that user's list
+
+        **Arguments**
+            - `user` The user to pin a todo for. This **cannot** be a bot.
+            - `index` The index of the todo to pin.
+        """
+        user: discord.Member
+        data = await self.cache.get_user_data(user.id)
+        todos: list = data["todos"]
+        managers = data["managers"]
+
+        if not managers or ctx.author.id not in managers:
+            return await ctx.send("You are a manager of that user's list")
+        elif not todos:
+            return await ctx.send(
+                self._no_todo_shared_message.format(user=user, prefix=prefix)
+            )
+
+        actual_index = index - 1
+        try:
+            todo = todos.pop(actual_index)
+        except IndexError:
+            return await ctx.send("That index was not valid!")
+        else:
+            todo["pinned"] = True
+            todos.insert(actual_index, todo)
+            task = todo["task"]
+        await self.cache.set_user_item(user, "todos", todos)
+        msg = "Done. Pinned that todo"
+        if (us := data["user_settings"])["extra_details"]:
+            msg += f"\n'{discord.utils.escape_markdown(task)}'"
+        if us["use_timestamps"]:
+            msg += f"\n{timestamp_format()}"
+        await ctx.send(msg)
+
+    @shared.command(name="view")
+    async def todo_shared_view(self, ctx: commands.Context, user: NonBotMember, index: PositiveInt):
+        """View a todo of a user who's list you manage
+        
+        This only works if you manage that user's list
+
+        **Arguments**
+            - `user` The user of which you're viewing the todo.
+            - `index` The index of the todo you want to view.
+        """
+        actual_index = index - 1
+        data = await self.cache.get_user_data(user.id)
+        todos = data["todos"]
+        managers = data["managers"]
+        settings = data["user_settings"]
+
+        if not managers or ctx.author.id not in managers:
+            return await ctx.send("You are not a manager of that user's list")
+        elif not todos:
+            return await ctx.send(
+                self._no_todo_shared_message.format(user=user, prefix=ctx.clean_prefix)
+            )
+
+        try:
+            todo = todos[actual_index]
+        except IndexError:
+            return await ctx.send("That index is invalid")
+
+        await ViewTodo(index, self.cache, todo, user=user, **settings).start(ctx)
 
     @shared.command(name="list")
     async def todo_shared_list(self, ctx: commands.Context, user: NonBotMember):

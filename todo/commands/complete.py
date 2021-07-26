@@ -9,7 +9,7 @@ from redbot.core import commands
 from redbot.core.utils.predicates import MessagePredicate
 
 from ..abc import TodoMixin
-from ..utils import PositiveInt, TodoPositiveInt
+from ..utils import PositiveInt, ViewTodo
 from ..utils.formatting import _format_completed
 
 __all__ = ["Complete"]
@@ -25,7 +25,7 @@ class Complete(TodoMixin):
         pass
 
     @todo.group(invoke_without_command=True, require_var_positional=True, aliases=["c"])
-    async def complete(self, ctx: commands.Context, *indexes: TodoPositiveInt):
+    async def complete(self, ctx: commands.Context, *indexes: PositiveInt(False)):
         """Commands having to do with your completed tasks
 
 
@@ -180,3 +180,27 @@ class Complete(TodoMixin):
         await ctx.send(msg)
         await self.cache.set_user_setting(ctx.author, "autosorting", False)
         await self.cache.set_user_item(ctx.author, "completed", completed)
+
+    @complete.command(name="view")
+    async def complete_view(self, ctx: commands.Context, index: PositiveInt(False)):
+        """View a completed todo. This has a similar effect to using `[p]todo <index>`
+        
+        This will have a menu that will allow you to delete the todo
+
+        **Arguments**
+            - `index` The index of the todo you want to view.
+        """
+        actual_index = index - 1
+        data = await self.cache.get_user_data(ctx.author.id)
+        completed = data["completed"]
+        settings = data["user_settings"]
+
+        if not completed:
+            return await ctx.send(
+                self._no_completed_message.format(prefix=ctx.clean_prefix)
+            )
+        try:
+            todo = completed[actual_index]
+        except IndexError:
+            return await ctx.send("That index was invalid")
+        await ViewTodo(index, self.cache, todo, completed=True, **settings).start(ctx)

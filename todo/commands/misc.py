@@ -46,7 +46,8 @@ class Miscellaneous(TodoMixin):
     async def todo_suggestors(self, ctx: commands.Context):
         """A thank you command for everyone who has either contributed, requested a feature, or reported a bug"""
         msg = (
-            f"A big thank you to everyone who's suggested something for todo!\n\nSuggestors: `{humanize_list(self.__suggestors__)}`\n"
+            f"A big thank you to everyone who's suggested something for todo!"
+            f"\n\nSuggestors: {humanize_list([f'`{s}`' for s in self.__suggestors__])}\n"
             "Also a big thank you to Kreusada who's helped me design things and keep myself sane whilst developing this cog"
         )
         await self.maybe_send_embed(ctx, msg, title="Todo Suggestors")

@@ -19,7 +19,6 @@ from .utils import (
     PositiveInt,
     TodoMenu,
     TodoPage,
-    TodoPositiveInt,
     ViewTodo,
     formatting,
     timestamp_format,
@@ -65,7 +64,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666"]
-    __version__ = "3.0.9"
+    __version__ = "3.0.10"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -87,7 +86,7 @@ class ToDo(
         plural = "s" if len(self.__authors__) > 1 else ""
         return (
             f"{pre}\n"
-            f"Author{plural}: `{humanize_list(self.__authors__)}`\n"
+            f"Author{plural}: {humanize_list([f'`{a}`' for a in self.__authors__])}\n"
             "Suggestors: Use `[p]todo suggestors`!"
             f"Version: `{self.__version__}`"
         )
@@ -142,7 +141,7 @@ class ToDo(
             await self.config.user_from_id(uid).set(new_data)
 
     @commands.group(invoke_without_command=True)
-    async def todo(self, ctx: commands.Context, index: TodoPositiveInt):
+    async def todo(self, ctx: commands.Context, index: PositiveInt(False)):
         """Your todo list inside Discord
 
         Arguments
