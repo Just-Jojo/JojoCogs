@@ -200,7 +200,7 @@ class SharedTodos(TodoMixin):
         tasks = []
         for index in indexes:
             try:
-                tasks.append(todos.pop(index - 1)["task"])
+                tasks.append(todos.pop(index)["task"])
             except IndexError:
                 pass
 
