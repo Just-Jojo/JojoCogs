@@ -1,9 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import json
 import logging
-import pathlib
 from datetime import datetime
 from typing import Optional
 
@@ -16,12 +14,8 @@ from redbot.core.utils.chat_formatting import humanize_list
 from .utils import *
 
 log = logging.getLogger("red.JojoCogs.advanced_invite")
-with open(pathlib.Path(__file__).parent / "info.json") as fp:
-    __red_end_user_data_statement__ = json.load(fp)["end_user_data_statement"]
-del json, pathlib
 
-INVITE_COMMAND: Optional[commands.Command] = None
-__all__ = ["setup", "__red_end_user_data_statement__"]
+
 _default_message = "Thanks for choosing {bot_name}!"
 _default_title = "Invite {bot_name}"
 _config_structure = {
@@ -31,6 +25,8 @@ _config_structure = {
     "embeds": True,
     "footer": None,
     "title": _default_title,
+    "support_server": None,
+    "mobile_check": True,
 }
 
 
@@ -51,7 +47,7 @@ class AdvancedInvite(commands.Cog):
     This cog was requested by DSC#6238"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "2.0.0"
+    __version__ = "2.0.1"
 
     def format_help_for_context(self, ctx: commands.Context):
         pre = super().format_help_for_context(ctx)
@@ -73,18 +69,20 @@ class AdvancedInvite(commands.Cog):
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(**_config_structure)
         self._settings_cache: dict
+        self._invite_command: Optional[commands.Command]
 
     @classmethod
     async def init(cls, bot: Red):
         """Initialize the cog and the cache"""
         self = cls(bot)
         self._settings_cache = await self.config.all()
+        self._invite_command = self.bot.remove_command("invite")
         return self
 
     def cog_unload(self):
-        if INVITE_COMMAND:
+        if self._invite_command:
             bot.remove_command("invite")
-            bot.add_command(INVITE_COMMAND)
+            bot.add_command(self._invite_command)
         self.task.cancel()
 
     async def maybe_reset_cooldown(self, ctx: commands.Context) -> discord.TextChannel:
@@ -117,10 +115,12 @@ class AdvancedInvite(commands.Cog):
         channel = await self.maybe_reset_cooldown(ctx)
         url = await core._invite_url()  # type:ignore
         inv = f"Here is {ctx.me}'s invite url: {url}"
+        support = self._settings_cache["support_server"]
         message = self._settings_cache["custom_message"].format(
             bot_name=self.bot.user.name
         )
-        kwargs = {"content": f"{message}\n{inv}\n{timestamp_format()}"}
+        support_msg = f"**Join the support server!**\n{support}\n" if support is not None else ""
+        kwargs = {"content": f"{message}\n{inv}\n{support_msg}{timestamp_format()}"}
 
         if (
             await self.bot.embed_requested(channel, ctx.author)
@@ -135,7 +135,9 @@ class AdvancedInvite(commands.Cog):
                 colour=await ctx.embed_colour(),
                 timestamp=datetime.utcnow(),
             )
-            if ctx.author.mobile_status.value != "offline":
+            if support is not None:
+                embed.add_field(name="Join the support server!", value=support)
+            if ctx.author.mobile_status.value != "offline" and self._settings_cache["mobile_check"]:
                 embed.add_field(name="Here's a link if you're on mobile", value=url)
             url = self._settings_cache["custom_url"] or ctx.me.avatar_url
             embed.set_thumbnail(url=url)
@@ -283,8 +285,40 @@ class AdvancedInvite(commands.Cog):
             kwargs.update({"embed": embed, "content": None})
         await ctx.send(**kwargs)
 
+    @invite_settings.command(name="support")
+    async def invite_support(self, ctx: commands.Context, invite: InviteNoneConverter):
+        """Set the support server for your bot.
+        
+        Type `None` to remove it
 
-async def setup(bot: Red):
-    global INVITE_COMMAND
-    INVITE_COMMAND = bot.remove_command("invite")
-    bot.add_cog(await AdvancedInvite.init(bot))
+        **Arguments**
+            - `invite` The invite for your support server. Type `None` to remove it
+        """
+        if invite is None and self._settings_cache["support_server"] is None:
+            return await ctx.send("The support server is already disabled")
+        elif invite is not None and invite.url == self._settings_cache["support_server"]:
+            return await ctx.send(f"The invite link for your support server is already `{discord.utils.escape_markdown(invite.url)}`")
+
+        if invite is None:
+            self._settings_cache["support_server"] = None
+            await self.config.support_server.set(None)
+            msg = "Removed the support server invite"
+        else:
+            self._settings_cache["support_server"] = url = invite.url
+            await self.config.support_server.set(url)
+            msg = f"The support server invite is now `{discord.utils.escape_markdown(url)}`"
+        await ctx.send(msg)
+
+    @invite_settings.command(name="mobilecheck")
+    async def invite_check_mobile(self, ctx: commands.Context, check: bool):
+        """Determines if the bot should check if the user is on mobile when running the invite command
+        
+        **Arguments**
+            - `check` Whether to check mobile status or not
+        """
+        enabled = "enabled" if check else "disabled"
+        if self._settings_cache["mobile_check"] == check:
+            return await ctx.send(f"Mobile checking is already {enabled}")
+        self._settings_cache["mobile_check"] = check
+        await self.config.mobile_check.set(check)
+        await ctx.send(f"Mobile checking is now {enabled}")

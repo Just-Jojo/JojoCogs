@@ -4,7 +4,7 @@ from functools import wraps
 
 from redbot.core import commands
 
-__all__ = ["create_doc", "TimestampFormats", "timestamp_format", "NoneConverter"]
+__all__ = ["create_doc", "TimestampFormats", "timestamp_format", "NoneConverter", "InviteNoneConverter"]
 
 
 def create_doc(default: str = None, *, override: bool = False):
@@ -53,3 +53,14 @@ class NoneConverter(commands.Converter):
         if arg.lower() in args:
             return None
         return arg
+
+
+class InviteNoneConverter(NoneConverter):
+    def __init__(self):
+        self.strict = False
+
+    async def convert(self, ctx: commands.Context, arg: str):
+        arg = await super().convert(ctx, arg)
+        if arg is None:
+            return arg
+        return await commands.InviteConverter().convert(ctx, arg)
