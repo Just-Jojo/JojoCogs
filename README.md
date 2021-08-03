@@ -23,7 +23,7 @@ Third, install the cog you would like
 ```[p]cog install jojocogs todo```
 
 ## Help
-For help you can either use a bug report issue, go to the [support server](https://discord.gg/JmCFyq7), or ask in Red's [cog support server](https://discord.gg/GET4DVk) in `#support_othercogs`
+For help you can either use a bug report issue, go to the [support server](https://discord.gg/jG2GXy9wKt), or ask in Red's [cog support server](https://discord.gg/GET4DVk) in `#support_othercogs`
 
 ## Suggestions
 For suggestions you can either make an enhancement issue or ask/ping me in either the cog support server or my support server listed in [Help](https://github.com/Just-Jojo/JojoCogs#help)
@@ -59,6 +59,11 @@ If you want to make a pull request, first thank you for contributing (because I 
 2. Make your edits on that fork
 3. Test your changes (really rather not merge broken code)
 4. Make a pull request with the changes listed
+
+## Supporting the project
+To those of you who want to support this project, firstly thanks! You can support by providing code (see Pull Requests above) or by sending a few dollars on [Patreon](https://patreon.com/justjojo)
+
+Thanks!
 
 ## Extra thanks to...
 - JJW for kickstarting my interest in discord bots
