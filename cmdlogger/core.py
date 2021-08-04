@@ -1,18 +1,17 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from redbot.core import commands, Config
+import logging
+from contextlib import suppress
+from functools import wraps
+from typing import Callable, Iterable
+
+from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, inline, pagify
-import logging
-from typing import Iterable, Callable
-from contextlib import suppress
 
 from .converters import CommandConverter, NoneChannelConverter
 from .menus import CmdMenu, CmdPages
-
-from functools import wraps
-
 
 log = logging.getLogger("red.JojoCogs.cmd_logger")
 
@@ -23,9 +22,11 @@ def humanize_list_with_ticks(data: Iterable):
 
 def listify(func: Callable):
     """Wraps a function's return type in a list"""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         return list(func(*args, **kwargs))
+
     return wrapper
 
 
@@ -144,7 +145,9 @@ class CmdLogger(commands.Cog):
         conf = await self.config.all()
         name = ctx.command.qualified_name
         if ctx.command.qualified_name in conf["commands"]:
-            guild_data = "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
+            guild_data = (
+                "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
+            )
             msg = f"Command '{ctx.command.qualified_name}' was used by {ctx.author} ({ctx.author.id}). {guild_data}"
             log.info(msg)
             channel = conf["log_channel"]

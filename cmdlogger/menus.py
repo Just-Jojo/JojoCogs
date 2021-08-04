@@ -1,15 +1,20 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import discord
-
-from redbot.core import commands
-from redbot.vendored.discord.ext.menus import MenuPages, ListPageSource, button, First, Last
-
 from contextlib import suppress
 
+import discord
+from redbot.core import commands
+from redbot.vendored.discord.ext.menus import (
+    First,
+    Last,
+    ListPageSource,
+    MenuPages,
+    button,
+)
 
 __all__ = ["CmdMenu", "CmdPages"]
+
 
 class CmdPages(ListPageSource):
     def __init__(self, data: list):
@@ -24,9 +29,7 @@ class CmdPages(ListPageSource):
                 title="Cmd logging", description=page, colour=await ctx.embed_colour()
             ).set_footer(text=footer)
             return embed
-        return (
-            f"**Cmd logging**\n{page}\n{footer}"
-        )
+        return f"**Cmd logging**\n{page}\n{footer}"
 
 
 class CmdMenu(MenuPages):
@@ -87,7 +90,7 @@ class CmdMenu(MenuPages):
     @button(
         "\N{BLACK RIGHTWARDS ARROW}\N{VARIATION SELECTOR-16}",
         skip_if=_skip_single_triangle_buttons,
-        position=Last(0)
+        position=Last(0),
     )
     async def go_to_next_page(self, payload):
         await self.show_checked_page(self.current_page + 1)
@@ -95,7 +98,7 @@ class CmdMenu(MenuPages):
     @button(
         "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE}\N{VARIATION SELECTOR-16}",
         skip_if=_skip_double_triangle_buttons,
-        position=Last(1)
+        position=Last(1),
     )
     async def go_to_last_page(self, payload):
         await self.show_checked_page(self.source.get_max_pages() - 1)
