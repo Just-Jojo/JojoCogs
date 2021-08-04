@@ -38,6 +38,7 @@ def embed_check(ctx):
 def can_invite():
     async def inner_spirit_animal(ctx: commands.Context):
         return await ctx.bot.get_cog("Core")._can_get_invite_url(ctx)
+
     return commands.check(inner_spirit_animal)
 
 
@@ -119,7 +120,9 @@ class AdvancedInvite(commands.Cog):
         message = self._settings_cache["custom_message"].format(
             bot_name=self.bot.user.name
         )
-        support_msg = f"**Join the support server!**\n{support}\n" if support is not None else ""
+        support_msg = (
+            f"**Join the support server!**\n{support}\n" if support is not None else ""
+        )
         kwargs = {"content": f"{message}\n{inv}\n{support_msg}{timestamp_format()}"}
 
         if (
@@ -137,7 +140,10 @@ class AdvancedInvite(commands.Cog):
             )
             if support is not None:
                 embed.add_field(name="Join the support server!", value=support)
-            if ctx.author.mobile_status.value != "offline" and self._settings_cache["mobile_check"]:
+            if (
+                ctx.author.mobile_status.value != "offline"
+                and self._settings_cache["mobile_check"]
+            ):
                 embed.add_field(name="Here's a link if you're on mobile", value=url)
             url = self._settings_cache["custom_url"] or ctx.me.avatar_url
             embed.set_thumbnail(url=url)
@@ -288,7 +294,7 @@ class AdvancedInvite(commands.Cog):
     @invite_settings.command(name="support")
     async def invite_support(self, ctx: commands.Context, invite: InviteNoneConverter):
         """Set the support server for your bot.
-        
+
         Type `None` to remove it
 
         **Arguments**
@@ -297,7 +303,9 @@ class AdvancedInvite(commands.Cog):
         if invite is None and self._settings_cache["support_server"] is None:
             return await ctx.send("The support server is already disabled")
         elif invite is not None and invite.url == self._settings_cache["support_server"]:
-            return await ctx.send(f"The invite link for your support server is already `{discord.utils.escape_markdown(invite.url)}`")
+            return await ctx.send(
+                f"The invite link for your support server is already `{discord.utils.escape_markdown(invite.url)}`"
+            )
 
         if invite is None:
             self._settings_cache["support_server"] = None
@@ -306,13 +314,15 @@ class AdvancedInvite(commands.Cog):
         else:
             self._settings_cache["support_server"] = url = invite.url
             await self.config.support_server.set(url)
-            msg = f"The support server invite is now `{discord.utils.escape_markdown(url)}`"
+            msg = (
+                f"The support server invite is now `{discord.utils.escape_markdown(url)}`"
+            )
         await ctx.send(msg)
 
     @invite_settings.command(name="mobilecheck")
     async def invite_check_mobile(self, ctx: commands.Context, check: bool):
         """Determines if the bot should check if the user is on mobile when running the invite command
-        
+
         **Arguments**
             - `check` Whether to check mobile status or not
         """

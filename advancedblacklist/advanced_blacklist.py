@@ -3,7 +3,7 @@
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Union, Iterable
+from typing import Dict, Iterable, List, Optional, Union
 
 import discord
 from redbot.core import Config, commands
@@ -106,6 +106,7 @@ class AdvancedBlacklist(commands.Cog):
             - `user` The user to blacklist. This cannot be a bot.
             - `reason` The reason for adding a user to the blacklist. Defaults to "No reason provided."
         """
+
         async def sorter(items: Iterable[discord.Member]) -> List[discord.Member]:
             ret = []
             for item in items:

@@ -2,6 +2,7 @@ import json
 import pathlib
 
 from redbot.core.bot import Red
+
 from .advanced_blacklist import AdvancedBlacklist
 
 with open(pathlib.Path(__file__).parent / "info.json") as fp:

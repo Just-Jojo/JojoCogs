@@ -27,7 +27,7 @@ from .utils import (
 _config_structure = {
     "todos": [],  # List[Dict[str, Any]] "task": str, "pinned": False
     "completed": [],  # List[str]
-    "managers": [], # List[int] Discord member id's
+    "managers": [],  # List[int] Discord member id's
     "user_settings": {
         "autosorting": False,
         "colour": None,
@@ -51,7 +51,14 @@ def attach_or_in_dm(ctx: commands.Context):
 
 
 class ToDo(
-    Complete, Deleting, Managers, Miscellaneous, Settings, SharedTodos, commands.Cog, metaclass=MetaClass
+    Complete,
+    Deleting,
+    Managers,
+    Miscellaneous,
+    Settings,
+    SharedTodos,
+    commands.Cog,
+    metaclass=MetaClass,
 ):
     """A todo list for keeping track of tasks you have to do
 

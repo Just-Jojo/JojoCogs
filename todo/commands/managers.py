@@ -16,14 +16,13 @@ class Managers(TodoMixin):
 
     @todo.group(name="manager", aliases=["managers"])
     async def todo_mangers(self, ctx: commands.Context):
-        """Manage who can manage your todo lists. These people can add and remove from your todo list, so be careful who you grant this to
-        """
+        """Manage who can manage your todo lists. These people can add and remove from your todo list, so be careful who you grant this to"""
         pass
 
     @todo_mangers.command(name="add")
     async def manager_add(self, ctx: commands.Context, user: NonBotMember):
         """Add a user to your todo list managers
-        
+
         This user cannot be a bot. Please be aware that they can add and remove from your todo list and they can view it at any time
 
         **Arguments**
@@ -67,7 +66,9 @@ class Managers(TodoMixin):
             )
         managers = [f"{self._get_user_name(i)} | ({i})" for i in managers]
 
-        await self.page_logic(ctx, managers, f"{ctx.author.name}'s Todo Managers", **settings)
+        await self.page_logic(
+            ctx, managers, f"{ctx.author.name}'s Todo Managers", **settings
+        )
 
     def _get_user_name(self, user_id: int):
         name = self.bot.get_user(user_id)

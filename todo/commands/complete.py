@@ -184,7 +184,7 @@ class Complete(TodoMixin):
     @complete.command(name="view")
     async def complete_view(self, ctx: commands.Context, index: PositiveInt(False)):
         """View a completed todo. This has a similar effect to using `[p]todo <index>`
-        
+
         This will have a menu that will allow you to delete the todo
 
         **Arguments**
