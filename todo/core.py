@@ -151,8 +151,9 @@ class ToDo(
     async def todo(self, ctx: commands.Context, index: PositiveInt(False)):
         """Your todo list inside Discord
 
-        Arguments
-            - `index` The todo you want to view. This is optional and if left out, it will show the help command instead
+        **Arguments**
+            - `index` The todo you want to view.
+            This is optional and if left out, it will show the help command instead
         """
         act_index = index - 1
         try:
@@ -227,7 +228,14 @@ class ToDo(
 
     @todo.command(name="multiadd")
     async def todo_multi_add(self, ctx: commands.Context, *, todos: str = None):
-        """Add multiple todos in one command!"""
+        """Add multiple todos in one command!
+
+        You can upload a file instead of inputting the todos, or reply to a message that contains a file
+
+        **Arguments**
+            - `todos` The todos you want to add.
+            This is an optional argument and you can upload a file instead
+        """
         if ctx.message.reference and not any(
             [todos is not None, ctx.message.attachments]
         ):
@@ -292,7 +300,13 @@ class ToDo(
 
     @todo.command(name="edit")
     async def todo_edit(self, ctx: commands.Context, index: PositiveInt, *, todo: str):
-        """Edit a todo"""
+        """Edit a todo
+
+
+        **Arguments**
+            - `index` The index of the todo you want to edit
+            - `todo` The new todo
+        """
         act_index = index - 1
         if not (todos := await self.cache.get_user_item(ctx.author, "todos")):
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
