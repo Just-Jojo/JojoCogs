@@ -60,7 +60,7 @@ class Cache:
             await self._load_items(user=user_id)
         return self._data[user_id]
 
-    async def get_user_item(self, user: User, key: str):
+    async def get_user_item(self, user: User, key: str) -> Any:
         """|coro|
 
         Get an item from a user's config
@@ -139,7 +139,7 @@ class Cache:
         if user is not None and not isinstance(user, int):
             raise TypeError(f"User must be int not {user.__class__!r}")
         if not user:
-            self._data = await self.config.all()
+            self._data = await self.config.all_users()
             return
         self._data[user] = await self.config.user_from_id(user).all()
 
