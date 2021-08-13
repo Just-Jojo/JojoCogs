@@ -34,7 +34,7 @@ class AdvancedBlacklist(commands.Cog):
     """An advanced blacklist cog"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.5"
+    __version__ = "1.0.6"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -159,8 +159,8 @@ class AdvancedBlacklist(commands.Cog):
     async def local_blocklist_list(self, ctx: commands.Context):
         """List the users who are blacklisted in this guild"""
         lbl = (await self.config.local_blacklist()).get(str(ctx.guild.id))
-        if not lbl:
-            await ctx.send("There are no users on the blacklist")
+        if not lbl: # *sigh*
+            return await ctx.send("There are no users on the blacklist")
         sending = "Locally blacklisted users"
         for uid, reason in lbl.items():
             sending += f"\n- [{uid}] {await self._get_user_name(uid)}: {reason}"
