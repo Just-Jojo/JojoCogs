@@ -44,7 +44,7 @@ Anything marked with `O`, however, is either not working or hasn't been finished
 
 | Name           | Description                                            | Author                 | Type     | Approved | Notes                    |
 |----------------|--------------------------------------------------------|------------------------|----------|----------|--------------------------|
-| AdvancedBlacklist | Allows the bot owner to add reasons for blacklisting users and blacklist users by names | Jojo#7791 | X |   |
+| AdvancedBlacklist | Allows the bot owner to add reasons for blacklisting users and blacklist users by names | Jojo#7791 | Utility  | X |   |
 | AdvancedInvite | Embed the invite command and other utilities for the invite command | Jojo#7791 | Utility | X | This cog was made at the request of DSC#6238, a good friend of mine. Check out `[p]help invite` for settings commands |
 | Brownies       | Brownie based economy system                           | Jojo#7791, JJW(v2)     | Fun      | X        |                          |
 | CmdLogger      | Log when a user uses a certain command                 | Jojo#7791              | Utility  | X |     |
