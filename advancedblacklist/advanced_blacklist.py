@@ -106,6 +106,8 @@ class AdvancedBlacklist(commands.Cog):
             - `user` The user to blacklist. This cannot be a bot.
             - `reason` The reason for adding a user to the blacklist. Defaults to "No reason provided."
         """
+        if not users:
+            raise commands.UserInputError
 
         async def sorter(items: Iterable[discord.Member]) -> List[discord.Member]:
             ret = []
@@ -319,6 +321,8 @@ class AdvancedBlacklist(commands.Cog):
             - `user` The user to blacklist.
             - `reason` The reason for blacklisting the user. Defaults to "No reason provided.".
         """
+        if not users:
+            raise commands.UserInputError
         users = [u.id for u in users]
         await self.bot._whiteblacklist_cache.add_to_blacklist(
             guild=None, role_or_user=users
