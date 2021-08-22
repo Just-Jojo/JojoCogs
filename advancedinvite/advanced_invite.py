@@ -103,6 +103,23 @@ class AdvancedInvite(commands.Cog):
             ctx.command.reset_cooldown(ctx)
         return channel
 
+    @commands.command(name="inviteversion")
+    async def invite_version(self, ctx: commands.Context):
+        """Get the version of Advanced Invite"""
+        msg = (
+            f"Advanced Invite Version: {self.__version__}"
+            f"\nThis cog was requested by DSC#6238, a good friend of mine."
+        )
+        kwargs = {"content": msg, "embed": None}
+        if await ctx.embed_requested():
+            embed = discord.Embed(
+                title="Advanced Invite Version",
+                colour=await ctx.embed_colour(),
+                description=msg,
+            )
+            kwargs.update({"embed": embed, "content": None})
+        await ctx.send(**kwargs)
+    
     @commands.group(invoke_without_command=True)
     # This check is similar to the one core uses
     # see https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/core/core_commands.py#L1490
@@ -273,23 +290,6 @@ class AdvancedInvite(commands.Cog):
         self._settings_cache["title"] = title
         await self.config.title.set(title)
         await ctx.tick()
-
-    @commands.command(name="inviteversion")
-    async def invite_version(self, ctx: commands.Context):
-        """Get the version of Advanced Invite"""
-        msg = (
-            f"Advanced Invite Version: {self.__version__}"
-            f"\nThis cog was requested by DSC#6238, a good friend of mine."
-        )
-        kwargs = {"content": msg, "embed": None}
-        if await ctx.embed_requested():
-            embed = discord.Embed(
-                title="Advanced Invite Version",
-                colour=await ctx.embed_colour(),
-                description=msg,
-            )
-            kwargs.update({"embed": embed, "content": None})
-        await ctx.send(**kwargs)
 
     @invite_settings.command(name="support")
     async def invite_support(self, ctx: commands.Context, invite: InviteNoneConverter):
