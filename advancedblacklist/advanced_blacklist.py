@@ -11,6 +11,7 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.predicates import MessagePredicate
 from tabulate import tabulate
+from contextlib import suppress
 
 try:
     import regex as re
@@ -24,8 +25,10 @@ _config_structure = {
     "global": {
         "blacklist": {},  # Dict[str, str]. String version of the uid and reason
         "use_reasons": True,
-        "local_blacklist": {},  # Dict[str, Dict[str, str]]. String version of guild id and then same as blacklist
         "names": {},  # Dict[str, bool]. The search pattern and if it's a regex or not
+    },
+    "guild": {
+        "blacklist": {}, # Dict[str, str]. String version of the uid and reason
     }
 }
 
@@ -34,15 +37,20 @@ class AdvancedBlacklist(commands.Cog):
     """An advanced blacklist cog"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.6"
+    __version__ = "1.0.7"
 
     def __init__(self, bot: Red):
         self.bot = bot
+
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(**_config_structure["global"])
-        self.task: asyncio.Task = self.bot.loop.create_task(self._startup())
+        self.config.register_guild(**_config_structure["guild"])
+
         self.blacklist_name_cache: Dict[str, List[bool]] = {}
         self._cmds: List[commands.Command] = []
+
+        self.task: asyncio.Task = self.bot.loop.create_task(self._startup())
+        self._schema_task = self.bot.loop.create_task(self._schema_0_to_1())
 
     def format_help_for_context(self, ctx: commands.Context):
         pre_processed = super().format_help_for_context(ctx)
@@ -66,6 +74,10 @@ class AdvancedBlacklist(commands.Cog):
                     log.debug(f"Error in removing command: {cmd.name}", exc_info=e)
                 finally:
                     self.bot.add_command(cmd)
+        self.task.cancel()
+        self._schema_task.cancel()
+        with suppress(Exception):
+            self.bot.remove_dev_env_value("advblc")
 
     @classmethod
     async def init(cls, bot: Red):
@@ -82,6 +94,21 @@ class AdvancedBlacklist(commands.Cog):
                     continue
                 bl[str(uid)] = "No reason provided"
         self.blacklist_name_cache = await self.config.names()
+        with suppress(RuntimeError):
+            self.bot.add_dev_env_value("advblc", lambda s: self)
+
+    async def _schema_0_to_1(self):
+        conf = await self.config.all()
+        if conf.get("schema_v1"):
+            return # Don't care about this
+
+        guild_data = conf.pop("local_blacklist", None)
+        if guild_data is not None:
+            for g_id, data in guild_data.keys():
+                await self.config.guild_from_id(int(g_id)).set_raw("blacklist", data)
+        conf["schema_v1"] = True
+        await self.config.clear_all_globals()
+        await self.config.set(conf)
 
     @commands.group(aliases=["localblacklist"])
     @commands.guild_only()
@@ -106,8 +133,6 @@ class AdvancedBlacklist(commands.Cog):
             - `user` The user to blacklist. This cannot be a bot.
             - `reason` The reason for adding a user to the blacklist. Defaults to "No reason provided."
         """
-        if not users:
-            raise commands.UserInputError
 
         async def sorter(items: Iterable[discord.Member]) -> List[discord.Member]:
             ret = []
@@ -128,12 +153,9 @@ class AdvancedBlacklist(commands.Cog):
             guild=ctx.guild, role_or_user=users
         )
         gid = str(ctx.guild.id)
-        async with self.config.local_blacklist() as lbl:
+        async with self.config.guild(ctx.guild).blacklist() as lbl:
             for user in users:
-                try:
-                    lbl[gid][str(user)] = reason
-                except KeyError:
-                    lbl[gid] = {str(user): reason}
+                lbl[str(user)] = reason
         await ctx.tick()
 
     @localblocklist.command(name="remove", alises=["del", "delete"])
@@ -149,18 +171,15 @@ class AdvancedBlacklist(commands.Cog):
         await self.bot._whiteblacklist_cache.remove_from_blacklist(
             guild=ctx.guild, role_or_user=users
         )
-        async with self.config.local_blacklist() as lbl:
+        async with self.config.guild(ctx.guild).blacklist() as lbl:
             for user in users:
-                try:
-                    del lbl[str(ctx.guild.id)][str(user)]
-                except KeyError:
-                    pass
+                lbl.pop(str(user), None)
         await ctx.tick()
 
     @localblocklist.command(name="list")
     async def local_blocklist_list(self, ctx: commands.Context):
         """List the users who are blacklisted in this guild"""
-        lbl = (await self.config.local_blacklist()).get(str(ctx.guild.id))
+        lbl = await self.config.guild(ctx.guild).blacklist()
         if not lbl: # *sigh*
             return await ctx.send("There are no users on the blacklist")
         sending = "Locally blacklisted users"
@@ -180,10 +199,8 @@ class AdvancedBlacklist(commands.Cog):
             - `user` The user to edit the reason for blacklisting.
             - `reason` The new reason.
         """
-        gid = str(ctx.guild.id)
         user = str(user.id)
-        async with self.config.local_blacklist() as lb:
-            lbl = lb.get(gid)
+        async with self.config.guild.blacklist() as lbl:
             if not lbl:
                 return await ctx.send("The local blacklist is empty")
             elif user not in lbl.keys():
@@ -207,11 +224,8 @@ class AdvancedBlacklist(commands.Cog):
         if not pred.result:
             return await ctx.send("Okay, I will not clear the blacklist")
         await ctx.tick()
-        async with self.config.local_blacklist() as lbl:
-            try:
-                lbl[str(ctx.guild.id)].clear()
-            except KeyError:
-                pass
+        async with self.config.guild(ctx.guild).blacklist() as lbl:
+            lbl.clear()
 
     @commands.is_owner()
     @commands.group(aliases=["blacklist"])
