@@ -157,8 +157,19 @@ class AdvancedInvite(commands.Cog):
             )
             if support is not None:
                 embed.add_field(name="Join the support server!", value=support)
+            
+            if isinstance(ctx.channel, dicord.DMChannel):
+                member_converter = commands.MemberConverter()
+                try:
+                    member = await member_converter.convert(ctx.author.id)
+                except commands.MemberNotFound:
+                    member = False
+            else:
+                member = ctx.author
+                
+            
             if (
-                ctx.author.mobile_status.value != "offline"
+                member and member.mobile_status.value != "offline"
                 and self._settings_cache["mobile_check"]
             ):
                 embed.add_field(name="Here's a link if you're on mobile", value=url)
