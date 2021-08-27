@@ -48,7 +48,7 @@ class AdvancedInvite(commands.Cog):
     This cog was requested by DSC#6238"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "2.0.1"
+    __version__ = "2.0.2"
 
     def format_help_for_context(self, ctx: commands.Context):
         pre = super().format_help_for_context(ctx)
@@ -157,17 +157,16 @@ class AdvancedInvite(commands.Cog):
             )
             if support is not None:
                 embed.add_field(name="Join the support server!", value=support)
-            
+
             if isinstance(ctx.channel, discord.DMChannel):
                 member_converter = commands.MemberConverter()
                 try:
-                    member = await member_converter.convert(ctx, ctx.author.id)
+                    member = await member_converter.convert(ctx, str(ctx.author.id))
                 except commands.MemberNotFound:
                     member = False
             else:
                 member = ctx.author
-                
-            
+
             if (
                 member and member.mobile_status.value != "offline"
                 and self._settings_cache["mobile_check"]
