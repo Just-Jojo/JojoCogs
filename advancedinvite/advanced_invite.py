@@ -158,7 +158,7 @@ class AdvancedInvite(commands.Cog):
             if support is not None:
                 embed.add_field(name="Join the support server!", value=support)
             
-            if isinstance(ctx.channel, dicord.DMChannel):
+            if isinstance(ctx.channel, discord.DMChannel):
                 member_converter = commands.MemberConverter()
                 try:
                     member = await member_converter.convert(ctx.author.id)
