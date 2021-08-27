@@ -119,7 +119,7 @@ class AdvancedInvite(commands.Cog):
             )
             kwargs.update({"embed": embed, "content": None})
         await ctx.send(**kwargs)
-    
+
     @commands.group(invoke_without_command=True)
     # This check is similar to the one core uses
     # see https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/core/core_commands.py#L1490
@@ -168,7 +168,8 @@ class AdvancedInvite(commands.Cog):
                 member = ctx.author
 
             if (
-                member and member.mobile_status.value != "offline"
+                member
+                and member.mobile_status.value != "offline"
                 and self._settings_cache["mobile_check"]
             ):
                 embed.add_field(name="Here's a link if you're on mobile", value=url)

@@ -3,6 +3,7 @@
 
 import asyncio
 import logging
+from contextlib import suppress
 from typing import Dict, Iterable, List, Optional, Union
 
 import discord
@@ -11,7 +12,6 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.predicates import MessagePredicate
 from tabulate import tabulate
-from contextlib import suppress
 
 try:
     import regex as re
@@ -28,8 +28,8 @@ _config_structure = {
         "names": {},  # Dict[str, bool]. The search pattern and if it's a regex or not
     },
     "guild": {
-        "blacklist": {}, # Dict[str, str]. String version of the uid and reason
-    }
+        "blacklist": {},  # Dict[str, str]. String version of the uid and reason
+    },
 }
 
 
@@ -100,7 +100,7 @@ class AdvancedBlacklist(commands.Cog):
     async def _schema_0_to_1(self):
         conf = await self.config.all()
         if conf.get("schema_v1"):
-            return # Don't care about this
+            return  # Don't care about this
 
         guild_data = conf.pop("local_blacklist", None)
         if guild_data is not None:
@@ -180,7 +180,7 @@ class AdvancedBlacklist(commands.Cog):
     async def local_blocklist_list(self, ctx: commands.Context):
         """List the users who are blacklisted in this guild"""
         lbl = await self.config.guild(ctx.guild).blacklist()
-        if not lbl: # *sigh*
+        if not lbl:  # *sigh*
             return await ctx.send("There are no users on the blacklist")
         sending = "Locally blacklisted users"
         for uid, reason in lbl.items():
