@@ -161,7 +161,7 @@ class AdvancedInvite(commands.Cog):
             if isinstance(ctx.channel, discord.DMChannel):
                 member_converter = commands.MemberConverter()
                 try:
-                    member = await member_converter.convert(ctx.author.id)
+                    member = await member_converter.convert(ctx, ctx.author.id)
                 except commands.MemberNotFound:
                     member = False
             else:
