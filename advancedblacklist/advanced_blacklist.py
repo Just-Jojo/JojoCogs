@@ -110,6 +110,14 @@ class AdvancedBlacklist(commands.Cog):
         await self.config.clear_all_globals()
         await self.config.set(conf)
 
+    @commands.command(name="blacklistversion")
+    async def blacklist_version(self, ctx: commands.Context):
+        """Get the version of Advanced Blacklist that [botname] is running"""
+
+        await ctx.send(
+            f"Advanced Blacklist, Version `{self.__version__}`. Made with :heart: by Jojo#7791"
+        )
+
     @commands.group(aliases=["localblacklist"])
     @commands.guild_only()
     @commands.admin_or_permissions(administrator=True)

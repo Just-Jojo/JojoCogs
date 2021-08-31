@@ -68,6 +68,13 @@ class CmdLogger(commands.Cog):
         """Commands working with the cmd logger cog"""
         pass
 
+    @cmd_logger.command(name="version")
+    async def cmd_log_version(self, ctx: commands.Context):
+        """Get the version of Cmd Logger that [botname] is running"""
+        await ctx.send(
+            f"Cmd Logger, Version `{self.__version__}`. Made with :heart: by Jojo#7791"
+        )
+
     @cmd_logger.group(name="settings", aliases=["set"])
     async def cmd_settings(self, ctx: commands.Context):
         """Manage the settings for cmd logger"""

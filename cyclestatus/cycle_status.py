@@ -71,6 +71,13 @@ class CycleStatus(commands.Cog):
             f"People who have put in suggestions: `{humanize_list(self.__suggesters__)}`"
         )
 
+    @commands.command(name="cyclestatusversion", aliases=["csversion"])
+    async def cycle_status_version(self, ctx: commands.Context):
+        """Get the version of Cycle Status that [botname] is running"""
+        await ctx.send(
+            f"Cycle Status, Version `{self.__version__}`. Made with :heart: by Jojo#7791"
+        )
+
     @commands.group()
     @commands.is_owner()
     async def status(self, ctx):
