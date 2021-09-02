@@ -2,6 +2,7 @@
 # Licensed under MIT
 
 from contextlib import suppress
+from typing import Union
 
 import discord
 from redbot.core import commands
@@ -20,7 +21,7 @@ class CmdPages(ListPageSource):
     def __init__(self, data: list):
         super().__init__(data, per_page=1)
 
-    async def format_page(self, menu: "CmdMenu", page: str):
+    async def format_page(self, menu: "CmdMenu", page: str) -> Union[discord.Embed, str]:
         ctx: commands.Context = menu.ctx
         footer = f"Page {menu.current_page + 1}/{self.get_max_pages()}"
 
@@ -42,24 +43,24 @@ class CmdMenu(MenuPages):
     def __init__(self, source: CmdPages):
         super().__init__(source, clear_reactions_after=True)
 
-    def _skip_double_triangle_buttons(self):
+    def _skip_double_triangle_buttons(self) -> bool:
         max_pages = self._source.get_max_pages()
         if max_pages is None:
             return True
         return max_pages <= 4
 
-    async def send_initial_message(self, ctx, channel):
+    async def send_initial_message(self, ctx, channel) -> discord.Message:
         page = await self.source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
         return await channel.send(**kwargs)
 
-    def _skip_single_triangle_buttons(self):
+    def _skip_single_triangle_buttons(self) -> bool:
         max_pages = self._source.get_max_pages()
         if max_pages is None:
             return True
         return max_pages == 1
 
-    async def show_checked_page(self, page_number: int):
+    async def show_checked_page(self, page_number: int) -> None:
         max_pages = self.source.get_max_pages()
         try:
             if max_pages is None or max_pages > page_number >= 0:

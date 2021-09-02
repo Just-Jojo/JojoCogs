@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from contextlib import suppress
-from typing import Dict, Iterable, List, Optional, Union
+from typing import Dict, Iterable, List, Optional, TypeVar, Union
 
 import discord
 from redbot.core import Config, commands
@@ -31,6 +31,7 @@ _config_structure = {
         "blacklist": {},  # Dict[str, str]. String version of the uid and reason
     },
 }
+AB = TypeVar("AB", bound="AdvancedBlacklist")
 
 
 class AdvancedBlacklist(commands.Cog):
@@ -52,7 +53,7 @@ class AdvancedBlacklist(commands.Cog):
         self.task: asyncio.Task = self.bot.loop.create_task(self._startup())
         self._schema_task = self.bot.loop.create_task(self._schema_0_to_1())
 
-    def format_help_for_context(self, ctx: commands.Context):
+    def format_help_for_context(self, ctx: commands.Context) -> str:
         pre_processed = super().format_help_for_context(ctx)
         plural = "s" if len(self.__authors__) > 1 else ""
         return (
@@ -61,11 +62,11 @@ class AdvancedBlacklist(commands.Cog):
             f"Version: `{self.__version__}`"
         )
 
-    async def red_delete_data_for_user(self, *args, **kwargs):
+    async def red_delete_data_for_user(self, *args, **kwargs) -> None:
         """Nothing to delete"""
         return
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         for cmd in self._cmds:
             if cmd:
                 try:
@@ -80,13 +81,13 @@ class AdvancedBlacklist(commands.Cog):
             self.bot.remove_dev_env_value("advblc")
 
     @classmethod
-    async def init(cls, bot: Red):
+    async def init(cls, bot: Red) -> AB:
         self = cls(bot)
         for cmd in ["blocklist", "localblocklist"]:
             self._cmds.append(self.bot.remove_command(cmd))
         return self
 
-    async def _startup(self):
+    async def _startup(self) -> None:
         async with self.config.blacklist() as bl:
             blacklist = await self.bot._whiteblacklist_cache.get_blacklist()
             for uid in blacklist:
@@ -97,7 +98,7 @@ class AdvancedBlacklist(commands.Cog):
         with suppress(RuntimeError):
             self.bot.add_dev_env_value("advblc", lambda s: self)
 
-    async def _schema_0_to_1(self):
+    async def _schema_0_to_1(self) -> None:
         conf = await self.config.all()
         if conf.get("schema_v1"):
             return  # Don't care about this

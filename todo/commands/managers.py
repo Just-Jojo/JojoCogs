@@ -70,6 +70,6 @@ class Managers(TodoMixin):
             ctx, managers, f"{ctx.author.name}'s Todo Managers", **settings
         )
 
-    def _get_user_name(self, user_id: int):
+    def _get_user_name(self, user_id: int) -> str:
         name = self.bot.get_user(user_id)
         return name.name if name is not None else "Unknown or Deleted User"

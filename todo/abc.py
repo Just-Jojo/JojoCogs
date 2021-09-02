@@ -29,7 +29,7 @@ class TodoMixin(ABC):
     # The best thing about this is it that I don't have to reimpliment this every time
     # I create a new subclass, just in the main class which will be a subclass of every other class
     @abstractmethod
-    async def page_logic(self, ctx: commands.Context, data: list, **settings):
+    async def page_logic(self, ctx: commands.Context, data: list, **settings) -> None:
         ...
 
     @abstractmethod

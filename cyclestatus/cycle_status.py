@@ -51,17 +51,17 @@ class CycleStatus(commands.Cog):
         self.random: Optional[bool] = None
         self.last_random: Optional[int] = None
 
-    async def init(self):
+    async def init(self) -> None:
         await self.bot.wait_until_red_ready()
         self.main_task.start()
         self.toggled = await self.config.toggled()
         self.random = await self.config.random()
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         self.task.cancel()
         self.main_task.cancel()
 
-    def format_help_for_context(self, ctx: commands.Context):
+    def format_help_for_context(self, ctx: commands.Context) -> str:
         pre = super().format_help_for_context(ctx)
         plural = "s" if len(self.__authors__) > 1 else ""
         return (

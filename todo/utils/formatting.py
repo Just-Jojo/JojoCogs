@@ -59,7 +59,9 @@ async def _format_todos(pinned: List[str], other: List[str], **settings) -> List
     return ret
 
 
-async def _format_completed(completed: List[str], combined: bool = False, **settings):
+async def _format_completed(
+    completed: List[str], combined: bool = False, **settings
+) -> List[str]:
     pretty = settings.get("pretty_todos")
     number = settings.get("number_todos")
     fmt = "" if settings.get("use_markdown") else "**"

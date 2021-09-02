@@ -27,7 +27,9 @@ class TodoPage(menus.ListPageSource):
         self.settings = settings
         self.title = title
 
-    async def format_page(self, menu: menus.MenuPages, page: str):
+    async def format_page(
+        self, menu: menus.MenuPages, page: str
+    ) -> Union[str, discord.Embed]:
         ctx: commands.Context = menu.ctx
         bot: Red = menu.bot
 
@@ -65,12 +67,12 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):  # type:ignore
     def source(self) -> TodoPage:
         return self._source
 
-    async def send_initial_message(self, ctx, channel):
+    async def send_initial_message(self, ctx, channel) -> discord.Message:
         page = await self.source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
         return await channel.send(**kwargs)
 
-    async def show_checked_page(self, page_number: int):
+    async def show_checked_page(self, page_number: int) -> None:
         max_pages = self.source.get_max_pages()
         try:
             if max_pages is None or max_pages > page_number >= 0:
@@ -82,13 +84,13 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):  # type:ignore
         except IndexError:
             pass
 
-    def _skip_triangle_buttons(self):
+    def _skip_triangle_buttons(self) -> bool:
         max_pages = self.source.get_max_pages()
         if max_pages is None:
             return True
         return max_pages == 1
 
-    def _skip_double_triangle_buttons(self):
+    def _skip_double_triangle_buttons(self) -> bool:
         max_pages = self.source.get_max_pages()
         if max_pages is None:
             return True
@@ -163,11 +165,11 @@ class ViewTodo(menus.Menu):
 
     async def send_initial_message(
         self, ctx: commands.Context, channel: discord.TextChannel
-    ):
+    ) -> discord.Message:
         self.user = self.user or ctx.author
         return await ctx.send(**await self._format_page())
 
-    def _skip_if_completed(self):
+    def _skip_if_completed(self) -> bool:
         return self.completed
 
     async def _format_page(self) -> Dict[str, Union[str, discord.Embed]]:
@@ -252,7 +254,7 @@ class ViewTodo(menus.Menu):
         with contextlib.suppress(discord.NotFound):
             await self.message.delete()
 
-    async def update_message(self, message: str = None):
+    async def update_message(self, message: str = None) -> None:
         if message:
             if await self.ctx.cog._embed_requested(self.ctx, self.ctx.author):
                 embed = discord.Embed(

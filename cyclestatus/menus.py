@@ -52,12 +52,12 @@ class Menu(menus.MenuPages, inherit_buttons=False):  # type:ignore
     def source(self) -> Pages:
         return self._source
 
-    async def send_initial_message(self, ctx, channel):
+    async def send_initial_message(self, ctx, channel) -> discord.Message:
         page = await self.source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
         return await channel.send(**kwargs)
 
-    async def show_checked_page(self, page_number: int):
+    async def show_checked_page(self, page_number: int) -> None:
         max_pages = self.source.get_max_pages()
         try:
             if max_pages is None or max_pages > page_number >= 0:
@@ -69,13 +69,13 @@ class Menu(menus.MenuPages, inherit_buttons=False):  # type:ignore
         except IndexError:
             pass
 
-    def _skip_triangle_buttons(self):
+    def _skip_triangle_buttons(self) -> bool:
         max_pages = self.source.get_max_pages()
         if max_pages is None:
             return True
         return max_pages == 1
 
-    def _skip_double_triangle_buttons(self):
+    def _skip_double_triangle_buttons(self) -> bool:
         max_pages = self.source.get_max_pages()
         if max_pages is None:
             return True
@@ -121,7 +121,7 @@ class Menu(menus.MenuPages, inherit_buttons=False):  # type:ignore
 
 
 class PositiveInt(commands.Converter):
-    async def convert(self, ctx: commands.Context, arg: str):
+    async def convert(self, ctx: commands.Context, arg: str) -> int:
         try:
             ret = int(arg)
         except ValueError:

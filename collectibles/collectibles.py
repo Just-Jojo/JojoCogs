@@ -39,7 +39,7 @@ class Collectibles(commands.Cog):
         self.config.register_global(**_config_structure["global"])
         self.config.register_user(**_config_structure["user"])
 
-    def format_help_for_context(self, ctx: commands.Context):
+    def format_help_for_context(self, ctx: commands.Context) -> str:
         pre = super().format_help_for_context(ctx)
         plural = "s" if len(self.__authors__) > 1 else ""
         return (
@@ -53,7 +53,7 @@ class Collectibles(commands.Cog):
         *,
         requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
         user_id: int,
-    ):
+    ) -> None:
         await self.config.user_from_id(user_id).clear()
 
     @commands.group()

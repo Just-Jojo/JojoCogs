@@ -1,7 +1,12 @@
+# Copyright (c) 2021 - Jojo#7791
+# Licensed under MIT
+
 from datetime import datetime
 from enum import Enum
 from functools import wraps
+from typing import Union
 
+import discord
 from redbot.core import commands
 
 __all__ = [
@@ -11,6 +16,7 @@ __all__ = [
     "NoneConverter",
     "InviteNoneConverter",
 ]
+NoneType = type(None)
 
 
 def create_doc(default: str = None, *, override: bool = False):
@@ -37,7 +43,7 @@ class TimestampFormats(Enum):
 
 
 @create_doc()
-def timestamp_format(dt: datetime = None, *, dt_format: TimestampFormats = None):
+def timestamp_format(dt: datetime = None, *, dt_format: TimestampFormats = None) -> str:
     if not dt:
         dt = datetime.now()
     if not dt_format or dt_format == TimestampFormats.DEFAULT:
@@ -52,7 +58,7 @@ class NoneConverter(commands.Converter):
     def __init__(self, *, strict: bool = False):
         self.strict = strict
 
-    async def convert(self, ctx: commands.Context, arg: str):
+    async def convert(self, ctx: commands.Context, arg: str) -> Union[NoneType, str]:
         args = ["none"]
         if not self.strict:
             args.extend(["no", "nothing"])
@@ -65,7 +71,9 @@ class InviteNoneConverter(NoneConverter):
     def __init__(self):
         self.strict = False
 
-    async def convert(self, ctx: commands.Context, arg: str):
+    async def convert(
+        self, ctx: commands.Context, arg: str
+    ) -> Union[NoneType, discord.Invite]:
         arg = await super().convert(ctx, arg)
         if arg is None:
             return arg

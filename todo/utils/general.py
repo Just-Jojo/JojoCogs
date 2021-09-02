@@ -19,7 +19,9 @@ class TimestampFormats(Enum):
     RELATIVE_TIME = "R"
 
 
-def timestamp_format(timestamp: datetime = None, *, ts_format: TimestampFormats = None):
+def timestamp_format(
+    timestamp: datetime = None, *, ts_format: TimestampFormats = None
+) -> str:
     if timestamp is None:
         timestamp = datetime.utcnow()
     if ts_format is None or ts_format == TimestampFormats.DEFAULT:

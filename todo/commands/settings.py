@@ -32,7 +32,7 @@ class PresetsEnum(Enum):
 
 
 class PresetConverter(commands.Converter):
-    async def convert(self, ctx: commands.Context, arg: str):
+    async def convert(self, ctx: commands.Context, arg: str) -> PresetsEnum:
         if arg.lower() not in ("pretty", "minimal"):
             raise commands.BadArgument(
                 f'Argument must be "minimal" or "pretty" not "{arg}"'

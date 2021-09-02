@@ -52,7 +52,9 @@ class Miscellaneous(TodoMixin):
         )
         await self.maybe_send_embed(ctx, msg, title="Todo Suggestors")
 
-    async def maybe_send_embed(self, ctx: commands.Context, msg: str, *, title: str = ""):
+    async def maybe_send_embed(
+        self, ctx: commands.Context, msg: str, *, title: str = ""
+    ) -> discord.Message:
         kwargs = {"content": f"**{title}**\n\n{msg}", "embed": None}
         if await self._embed_requested(ctx, ctx.author):
             colour = await self.cache.get_user_setting(ctx.author, "colour")
@@ -61,4 +63,4 @@ class Miscellaneous(TodoMixin):
                 title=title, description=msg, colour=colour, timestamp=datetime.utcnow()
             )
             kwargs = {"embed": embed, "content": None}
-        await ctx.send(**kwargs)
+        return await ctx.send(**kwargs)

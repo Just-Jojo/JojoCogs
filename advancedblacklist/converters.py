@@ -1,6 +1,9 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+from typing import Union
+
+import discord
 from redbot.core import commands
 
 __all__ = ["NonBotUser", "NonBotMember"]
@@ -11,7 +14,9 @@ class _NonBotMixin(commands.Converter):
 
     converter_type: commands.Converter
 
-    async def convert(self, ctx: commands.Context, arg: str):
+    async def convert(
+        self, ctx: commands.Context, arg: str
+    ) -> Union[discord.Member, discord.User]:
         maybe_user = await self.converter_type().convert(ctx, arg)
         if maybe_user.bot:
             raise commands.BadArgument("That user is a bot")

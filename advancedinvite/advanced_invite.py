@@ -3,7 +3,7 @@
 
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TypeVar
 
 import aiohttp
 import discord
@@ -28,15 +28,16 @@ _config_structure = {
     "support_server": None,
     "mobile_check": True,
 }
+AI = TypeVar("AI", bound="AdvancedInvite")
 
 
-def embed_check(ctx):
+def embed_check(ctx) -> bool:
     """Small fuction for command checks"""
     return ctx.cog._settings_cache["embeds"] is True
 
 
 def can_invite():
-    async def inner_spirit_animal(ctx: commands.Context):
+    async def inner_spirit_animal(ctx: commands.Context) -> bool:
         return await ctx.bot.get_cog("Core")._can_get_invite_url(ctx)
 
     return commands.check(inner_spirit_animal)
@@ -50,7 +51,7 @@ class AdvancedInvite(commands.Cog):
     __authors__ = ["Jojo#7791"]
     __version__ = "2.0.2"
 
-    def format_help_for_context(self, ctx: commands.Context):
+    def format_help_for_context(self, ctx: commands.Context) -> str:
         pre = super().format_help_for_context(ctx)
         plural = "s" if len(self.__authors__) > 1 else ""
         return (
@@ -59,11 +60,11 @@ class AdvancedInvite(commands.Cog):
             f"Version: `{self.__version__}`"
         )
 
-    async def red_delete_data_for_user(self, **kwargs):
+    async def red_delete_data_for_user(self, **kwargs) -> None:
         return
 
-    async def red_get_data_for_user(self, **kwargs):
-        return {}
+    async def red_get_data_for_user(self, **kwargs) -> dict:
+        return dict()
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -73,14 +74,14 @@ class AdvancedInvite(commands.Cog):
         self._invite_command: Optional[commands.Command]
 
     @classmethod
-    async def init(cls, bot: Red):
+    async def init(cls, bot: Red) -> AI:
         """Initialize the cog and the cache"""
         self = cls(bot)
         self._settings_cache = await self.config.all()
         self._invite_command = self.bot.remove_command("invite")
         return self
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         if self._invite_command:
             bot.remove_command("invite")
             bot.add_command(self._invite_command)

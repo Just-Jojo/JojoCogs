@@ -44,7 +44,7 @@ _config_structure = {
 }
 
 
-def attach_or_in_dm(ctx: commands.Context):
+def attach_or_in_dm(ctx: commands.Context) -> bool:
     if not ctx.guild:
         return True
     return ctx.channel.permissions_for(ctx.me).attach_files
@@ -84,11 +84,11 @@ class ToDo(
         self._startup_task = self.bot.loop.create_task(self._initialize())
         self.log = logging.getLogger("red.JojoCogs.todo")
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         with suppress(KeyError):
             self.bot.remove_dev_env_value("todo")
 
-    def format_help_for_context(self, ctx: commands.Context):
+    def format_help_for_context(self, ctx: commands.Context) -> str:
         pre = super().format_help_for_context(ctx)
         plural = "s" if len(self.__authors__) > 1 else ""
         return (
@@ -103,10 +103,10 @@ class ToDo(
         *,
         requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
         user_id: int,
-    ):
+    ) -> None:
         await self.cache.delete_data(user_id)
 
-    async def _initialize(self):
+    async def _initialize(self) -> None:
         """This is based off of Obi-Wan3's migration method in their github cog
         https://github.com/Obi-Wan3/OB13-Cogs/blob/main/github/github.py#L88"""
 
@@ -396,13 +396,15 @@ class ToDo(
                 extra.append(todo["task"])
         return pinned, extra
 
-    async def page_logic(self, ctx: commands.Context, data: list, title: str, **settings):
+    async def page_logic(
+        self, ctx: commands.Context, data: list, title: str, **settings
+    ) -> None:
         joined = "\n".join(data)
         pagified = list(pagify(joined, page_length=500))
         pages = TodoPage(pagified, title, **settings)
         await TodoMenu(pages).start(ctx)
 
-    async def _maybe_autosort(self, user: Union[discord.Member, discord.User]):
+    async def _maybe_autosort(self, user: Union[discord.Member, discord.User]) -> None:
         """An internal function to maybe autosort todos"""
 
         # Okay, so I modified this a bit just for a few reasons

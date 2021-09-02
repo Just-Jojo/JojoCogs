@@ -110,10 +110,10 @@ class Brownies(commands.Cog):
         self.config.register_guild(**_config_structure["guild"])
         self.session = aiohttp.ClientSession()
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         self.bot.loop.create_task(self.session.close())
 
-    def format_help_for_context(self, ctx):
+    def format_help_for_context(self, ctx) -> str:
         pre = super().format_help_for_context(ctx)
         plural = "s" if len(self.__authors__) > 1 else ""
         return (
@@ -127,7 +127,7 @@ class Brownies(commands.Cog):
         *,
         requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
         user_id: int,
-    ):
+    ) -> None:
         """Delete brownie data for a user"""
         all_members = await self.config.all_members()
         async for guild_id, guild_data in AsyncIter(all_members.items(), steps=100):
@@ -323,5 +323,5 @@ class Brownies(commands.Cog):
             msg = "None"
         return msg
 
-    async def cog_check(self, ctx: commands.Context):
+    async def cog_check(self, ctx: commands.Context) -> bool:
         return ctx.guild is not None  # Guild only commands

@@ -25,7 +25,7 @@ class Ducks(commands.Cog):
         self.bot = bot
         self.session = aiohttp.ClientSession()
 
-    def format_help_for_context(self, ctx: commands.Context):
+    def format_help_for_context(self, ctx: commands.Context) -> str:
         pre_processed = super().format_help_for_context(ctx)
         plural = "s" if len(self.__author__) > 1 else ""
         return (
@@ -34,14 +34,14 @@ class Ducks(commands.Cog):
             f"Version: `{self.__version__}`"
         )
 
-    async def red_delete_data_for_user(self, *args):
+    async def red_delete_data_for_user(self, *args) -> None:
         # This cog does not store data
         return
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         self.bot.loop.create_task(self.session.close())
 
-    async def _get_response(self):
+    async def _get_response(self) -> str:
         async with self.session.get(f"{duck_image_api}/random") as re:
             if re.status != 200:
                 raise APIError()

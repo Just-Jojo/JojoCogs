@@ -4,7 +4,7 @@
 import logging
 from contextlib import suppress
 from functools import wraps
-from typing import Callable, Iterable
+from typing import Any, Callable, Iterable, List
 
 from redbot.core import Config, commands
 from redbot.core.bot import Red
@@ -16,7 +16,7 @@ from .menus import CmdMenu, CmdPages
 log = logging.getLogger("red.JojoCogs.cmd_logger")
 
 
-def humanize_list_with_ticks(data: Iterable):
+def humanize_list_with_ticks(data: Iterable) -> List[Any]:
     return humanize_list([inline(x) for x in data])
 
 
@@ -47,11 +47,11 @@ class CmdLogger(commands.Cog):
             with suppress(RuntimeError):
                 self.bot.add_dev_env_value("cmdlog", lambda x: self)
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         with suppress(Exception):
             self.bot.remove_dev_env_value("cmdlog")
 
-    def format_help_for_context(self, ctx: commands.Context):
+    def format_help_for_context(self, ctx: commands.Context) -> str:
         pre = super().format_help_for_context(ctx)
         plural = "" if len(self.__authors__) == 1 else "s"
         return (
@@ -60,7 +60,7 @@ class CmdLogger(commands.Cog):
             f"Version: `{self.__version__}`"
         )
 
-    async def cog_check(self, ctx: commands.Context):
+    async def cog_check(self, ctx: commands.Context) -> bool:
         return await ctx.bot.is_owner(ctx.author)
 
     @commands.group(name="cmdlogger", aliases=["cmdlog"])

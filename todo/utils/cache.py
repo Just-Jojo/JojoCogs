@@ -21,7 +21,7 @@ class Cache:
         self.config = config
         self._data: Dict[int, Dict[str, Any]] = {}
 
-    async def delete_data(self, user_id: int):
+    async def delete_data(self, user_id: int) -> None:
         """|coro|
 
         Delete data for a user. This should only really be used when :meth:`red_delete_data_for_user` gets called
@@ -121,7 +121,7 @@ class Cache:
             return None
         return data.get(key)[index]  # type:ignore
 
-    async def _load_items(self, *, user: int = None):
+    async def _load_items(self, *, user: int = None) -> None:
         """|coro|
 
         An internal method to load the data into the cache.
@@ -143,7 +143,7 @@ class Cache:
             return
         self._data[user] = await self.config.user_from_id(user).all()
 
-    async def set_user_item(self, user: User, key: str, data: Any):
+    async def set_user_item(self, user: User, key: str, data: Any) -> None:
         """|coro|
 
         Save a user item via key
@@ -169,7 +169,7 @@ class Cache:
         await self.config.user_from_id(user).set_raw(key, value=data)
         await self._load_items(user=user)
 
-    async def set_user_data(self, user: User, data: Dict[str, Any]):
+    async def set_user_data(self, user: User, data: Dict[str, Any]) -> None:
         """|coro|
 
         Sets a user's data. NOTE This should probably not be used as it can break a user's config
@@ -185,7 +185,7 @@ class Cache:
         await self.config.user_from_id(user).set(data)
         await self._load_items(user=user)
 
-    async def set_user_setting(self, user: User, key: str, setting: Any):
+    async def set_user_setting(self, user: User, key: str, setting: Any) -> None:
         """|coro|
 
         Set a setting for a user
