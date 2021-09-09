@@ -14,7 +14,7 @@ from redbot.core.utils.chat_formatting import box
 from redbot.core.utils.predicates import MessagePredicate
 from redbot.vendored.discord.ext import menus  # type:ignore
 
-from .cache import Cache
+from .api import TodoApi
 from .general import timestamp_format
 
 __all__ = ["TodoPage", "TodoMenu", "ViewTodo"]
@@ -141,7 +141,7 @@ class ViewTodo(menus.Menu):
     def __init__(
         self,
         index: int,
-        cache: Cache,
+        cache: TodoApi,
         todo_data: Union[dict, str],
         *,
         completed: bool = False,

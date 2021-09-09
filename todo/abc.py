@@ -8,7 +8,7 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
-from .utils import Cache
+from .utils import TodoApi
 
 """ABCDEFG"""
 
@@ -20,7 +20,7 @@ class TodoMixin(ABC):
 
     def __init__(self, *_args):
         self.bot: Red
-        self.cache: Cache
+        self.cache: TodoApi
         self.config: Config
         self.log: Logger
         self._no_todo_message: str
