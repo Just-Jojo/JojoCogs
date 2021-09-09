@@ -9,12 +9,20 @@ from redbot.core.bot import Red
 
 User = Union[int, discord.Member, discord.User]
 __all__ = [
-    "Cache",
+    "TodoApi",
 ]
 
+"""
+Hi there. If you're reading this this means that you're reading this.
 
-class Cache:
-    r"""An "Advanced" cache for todo as the old one was just a dictionary and was hard to work with"""
+This bit of code below me is part of my most brilliant pieces of code produced in my insanity whilst rebuilding this cog.
+It's design is so odd and frankly strange that I doubt I will be able to replicate it at any point further.
+
+All this is to say that I don't know why I built this cog and I hate myself :D
+"""
+
+class TodoApi:
+    r"""An API for todo that interacts with the config of Todo."""
 
     def __init__(self, bot: Red, config: Config):
         self.bot = bot

@@ -15,7 +15,7 @@ from redbot.core.utils.predicates import MessagePredicate
 from .abc import MetaClass
 from .commands import *
 from .utils import (
-    Cache,
+    TodoApi,
     PositiveInt,
     TodoMenu,
     TodoPage,
@@ -71,7 +71,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666"]
-    __version__ = "3.0.10"
+    __version__ = "3.0.10.1"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -80,7 +80,7 @@ class ToDo(
         self.bot = bot
         self.config = Config.get_conf(self, 19924714019, True)
         self.config.register_user(**_config_structure)
-        self.cache = Cache(self.bot, self.config)
+        self.cache = TodoApi(self.bot, self.config)
         self._startup_task = self.bot.loop.create_task(self._initialize())
         self.log = logging.getLogger("red.JojoCogs.todo")
 
@@ -273,7 +273,7 @@ class ToDo(
         todos = await self.cache.get_user_item(ctx.author, "todos")
         if not todos:
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
-        todos = "\n".join([t["task"] for t in todos])
+        todos = "\n".join(t["task"] for t in todos)
         await ctx.send("Here are your todos", file=text_to_file(todos, "todo.txt"))
 
     @todo.command(name="pin", aliases=["unpin"])
