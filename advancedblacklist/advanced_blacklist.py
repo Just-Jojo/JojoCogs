@@ -4,9 +4,10 @@
 import asyncio
 import logging
 from contextlib import suppress
-from typing import Dict, Iterable, List, Optional, TypeVar, Union
+from typing import Dict, Iterable, List, Optional, TypeVar, Union, Set
 
 import discord
+from redbot import VersionInfo, version_info
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, pagify
@@ -19,6 +20,28 @@ except ImportError:
     import re  # type:ignore
 
 from .converters import *
+
+# Backwards compatability :D
+if version_info >= VersionInfo.from_str("3.4.13"):
+    add_to_blacklist = Red.add_to_blacklist
+    remove_from_blacklist = Red.remove_from_blacklist
+    get_blacklist = Red.get_blacklist
+    clear_blacklist = Red.clear_blacklist
+else:
+    UserOrRole = Union[discord.Member, discord.User, discord.Role, int]
+    async def add_to_blacklist(bot: Red, users_or_roles: Iterable[UserOrRole], *, guild: Optional[discord.Guild] = None):
+        to_add = {getattr(uor, "id", uor) for uor in users_or_roles}
+        await bot._whiteblacklist_cache.add_to_blacklist(guild, to_add)
+
+    async def remove_from_blacklist(bot: Red, users_or_roles: Iterable[UserOrRole], *, guild: Optional[discord.Guild] = None):
+        to_remove = {getattr(uor, "id", uor) for uor in users_or_roles}
+        await bot._whiteblacklist_cache.remove_from_blacklist(guild, to_remove)
+
+    async def get_blacklist(bot: Red, guild: Optional[discord.Guild] = None) -> Set[int]:
+        return await bot._whiteblacklist_cache.get_blacklist(guild)
+
+    async def clear_blacklist(bot: Red, guild: Optional[discord.Guild] = None):
+        await bot._whiteblacklist_cache.clear_blacklist(guild)
 
 log = logging.getLogger("red.JojoCogs.advancedblacklist")
 _config_structure = {
@@ -38,7 +61,7 @@ class AdvancedBlacklist(commands.Cog):
     """An advanced blacklist cog"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.7"
+    __version__ = "1.1.0"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -156,15 +179,11 @@ class AdvancedBlacklist(commands.Cog):
         users = await sorter(users)
         if not users:
             raise commands.UserInputError
-        users = [u.id for u in users]
-        # as much as I dislike this I have to use this until Red releases an api method for this
-        await self.bot._whiteblacklist_cache.add_to_blacklist(
-            guild=ctx.guild, role_or_user=users
-        )
-        gid = str(ctx.guild.id)
+        # I got an api added to red now fuck yes :D
+        await add_to_blacklist(self.bot, users, guild=ctx.guild)
         async with self.config.guild(ctx.guild).blacklist() as lbl:
             for user in users:
-                lbl[str(user)] = reason
+                lbl[str(user.id)] = reason
         await ctx.tick()
 
     @localblocklist.command(name="remove", alises=["del", "delete"])
@@ -176,13 +195,10 @@ class AdvancedBlacklist(commands.Cog):
         **Arguments**
             - `user` The user to remove from the blacklist.
         """
-        users = [u.id for u in users]
-        await self.bot._whiteblacklist_cache.remove_from_blacklist(
-            guild=ctx.guild, role_or_user=users
-        )
+        await remove_from_blacklist(bot, users, guild=ctx.guild)
         async with self.config.guild(ctx.guild).blacklist() as lbl:
             for user in users:
-                lbl.pop(str(user), None)
+                lbl.pop(str(user.id), None)
         await ctx.tick()
 
     @localblocklist.command(name="list")
@@ -233,6 +249,7 @@ class AdvancedBlacklist(commands.Cog):
         if not pred.result:
             return await ctx.send("Okay, I will not clear the blacklist")
         await ctx.tick()
+        await clear_blacklist(bot, guild=ctx.guild)
         async with self.config.guild(ctx.guild).blacklist() as lbl:
             lbl.clear()
 
@@ -346,13 +363,10 @@ class AdvancedBlacklist(commands.Cog):
         """
         if not users:
             raise commands.UserInputError
-        users = [u.id for u in users]
-        await self.bot._whiteblacklist_cache.add_to_blacklist(
-            guild=None, role_or_user=users
-        )
+        await add_to_blacklist(self.bot, users)
         async with self.config.blacklist() as blacklist:
             for user in users:
-                blacklist[str(user)] = reason
+                blacklist[str(user.id)] = reason
         await ctx.tick()
 
     @blocklist.command(name="clear")
@@ -369,7 +383,7 @@ class AdvancedBlacklist(commands.Cog):
             pass
         if not pred.result:
             return await ctx.send("Okay. I will not clear the blacklist")
-        await self.bot._whiteblacklist_cache.clear_blacklist()
+        await clear_blacklist(self.bot)
         async with self.config.blacklist() as bl:
             bl.clear()
         await ctx.tick()
@@ -383,10 +397,7 @@ class AdvancedBlacklist(commands.Cog):
         **Arguments**
             - `user` The user to remove from the blacklist
         """
-        users = [u.id for u in users]
-        await self.bot._whiteblacklist_cache.remove_from_blacklist(
-            guild=None, role_or_user=users
-        )
+        await remove_from_blacklist(self.bot, users)
         async with self.config.blacklist() as blacklist:
             for user in users:
                 try:
@@ -428,9 +439,7 @@ class AdvancedBlacklist(commands.Cog):
                 if reg:
                     pattern = re.compile(pattern)
                 if re.search(pattern, author_name) if reg else pattern in author_name:
-                    await self.bot._whiteblacklist_cache.add_to_blacklist(
-                        guild=None, role_or_user=(msg.author.id,)
-                    )
+                    await add_to_blacklist(self.bot, [msg.author])
                     bl[str(msg.author.id)] = "Name matched the blacklisted name list."
                     log.info(
                         f"Blacklisted {msg.author.name} as they had a blacklisted name."
