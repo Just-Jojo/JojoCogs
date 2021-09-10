@@ -23,7 +23,7 @@ class Deleting(TodoMixin):
     async def todo(self, *args):
         pass
 
-    @todo.command(name="delete", aliases=["del", "remove"], require_var_positional=True)
+    @todo.command(name="delete", aliases=["del", "remove", "clear"], require_var_positional=True)
     async def todo_delete(self, ctx: commands.Context, *indexes: PositiveInt):
         """Delete a todo task
 
@@ -64,7 +64,7 @@ class Deleting(TodoMixin):
         if task is not None and not task.done():
             await task
 
-    @todo.command(name="deleteall", aliases=["delall", "removeall"])
+    @todo.command(name="deleteall", aliases=["delall", "removeall", "clearall"])
     async def todo_delete_all(self, ctx: commands.Context, confirm: bool = False):
         """Remove all of your todos
 

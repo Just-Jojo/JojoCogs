@@ -68,7 +68,7 @@ class Complete(TodoMixin):
             await task
 
     @complete.command(
-        name="delete", aliases=["del", "remove"], require_var_positional=True
+        name="delete", aliases=["del", "remove", "clear"], require_var_positional=True
     )
     async def complete_delete(self, ctx: commands.Context, *indexes: PositiveInt):
         """Delete completed todos
@@ -101,7 +101,7 @@ class Complete(TodoMixin):
         await ctx.send(f"Deleted {amount} completed todo{plural}")
         await self.cache.set_user_item(ctx.author, "completed", completed)
 
-    @complete.command(name="deleteall", aliases=["delall", "removeall"])
+    @complete.command(name="deleteall", aliases=["delall", "removeall", "clearall"])
     async def complete_remove_all(self, ctx: commands.Context, confirm: bool = False):
         """Remove all of your completed todos
 
