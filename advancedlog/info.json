@@ -1,0 +1,17 @@
+{
+    "name": "",
+    "short": "",
+    "description": "",
+    "end_user_data_statement": "This cog does not store end user data.",
+    "install_msg": "",
+    "author": [
+        "Jojo#7791"
+    ],
+    "required_cogs": {},
+    "requirements": [],
+    "tags": [],
+    "min_bot_version": "3.4.6",
+    "hidden": false,
+    "disabled": false,
+    "type": "COG"
+}
