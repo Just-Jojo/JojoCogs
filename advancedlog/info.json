@@ -1,0 +1,19 @@
+{
+    "name": "advancedlog",
+    "short": "Log/Make notes about users",
+    "description": "Allow moderators to make notes about users",
+    "end_user_data_statement": "This cog stores \"notes\" on users via ids.",
+    "install_msg": "Thank you for installing Advanced Log.\nThis cog allows moderators to add notes to users to keep track of things.",
+    "author": [
+        "Jojo#7791"
+    ],
+    "required_cogs": {},
+    "requirements": [],
+    "tags": [
+        "utility", "moderation", "mod"
+    ],
+    "min_bot_version": "3.4.10",
+    "hidden": false,
+    "disabled": false,
+    "type": "COG"
+}
