@@ -13,6 +13,10 @@ class _NonBotMixin(commands.Converter):
     """Remember kids, Don't Repeat Yourself (D.R.Y)"""
 
     converter_type: commands.Converter
+    _whitelist_mode: bool
+
+    def __init__(self, *, whitelist: bool = False):
+        self._whitelist_mode = whitelist
 
     async def convert(
         self, ctx: commands.Context, arg: str
@@ -20,9 +24,9 @@ class _NonBotMixin(commands.Converter):
         maybe_user = await self.converter_type().convert(ctx, arg)
         if maybe_user.bot:
             raise commands.BadArgument("That user is a bot")
-        elif maybe_user == ctx.author:
+        elif maybe_user == ctx.author and not self._whitelist_mode:
             raise commands.BadArgument("You cannot blacklist yourself")
-        elif await ctx.bot.is_owner(maybe_user):
+        elif await ctx.bot.is_owner(maybe_user) and not self._whitelist_mode:
             raise commands.BadArgument("You cannot blacklist this bot's owner")
         return maybe_user
 
