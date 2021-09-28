@@ -43,7 +43,7 @@ class AdvancedBlacklist(commands.Cog):
     """An advanced blacklist cog"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.1.2"
+    __version__ = "1.1.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
