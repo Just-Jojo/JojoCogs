@@ -18,7 +18,9 @@ __all__ = [
 ]
 
 # Backwards compatability :D
-if version_info >= VersionInfo.from_str("3.4.13"):
+
+# Check for dev version as a fork might not have the blacklist api. Better safe than sorry
+if version_info >= VersionInfo.from_str("3.4.13") and not version_info.dev_release:
     add_to_blacklist = Red.add_to_blacklist
     remove_from_blacklist = Red.remove_from_blacklist
     get_blacklist = Red.get_blacklist
