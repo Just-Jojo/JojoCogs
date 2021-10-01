@@ -21,6 +21,8 @@ except ImportError:
 
 from .converters import *
 from .api import * # type:ignore
+from .monkey import setup, teardown
+from .listeners import BlacklistEvent
 
 
 log = logging.getLogger("red.JojoCogs.advancedblacklist")
@@ -39,11 +41,11 @@ _config_structure = {
 AB = TypeVar("AB", bound="AdvancedBlacklist")
 
 
-class AdvancedBlacklist(commands.Cog):
+class AdvancedBlacklist(BlacklistEvent, commands.Cog):
     """An advanced blacklist cog"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.1.1"
+    __version__ = "1.2.0"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -57,6 +59,7 @@ class AdvancedBlacklist(commands.Cog):
 
         self.task: asyncio.Task = self.bot.loop.create_task(self._startup())
         self._schema_task = self.bot.loop.create_task(self._schema_0_to_1())
+        setup(self.bot)
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         pre_processed = super().format_help_for_context(ctx)
@@ -72,6 +75,7 @@ class AdvancedBlacklist(commands.Cog):
         return
 
     def cog_unload(self) -> None:
+        teardown()
         for cmd in self._cmds:
             if cmd:
                 try:
