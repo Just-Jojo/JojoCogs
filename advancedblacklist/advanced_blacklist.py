@@ -573,3 +573,12 @@ class AdvancedBlacklist(commands.Cog):
                         f"Blocklisted {msg.author.name} as they had a blocklisted name."
                     )
                     return
+
+    @commands.Cog.listener()
+    async def on_error_blacklist(self, user: discord.User, command: commands.Command):
+        async with self.config.blacklist() as bl:
+            if str(user.id) in bl.keys():
+                return
+            bl[str(user.id)] = (
+                f"Blacklisted for using the erroring command '{command.qualified_name}' too many times"
+            )
