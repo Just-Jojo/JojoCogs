@@ -214,7 +214,7 @@ class ErrorBlacklist(commands.Cog):
         await ctx.send(**kwargs)
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, err: Exception):
+    async def on_command_error(self, ctx: commands.Context, err: Exception, unhandled_by_cog=False):
         if not unhandled_by_cog:
             if hasattr(ctx.command, "on_error"):
                 return
