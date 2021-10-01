@@ -3,7 +3,7 @@
     "short": "Blacklist users if they use a command that errors too many times",
     "description": "Blacklist users if they use a command that errors too many times",
     "end_user_data_statement": "This cog does not store end user data.",
-    "install_msg": "Thank you for installing Jojo's blacklist error cog",
+    "install_msg": "Thank you for installing Jojo's blacklist error cog.\n\nThis cog allows your bot to blacklist users who use erroring commands too many times.",
     "author": [
         "Jojo#7791"
     ],

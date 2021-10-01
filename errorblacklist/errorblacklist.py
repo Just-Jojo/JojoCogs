@@ -23,7 +23,7 @@ RequestType = Literal["discord_deleted_user", "owner", "user", "user_strict"]
 
 _config_structure = {
     "global": {
-        "enabled": True,
+        "enabled": False,
         "amount": 5,
         "clear_usage": True,
         "whitelist": {
@@ -199,7 +199,7 @@ class ErrorBlacklist(commands.Cog):
         data = {
             "Enabled": await coro.enabled(),
             "Times a user has to use an erroring command": await coro.amount(),
-            "Clear a user's logs": await coro.clear_usage()
+            "Clear a user's error logs": await coro.clear_usage()
         }
         kwargs = {
             "content": (
