@@ -1,0 +1,20 @@
+{
+    "name": "ErrorBlacklist",
+    "short": "Blacklist users if they use a command that errors too many times",
+    "description": "Blacklist users if they use a command that errors too many times",
+    "end_user_data_statement": "This cog does not store end user data.",
+    "install_msg": "Thank you for installing Jojo's blacklist error cog",
+    "author": [
+        "Jojo#7791"
+    ],
+    "required_cogs": {},
+    "requirements": [],
+    "tags": [
+        "utility,",
+        "blacklist"
+    ],
+    "min_bot_version": "3.4.10",
+    "hidden": false,
+    "disabled": false,
+    "type": "COG"
+}
