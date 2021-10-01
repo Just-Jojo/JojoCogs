@@ -223,7 +223,7 @@ class ErrorBlacklist(commands.Cog):
                 if ctx.cog.has_error_handler():
                     return
                 
-        ignore = [commands.MissingRequiredArgument, commands.ArgParserFailure, commands.ConversionFailure, commands.UserInputError, commands.DisabledCommand, commands.CommandInvokeError, commands.CommandNotFound, commands.BotMissingPermissions, commands.UserFeedbackCheckFailure, commands.NoPrivateMessage, commands.PrivateMessageOnly, commands.NSFWChannelRequired, commands.CheckFailure, commands.CommandOnCooldown, commands.MaxConcurrencyReached]
+        ignore = [commands.MissingRequiredArgument, commands.ArgParserFailure, commands.ConversionFailure, commands.UserInputError, commands.DisabledCommand, commands.CommandNotFound, commands.BotMissingPermissions, commands.UserFeedbackCheckFailure, commands.NoPrivateMessage, commands.PrivateMessageOnly, commands.NSFWChannelRequired, commands.CheckFailure, commands.CommandOnCooldown, commands.MaxConcurrencyReached]
 
         if type(err) in ignore:
             return
