@@ -215,6 +215,19 @@ class ErrorBlacklist(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, err: Exception):
+        if not unhandled_by_cog:
+            if hasattr(ctx.command, "on_error"):
+                return
+
+            if ctx.cog:
+                if ctx.cog.has_error_handler():
+                    return
+                
+        ignore = [commands.MissingRequiredArgument, commands.ArgParserFailure, commands.ConversionFailure, commands.UserInputError, commands.DisabledCommand, commands.CommandInvokeError, commands.CommandNotFound, commands.BotMissingPermissions, commands.UserFeedbackCheckFailure, commands.NoPrivateMessage, commands.PrivateMessageOnly, commands.NSFWChannelRequired, commands.CheckFailure, commands.CommandOnCooldown, commands.MaxConcurrencyReached]
+
+        if type(err) in ignore:
+            return
+
         whitelist = await self.config.whitelist()
         user = ctx.author
         if not await self.config.enabled() or await self.bot.is_owner(user) or user.id in whitelist:
