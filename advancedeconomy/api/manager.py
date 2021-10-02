@@ -2,6 +2,7 @@
 # Licensed under MIT
 
 import random
+
 from .jobs import Job
 from .user import User
 

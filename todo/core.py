@@ -15,8 +15,8 @@ from redbot.core.utils.predicates import MessagePredicate
 from .abc import MetaClass
 from .commands import *
 from .utils import (
-    TodoApi,
     PositiveInt,
+    TodoApi,
     TodoMenu,
     TodoPage,
     ViewTodo,

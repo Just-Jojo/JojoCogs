@@ -1,14 +1,13 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import discord # type:ignore
-from redbot.core import commands
-from redbot.core.utils.chat_formatting import box
-from redbot.vendored.discord.ext import menus # type:ignore
-
+from contextlib import suppress
 from typing import Union
 
-from contextlib import suppress
+import discord  # type:ignore
+from redbot.core import commands
+from redbot.core.utils.chat_formatting import box
+from redbot.vendored.discord.ext import menus  # type:ignore
 
 
 class Page(menus.ListPageSource):
@@ -24,14 +23,12 @@ class Page(menus.ListPageSource):
             ret = discord.Embed(
                 title=self.title,
                 description=box(page, "md"),
-                colour=await ctx.embed_colour()
-            ).set_footer(
-                text=footer
-            )
+                colour=await ctx.embed_colour(),
+            ).set_footer(text=footer)
         return ret
 
 
-class Menu(menus.MenuPages, inherit_buttons=False): # type:ignore
+class Menu(menus.MenuPages, inherit_buttons=False):  # type:ignore
     def __init__(self, source: Page):
         super().__init__(source)
 
@@ -47,7 +44,9 @@ class Menu(menus.MenuPages, inherit_buttons=False): # type:ignore
         except IndexError:
             pass
 
-    async def send_initial_message(self, ctx: commands.Context, channel: discord.TextChannel) -> discord.Message:
+    async def send_initial_message(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ) -> discord.Message:
         page = await self.source.get_page(0)
         self.current_page = 0
         kwargs = await self._get_kwargs_from_page(page)
@@ -68,7 +67,7 @@ class Menu(menus.MenuPages, inherit_buttons=False): # type:ignore
     @menus.button(
         "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE}\N{VARIATION SELECTOR-16}",
         position=menus.First(0),
-        skip_if=_skip_double_triangle_buttons
+        skip_if=_skip_double_triangle_buttons,
     )
     async def go_to_first_page(self, payload):
         await self.show_page(0)
@@ -76,7 +75,7 @@ class Menu(menus.MenuPages, inherit_buttons=False): # type:ignore
     @menus.button(
         "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE}\N{VARIATION SELECTOR-16}",
         position=menus.Last(1),
-        skip_if=_skip_double_triangle_buttons
+        skip_if=_skip_double_triangle_buttons,
     )
     async def go_to_last_page(self, payload):
         await self.show_page(self.source.get_max_pages() - 1)
@@ -84,7 +83,7 @@ class Menu(menus.MenuPages, inherit_buttons=False): # type:ignore
     @menus.button(
         "\N{LEFTWARDS BLACK ARROW}\N{VARIATION SELECTOR-16}",
         position=menus.First(1),
-        skip_if=_skip_single_triangle_buttons
+        skip_if=_skip_single_triangle_buttons,
     )
     async def go_to_previous_page(self, payload):
         await self.show_checked_page(self.current_page - 1)
@@ -92,7 +91,7 @@ class Menu(menus.MenuPages, inherit_buttons=False): # type:ignore
     @menus.button(
         "\N{BLACK RIGHTWARDS ARROW}\N{VARIATION SELECTOR-16}",
         position=menus.Last(0),
-        skip_if=_skip_single_triangle_buttons
+        skip_if=_skip_single_triangle_buttons,
     )
     async def go_to_next_page(self, payload):
         await self.show_checked_page(self.current_page + 1)

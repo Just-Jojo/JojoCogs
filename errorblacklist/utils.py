@@ -1,16 +1,15 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import discord
-
-from redbot.core import commands
-from redbot.core.utils.chat_formatting import humanize_list as hl
-from discord.utils import copy_doc
-
 from typing import Union
 
+import discord
+from discord.utils import copy_doc
+from redbot.core import commands
+from redbot.core.utils.chat_formatting import humanize_list as hl
 
 __all__ = ["humanize_list", "PositiveInt", "UserOrCommand"]
+
 
 @copy_doc(hl)
 def humanize_list(items: list, *args) -> str:
@@ -30,7 +29,9 @@ class PositiveInt(commands.Converter):
 
 
 class UserOrCommand(commands.Converter):
-    async def convert(self, ctx: commands.Context, arg: str) -> Union[discord.User, commands.Command]:
+    async def convert(
+        self, ctx: commands.Context, arg: str
+    ) -> Union[discord.User, commands.Command]:
         maybe_com = ctx.bot.get_command(arg)
         if maybe_com:
             return maybe_com

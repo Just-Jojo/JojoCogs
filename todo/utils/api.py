@@ -21,6 +21,7 @@ It's design is so odd and frankly strange that I doubt I will be able to replica
 All this is to say that I don't know why I built this cog and I hate myself :D
 """
 
+
 class TodoApi:
     r"""An API for todo that interacts with the config of Todo."""
 

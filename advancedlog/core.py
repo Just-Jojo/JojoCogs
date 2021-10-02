@@ -1,17 +1,17 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import discord # type:ignore
-from redbot.core import commands, Config, modlog
+import logging
+
+import discord  # type:ignore
+from redbot.core import Config, commands, modlog
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import pagify
 
-from .utils import *
 from .api import NotAuthor, NoteApi, modlog_exists
 from .menus import Menu, Page
-import logging
-
+from .utils import *
 
 log = logging.getLogger("red.JojoCogs.advanced_log")
 _config_structure = {
@@ -78,14 +78,16 @@ class AdvancedLog(commands.Cog):
     @modnoteset.command()
     async def usemodlog(self, ctx: commands.Context, toggle: bool):
         """Toggle whether to use the modlog or not
-        
+
         If toggled, whenever a note is created on a user it will create a case in the modlog
 
         **Arguments**
             - `toggle` Whether to enable or disable the modlog logging
         """
         if toggle and not await modlog_exists(ctx.guild):
-            return await ctx.send("I could not find the modlog channel. Please set one up in order to use this feature")
+            return await ctx.send(
+                "I could not find the modlog channel. Please set one up in order to use this feature"
+            )
         current = await self.config.guild(ctx.guild).modlog_enabled()
         disabled = "enabled" if toggle else "disabled"
         if current == toggle:
@@ -95,7 +97,9 @@ class AdvancedLog(commands.Cog):
 
     @commands.group(aliases=("mnote",), invoke_without_command=True)
     @commands.mod_or_permissions(administrator=True)
-    async def modnote(self, ctx: commands.Context, user: NonBotMember(False), *, note: str): # type:ignore
+    async def modnote(
+        self, ctx: commands.Context, user: NonBotMember(False), *, note: str
+    ):  # type:ignore
         """Create a note for a user. This user cannot be a bot
 
         If enabled this will also log to the modlog
@@ -110,9 +114,9 @@ class AdvancedLog(commands.Cog):
     @modnote.command()
     async def remove(self, ctx: commands.Context, user: NonBotMember, index: PositiveInt):
         """Remove a note from a user.
-        
+
         Note that you must be the author of the note to remove it
-        
+
         **Arguments**
             - `user` The user to remove a note from
             - `index` The index of the note to remove
@@ -127,9 +131,11 @@ class AdvancedLog(commands.Cog):
             await ctx.send(f"Removed a note from that user at index {index}")
 
     @modnote.command()
-    async def edit(self, ctx: commands.Context, user: NonBotMember, index: PositiveInt, *, note: str):
+    async def edit(
+        self, ctx: commands.Context, user: NonBotMember, index: PositiveInt, *, note: str
+    ):
         """Edit a note on a user
-        
+
         Note that you can only edit notes that you have created
 
         **Arguments**
@@ -144,12 +150,14 @@ class AdvancedLog(commands.Cog):
         except IndexError:
             await ctx.send(f"I could not find a note at index {index}.")
         else:
-            await ctx.send(f"Edited the note at index {index}.") # TODO(Jojo) Maybe send the new + old note?
+            await ctx.send(
+                f"Edited the note at index {index}."
+            )  # TODO(Jojo) Maybe send the new + old note?
 
     @modnote.command(name="list")
     async def list_notes(self, ctx: commands.Context, user: NonBotMember):
         """List the notes on a certain user
-        
+
         This user cannot be a bot
 
         **Arguments**
@@ -160,7 +168,14 @@ class AdvancedLog(commands.Cog):
             return await ctx.send("That user does not have any notes")
         act = []
         for note in data:
-            act.append([getattr(ctx.guild.get_member(note["author"]), "name", note["author"]), note["note"]])
+            act.append(
+                [
+                    getattr(ctx.guild.get_member(note["author"]), "name", note["author"]),
+                    note["note"],
+                ]
+            )
         msg = "# Moderator\tNote\n"
-        msg += "\n".join(f"{num}. {mod}\t\t{note}" for num, (mod, note) in enumerate(act, 1))
+        msg += "\n".join(
+            f"{num}. {mod}\t\t{note}" for num, (mod, note) in enumerate(act, 1)
+        )
         await Menu(Page(list(pagify(msg)), f"{user.name}'s notes")).start(ctx)

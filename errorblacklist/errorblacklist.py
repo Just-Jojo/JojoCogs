@@ -3,20 +3,18 @@
 
 # type:ignore[missing-import]
 
+import logging
 from typing import Literal
 
 import discord
 from discord.ext import tasks
-
-from redbot.core import commands, Config
+from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
-import logging
 
 from .api import *
-from .menus import Page, Menu
+from .menus import Menu, Page
 from .utils import *
-
 
 log = logging.getLogger("red.JojoCogs.error_blacklist")
 RequestType = Literal["discord_deleted_user", "owner", "user", "user_strict"]
@@ -27,12 +25,12 @@ _config_structure = {
         "amount": 5,
         "clear_usage": True,
         "whitelist": {
-            "commands": [], # List[str] commands that are ignored by this cog
-            "users": [], # List[int] users who are ignored by this cog
+            "commands": [],  # List[str] commands that are ignored by this cog
+            "users": [],  # List[int] users who are ignored by this cog
         },
     },
     "user": {
-        "errors": {}, # Commands name and the amount of times the command has been used
+        "errors": {},  # Commands name and the amount of times the command has been used
     },
 }
 
@@ -54,11 +52,7 @@ class ErrorBlacklist(commands.Cog):
 
     def __init__(self, bot: Red):
         self.bot = bot
-        self.config = Config.get_conf(
-            self,
-            544974305445019651,
-            True
-        )
+        self.config = Config.get_conf(self, 544974305445019651, True)
         for key, value in _config_structure.items():
             getattr(self.config, f"register_{key}")(**value)
         self._cache: dict = {}
@@ -90,10 +84,10 @@ class ErrorBlacklist(commands.Cog):
         """Manage the error blacklist cog's settings"""
         pass
 
-    @errorblacklist.command(name="enable", aliases=["disable"])
+    @errorblacklist.command(name="enable", aliases=["disable", "toggle"])
     async def error_blacklist_enable(self, ctx: commands.Context):
         """Enable the error watcher
-        
+
         If enabled it will watch for when a user uses a command that errors.
         """
         coro = self.config.enabled
@@ -117,7 +111,9 @@ class ErrorBlacklist(commands.Cog):
         if amount == 1:
             return await ctx.send("1?! Have mercy on them for Billy Bob's sake")
         await self.config.amount.set(amount)
-        await ctx.send(f"Done. If a user uses a command that errors `{amount}` times they will be blacklisted")
+        await ctx.send(
+            f"Done. If a user uses a command that errors `{amount}` times they will be blacklisted"
+        )
 
     @errorblacklist.group(name="whitelist")
     async def error_blacklist_whitelist(self, ctx: commands.Context):
@@ -130,7 +126,7 @@ class ErrorBlacklist(commands.Cog):
     @error_blacklist_whitelist.command(name="add")
     async def whitelist_add(self, ctx: commands.Context, user_or_command: UserOrCommand):
         """Add an itme to the whitelist.
-        
+
         If it's a user that user will be ignored by the error checker.
         If it's a command when the command errors it will be ignored by the error checker.
 
@@ -144,15 +140,21 @@ class ErrorBlacklist(commands.Cog):
             val = self.config.whitelist.commands
         to_add = getattr(user_or_command, "qualified_name", user_or_command.id)
         if to_add in await val():
-            return await ctx.send(f"That {'user' if is_user else 'command'} is already in the whitelist.")
-        await ctx.send(f"Done. Added `{to_add}` to the whitelist as a {'user id' if is_user else 'command'}.")
+            return await ctx.send(
+                f"That {'user' if is_user else 'command'} is already in the whitelist."
+            )
+        await ctx.send(
+            f"Done. Added `{to_add}` to the whitelist as a {'user id' if is_user else 'command'}."
+        )
         async with val() as f:
             f.append(to_add)
 
     @error_blacklist_whitelist.command(name="remove", aliases=["del", "delete"])
-    async def whitelist_remove(self, ctx: commands.Context, user_or_command: UserOrCommand):
+    async def whitelist_remove(
+        self, ctx: commands.Context, user_or_command: UserOrCommand
+    ):
         """Remove a user or command from the whitelist.
-        
+
         If it is a user then they will no longer be ignored by the error watcher.
         If it is a command then it will no longer be ignored by the error watcher.
 
@@ -166,8 +168,12 @@ class ErrorBlacklist(commands.Cog):
             val = self.config.whitelist.commands
         to_add = getattr(user_or_command, "qualified_name", user_or_command.id)
         if to_add not in await val():
-            return await ctx.send(f"That {'user' if is_user else 'command'} is not in the whitelist.")
-        await ctx.send(f"Done. Removed `{to_add}` from the whitelist as a {'user id' if is_user else 'command'}")
+            return await ctx.send(
+                f"That {'user' if is_user else 'command'} is not in the whitelist."
+            )
+        await ctx.send(
+            f"Done. Removed `{to_add}` from the whitelist as a {'user id' if is_user else 'command'}"
+        )
 
         async with val() as f:
             f.remove(to_add)
@@ -199,7 +205,7 @@ class ErrorBlacklist(commands.Cog):
         data = {
             "Enabled": await coro.enabled(),
             "Times a user has to use an erroring command": await coro.amount(),
-            "Clear a user's error logs": await coro.clear_usage()
+            "Clear a user's error logs": await coro.clear_usage(),
         }
         kwargs = {
             "content": (
@@ -208,13 +214,20 @@ class ErrorBlacklist(commands.Cog):
             )
         }
         if await ctx.embed_requested():
-            embed = discord.Embed(title="Error Blacklist settings", colour=await ctx.embed_colour())
-            [embed.add_field(name=key, value=value, inline=False) for key, value in data.items()]
+            embed = discord.Embed(
+                title="Error Blacklist settings", colour=await ctx.embed_colour()
+            )
+            [
+                embed.add_field(name=key, value=value, inline=False)
+                for key, value in data.items()
+            ]
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, err: Exception, unhandled_by_cog=False):
+    async def on_command_error(
+        self, ctx: commands.Context, err: Exception, unhandled_by_cog=False
+    ):
         if not unhandled_by_cog:
             if hasattr(ctx.command, "on_error"):
                 return
@@ -222,15 +235,35 @@ class ErrorBlacklist(commands.Cog):
             if ctx.cog:
                 if ctx.cog.has_error_handler():
                     return
-                
-        ignore = [commands.MissingRequiredArgument, commands.ArgParserFailure, commands.ConversionFailure, commands.UserInputError, commands.DisabledCommand, commands.CommandNotFound, commands.BotMissingPermissions, commands.UserFeedbackCheckFailure, commands.NoPrivateMessage, commands.PrivateMessageOnly, commands.NSFWChannelRequired, commands.CheckFailure, commands.CommandOnCooldown, commands.MaxConcurrencyReached]
+
+        ignore = [
+            commands.MissingRequiredArgument,
+            commands.ArgParserFailure,
+            commands.ConversionFailure,
+            commands.UserInputError,
+            commands.DisabledCommand,
+            commands.CommandNotFound,
+            commands.BotMissingPermissions,
+            commands.UserFeedbackCheckFailure,
+            commands.NoPrivateMessage,
+            commands.PrivateMessageOnly,
+            commands.NSFWChannelRequired,
+            commands.CheckFailure,
+            commands.CommandOnCooldown,
+            commands.MaxConcurrencyReached,
+        ]
 
         if type(err) in ignore:
+            return
+        if not ctx.command.cog:
             return
 
         whitelist = await self.config.whitelist()
         user = ctx.author
-        if not await self.config.enabled() or await self.bot.is_owner(user) or user.id in whitelist:
+        if (
+            not await self.config.enabled()
+            or await self.bot.is_owner(user)
+        ):
             return
 
         name = ctx.command.qualified_name
@@ -254,9 +287,11 @@ class ErrorBlacklist(commands.Cog):
 
         amount = await self.config.amount()
         if (am := self._cache[user.id].get(ctx.command.name)) and am >= amount:
+            log.info(
+                f"Blacklisted {user} ({user.id}) as they have used a command that has errored {am} times."
+            )
             await add_to_blacklist(self.bot, {user})
             self.bot.dispatch("error_blacklist", user, ctx.command)
-            log.info(f"Blacklisted {user} ({user.id}) as they have used a command that has errored {am} times.")
 
     @tasks.loop(hours=24)
     async def clear_cache(self):

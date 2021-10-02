@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 __all__ = ["User"]
 
+
 @dataclass(frozen=True)
 class User:
     intelligence: int
@@ -15,9 +16,7 @@ class User:
     __slots__ = ("intelligence", "strength", "agility", "determination")
 
     def to_json(self):
-        return {
-            x: getattr(self, x) for x in self.__slots__
-        }
+        return {x: getattr(self, x) for x in self.__slots__}
 
     @property
     def has_max_stats(self) -> bool:

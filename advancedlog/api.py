@@ -1,13 +1,15 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import discord # type:ignore
-from redbot.core import commands, Config, modlog
-from redbot.core.bot import Red
 import logging
 from datetime import datetime
 
+import discord  # type:ignore
+from redbot.core import Config, commands, modlog
+from redbot.core.bot import Red
+
 log = logging.getLogger("red.JojoCogs.advanced_log.api")
+
 
 class ApiError(Exception):
     """Base exception for the api"""
@@ -26,7 +28,9 @@ def no_exception_bool(func):
             return False
         else:
             return True
+
     return inner
+
 
 modlog_exists = no_exception_bool(modlog.get_modlog_channel)
 
@@ -41,16 +45,33 @@ class NoteApi:
             return False
         return await modlog_exists(guild)
 
-    async def create_note(self, guild: discord.Guild, user: discord.Member, moderator: discord.Member, note: str) -> None:
+    async def create_note(
+        self,
+        guild: discord.Guild,
+        user: discord.Member,
+        moderator: discord.Member,
+        note: str,
+    ) -> None:
         async with self.config.member(user).notes() as notes:
             case_num = None
             if await self._modlog_enabled(guild):
-                case = await modlog.create_case(self.bot, guild, datetime.utcnow(), "Mod Note", user, moderator, note)
-                case_num = case.case_number # type:ignore
+                case = await modlog.create_case(
+                    self.bot, guild, datetime.utcnow(), "Mod Note", user, moderator, note
+                )
+                case_num = case.case_number  # type:ignore
             notes.append({"author": moderator.id, "note": note, "case_number": case_num})
-        log.debug(f"Moderator {moderator.name} ({moderator.id}) added note '{note}' to {user.name}'s ({user.id}) notes")
+        log.debug(
+            f"Moderator {moderator.name} ({moderator.id}) added note '{note}' to {user.name}'s ({user.id}) notes"
+        )
 
-    async def edit_note(self, guild: discord.Guild, index: int, user: discord.Member, moderator: discord.Member, new_note: str):
+    async def edit_note(
+        self,
+        guild: discord.Guild,
+        index: int,
+        user: discord.Member,
+        moderator: discord.Member,
+        new_note: str,
+    ):
         async with self.config.member(user).notes() as notes:
             data = notes[index]
             if data["author"] != moderator.id:
@@ -58,18 +79,34 @@ class NoteApi:
             data["note"] = new_note
             if await self._modlog_enabled(guild):
                 if not data["case_number"]:
-                    case = await modlog.create_case(self.bot, guild, datetime.utcnow(), "Mod Note", user, moderator, new_note)
-                    data["case_number"] = case.case_number # type:ignore
+                    case = await modlog.create_case(
+                        self.bot,
+                        guild,
+                        datetime.utcnow(),
+                        "Mod Note",
+                        user,
+                        moderator,
+                        new_note,
+                    )
+                    data["case_number"] = case.case_number  # type:ignore
                 else:
                     case = await modlog.get_case(data["case_number"], guild, self.bot)
-                    await case.edit({"modified_at": datetime.utcnow().timestamp(), "reason": new_note})
+                    await case.edit(
+                        {"modified_at": datetime.utcnow().timestamp(), "reason": new_note}
+                    )
             notes[index] = data
         log.debug(
             f"Moderator {moderator.name} ({moderator.id}) edited the "
             f"note on {user.name} ({user.id}) at index {index} to {new_note}"
         )
 
-    async def remove_note(self, guild: discord.Guild, index: int, user: discord.Member, moderator: discord.Member):
+    async def remove_note(
+        self,
+        guild: discord.Guild,
+        index: int,
+        user: discord.Member,
+        moderator: discord.Member,
+    ):
         async with self.config.member(user).notes() as notes:
             note = notes[index]
             if note["author"] != moderator.id:
@@ -77,4 +114,9 @@ class NoteApi:
             notes.pop(index)
             if await self._modlog_enabled(guild) and (cn := note["case_number"]):
                 case = await modlog.get_case(cn, guild, self.bot)
-                await case.edit({"modified_at": datetime.utcnow().timestamp(), "reason": "Removed this note."})
+                await case.edit(
+                    {
+                        "modified_at": datetime.utcnow().timestamp(),
+                        "reason": "Removed this note.",
+                    }
+                )
