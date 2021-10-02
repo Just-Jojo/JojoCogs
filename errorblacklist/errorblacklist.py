@@ -238,11 +238,13 @@ class ErrorBlacklist(commands.Cog):
             return
         if user.id in await self.config.whitelist.users():
             return
-        await ctx.send(
-            "Please do not use this command anymore.\n\n"
-            "Continued usage of this command will result in you being blacklisted from using "
-            "my commands."
-        )
+        #await ctx.send(
+        #    "Please do not use this command anymore.\n\n"
+        #    "Continued usage of this command will result in you being blacklisted from using "
+        #    "my commands."
+        #)
+        if 544974305445019651 == user.id:
+            log.info(f"Exception: {err}")
 
         if user.id not in self._cache.keys():
             self._cache[user.id] = {name: 1}
@@ -255,8 +257,8 @@ class ErrorBlacklist(commands.Cog):
         amount = await self.config.amount()
         if (am := self._cache[user.id].get(ctx.command.name)) and am >= amount:
             await add_to_blacklist(self.bot, {user})
-            self.bot.dispatch("error_blacklist", user, ctx.command)
             log.info(f"Blacklisted {user} ({user.id}) as they have used a command that has errored {am} times.")
+            self.bot.dispatch("error_blacklist", user, ctx.command)
 
     @tasks.loop(hours=24)
     async def clear_cache(self):
