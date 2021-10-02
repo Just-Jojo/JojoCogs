@@ -23,7 +23,7 @@ RequestType = Literal["discord_deleted_user", "owner", "user", "user_strict"]
 
 _config_structure = {
     "global": {
-        "enabled": True,
+        "enabled": False,
         "amount": 5,
         "clear_usage": True,
         "whitelist": {
@@ -43,7 +43,7 @@ class ErrorBlacklist(commands.Cog):
     """
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         plural = "" if len(self.__authors__) == 1 else "s"
@@ -199,7 +199,7 @@ class ErrorBlacklist(commands.Cog):
         data = {
             "Enabled": await coro.enabled(),
             "Times a user has to use an erroring command": await coro.amount(),
-            "Clear a user's logs": await coro.clear_usage()
+            "Clear a user's error logs": await coro.clear_usage()
         }
         kwargs = {
             "content": (
@@ -214,7 +214,20 @@ class ErrorBlacklist(commands.Cog):
         await ctx.send(**kwargs)
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, err: Exception):
+    async def on_command_error(self, ctx: commands.Context, err: Exception, unhandled_by_cog=False):
+        if not unhandled_by_cog:
+            if hasattr(ctx.command, "on_error"):
+                return
+
+            if ctx.cog:
+                if ctx.cog.has_error_handler():
+                    return
+                
+        ignore = [commands.MissingRequiredArgument, commands.ArgParserFailure, commands.ConversionFailure, commands.UserInputError, commands.DisabledCommand, commands.CommandNotFound, commands.BotMissingPermissions, commands.UserFeedbackCheckFailure, commands.NoPrivateMessage, commands.PrivateMessageOnly, commands.NSFWChannelRequired, commands.CheckFailure, commands.CommandOnCooldown, commands.MaxConcurrencyReached]
+
+        if type(err) in ignore:
+            return
+
         whitelist = await self.config.whitelist()
         user = ctx.author
         if not await self.config.enabled() or await self.bot.is_owner(user) or user.id in whitelist:
