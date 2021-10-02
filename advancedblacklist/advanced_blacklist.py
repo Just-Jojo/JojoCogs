@@ -19,11 +19,10 @@ try:
 except ImportError:
     import re  # type:ignore
 
+from .api import *  # type:ignore
 from .converters import *
-from .api import * # type:ignore
-from .monkey import setup, teardown
 from .listeners import BlacklistEvent
-
+from .monkey import setup, teardown
 
 log = logging.getLogger("red.JojoCogs.advancedblacklist")
 _config_structure = {
@@ -115,7 +114,9 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         guild_data = conf.pop("local_blacklist", None)
         if guild_data is not None:
             for g_id, data in guild_data.keys():
-                await self.config.guild_from_id(int(g_id)).set_raw("blacklist", value=data)
+                await self.config.guild_from_id(int(g_id)).set_raw(
+                    "blacklist", value=data
+                )
         conf["schema_v1"] = True
         await self.config.clear_all_globals()
         await self.config.set(conf)
@@ -169,7 +170,9 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
             sending += f"\n\t- [{user}] {await self._get_user_name(user)}: {reason}"
         await ctx.send_interactive(pagify(sending, page_length=1995), box_lang="yaml")
 
-    @whitelist.command(name="remove", aliases=["del", "delete"], require_var_positional=True)
+    @whitelist.command(
+        name="remove", aliases=["del", "delete"], require_var_positional=True
+    )
     async def whitelist_remove(self, ctx: commands.Context, *users: discord.User):
         """Remove users from [botname]'s allowlist.
 
@@ -211,7 +214,13 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         pass
 
     @localallowlist.command(name="add")
-    async def local_whitelist_add(self, ctx: commands.Context, users: commands.Greedy[NonBotUser(whitelist=True)], *, reason: str = None):
+    async def local_whitelist_add(
+        self,
+        ctx: commands.Context,
+        users: commands.Greedy[NonBotUser(whitelist=True)],
+        *,
+        reason: str = None,
+    ):
         """Add users to the local allowlist
 
         Only these users and the owner of the guild will be able to use the bot.
@@ -228,7 +237,9 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
                 lwl[user.id] = reason
         await ctx.tick()
 
-    @localallowlist.command(name="remove", aliases=["del", "delete", "rm"], require_var_positional=True)
+    @localallowlist.command(
+        name="remove", aliases=["del", "delete", "rm"], require_var_positional=True
+    )
     async def local_whitelist_remove(self, ctx: commands.Context, *users: discord.User):
         """Remove users from the local allowlist.
 
@@ -583,6 +594,6 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         async with self.config.blacklist() as bl:
             if str(user.id) in bl.keys():
                 return
-            bl[str(user.id)] = (
-                f"Blacklisted for using the erroring command '{command.qualified_name}' too many times"
-            )
+            bl[
+                str(user.id)
+            ] = f"Blacklisted for using the erroring command '{command.qualified_name}' too many times"

@@ -1,10 +1,11 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+from typing import Iterable, Optional, Set, Union
+
 import discord
 from redbot import VersionInfo, version_info
 from redbot.core.bot import Red
-from typing import Union, Optional, Iterable, Set
 
 __all__ = [
     "add_to_blacklist",

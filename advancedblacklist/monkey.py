@@ -1,11 +1,12 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from redbot.core.bot import Red
-from redbot.core.settings_caches import WhitelistBlacklistManager as WBM
+from typing import Callable, Iterable, List, Optional
+
 import discord
 from discord.utils import copy_doc
-from typing import List, Callable, Optional, Iterable
+from redbot.core.bot import Red
+from redbot.core.settings_caches import WhitelistBlacklistManager as WBM
 
 __all__ = ["setup", "teardown"]
 BOT: Optional[Red] = None
@@ -18,7 +19,9 @@ BOT: Optional[Red] = None
 
 
 @copy_doc(WBM.add_to_blacklist)
-async def add_to_blacklist(self: WBM, guild: Optional[discord.Guild], role_or_user: Iterable[int]):
+async def add_to_blacklist(
+    self: WBM, guild: Optional[discord.Guild], role_or_user: Iterable[int]
+):
     d = await _FUNCS[0](self, guild, role_or_user)
     if BOT:
         BOT.dispatch("blacklist_add", guild, set(role_or_user))
@@ -44,7 +47,9 @@ async def clear_blacklist(self: WBM, guild: Optional[discord.Guild]):
 
 
 @copy_doc(WBM.add_to_whitelist)
-async def add_to_whitelist(self: WBM, guild: Optional[discord.Guild], role_or_user: Iterable[int]):
+async def add_to_whitelist(
+    self: WBM, guild: Optional[discord.Guild], role_or_user: Iterable[int]
+):
     d = await _FUNCS[3](self, guild, role_or_user)
     if BOT:
         BOT.dispatch("whitelist_add", guild, set(role_or_user))

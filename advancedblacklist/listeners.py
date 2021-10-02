@@ -1,12 +1,11 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from redbot.core import commands, Config
-from redbot.core.bot import Red
-import discord
-
 from typing import Optional, Set
 
+import discord
+from redbot.core import Config, commands
+from redbot.core.bot import Red
 
 
 class BlacklistEvent:
@@ -36,7 +35,7 @@ class BlacklistEvent:
         async with coro.blacklist() as bl:
             for user in users:
                 try:
-                    bl.remove(user)
+                    bl.pop(user)
                 except ValueError:
                     pass
 
