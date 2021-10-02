@@ -291,6 +291,7 @@ class ErrorBlacklist(commands.Cog):
                 f"Blacklisted {user} ({user.id}) as they have used a command that has errored {am} times."
             )
             await add_to_blacklist(self.bot, {user})
+            log.info(f"Blacklisted {user} ({user.id}) as they have used a command that has errored {am} times.")
             self.bot.dispatch("error_blacklist", user, ctx.command)
 
     @tasks.loop(hours=24)
