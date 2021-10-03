@@ -14,7 +14,7 @@
         "fun"
     ],
     "min_bot_version": "3.3.10",
-    "hidden": false,
-    "disabled": false,
+    "hidden": true,
+    "disabled": true,
     "type": "COG"
 }
