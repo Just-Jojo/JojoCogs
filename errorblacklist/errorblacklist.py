@@ -232,7 +232,7 @@ class ErrorBlacklist(commands.Cog):
             if hasattr(ctx.command, "on_error"):
                 return
 
-            if ctx.cog and:
+            if ctx.cog:
                 if ctx.cog.has_error_handler():
                     return
 
