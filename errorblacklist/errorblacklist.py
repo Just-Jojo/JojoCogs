@@ -232,11 +232,10 @@ class ErrorBlacklist(commands.Cog):
             if hasattr(ctx.command, "on_error"):
                 return
 
-            if ctx.cog:
-                if ctx.cog.has_error_handler():
-                    return
+            if ctx.cog and ctx.cog.has_error_handler():
+                return
 
-        if not isinstance(error, commands.CommandInvokeError) or not ctx.command.cog:
+        if not isinstance(err, commands.CommandInvokeError) or not ctx.command.cog:
             return
 
         whitelist = await self.config.whitelist()
