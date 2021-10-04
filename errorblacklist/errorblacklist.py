@@ -41,7 +41,7 @@ class ErrorBlacklist(commands.Cog):
     """
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         plural = "" if len(self.__authors__) == 1 else "s"
