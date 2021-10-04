@@ -232,30 +232,11 @@ class ErrorBlacklist(commands.Cog):
             if hasattr(ctx.command, "on_error"):
                 return
 
-            if ctx.cog:
+            if ctx.cog and:
                 if ctx.cog.has_error_handler():
                     return
 
-        ignore = [
-            commands.MissingRequiredArgument,
-            commands.ArgParserFailure,
-            commands.ConversionFailure,
-            commands.UserInputError,
-            commands.DisabledCommand,
-            commands.CommandNotFound,
-            commands.BotMissingPermissions,
-            commands.UserFeedbackCheckFailure,
-            commands.NoPrivateMessage,
-            commands.PrivateMessageOnly,
-            commands.NSFWChannelRequired,
-            commands.CheckFailure,
-            commands.CommandOnCooldown,
-            commands.MaxConcurrencyReached,
-        ]
-
-        if type(err) in ignore:
-            return
-        if not ctx.command.cog:
+        if not isinstance(error, commands.CommandInvokeError) or not ctx.command.cog:
             return
 
         whitelist = await self.config.whitelist()
