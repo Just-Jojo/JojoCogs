@@ -41,7 +41,7 @@ class ErrorBlacklist(commands.Cog):
     """
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         plural = "" if len(self.__authors__) == 1 else "s"
@@ -232,11 +232,10 @@ class ErrorBlacklist(commands.Cog):
             if hasattr(ctx.command, "on_error"):
                 return
 
-            if ctx.cog:
-                if ctx.cog.has_error_handler():
-                    return
+            if ctx.cog and ctx.cog.has_error_handler():
+                return
 
-        if not isinstance(error, commands.CommandInvokeError) or not ctx.command.cog:
+        if not isinstance(err, commands.CommandInvokeError) or not ctx.command.cog:
             return
 
         whitelist = await self.config.whitelist()
