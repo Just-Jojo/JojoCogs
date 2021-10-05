@@ -69,7 +69,7 @@ class BlacklistEvent:
         async with coro.whitelist() as wl:
             for user in users:
                 try:
-                    wl.remove(user)
+                    wl.pop(user)
                 except ValueError:
                     pass
 
