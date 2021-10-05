@@ -55,7 +55,8 @@ class Miscellaneous(TodoMixin):
     async def maybe_send_embed(
         self, ctx: commands.Context, msg: str, *, title: str = ""
     ) -> discord.Message:
-        kwargs = {"content": f"**{title}**\n\n{msg}", "embed": None}
+        _t = f"**{title}**\n\n" if title else ""
+        kwargs = {"content": f"{_t}{msg}", "embed": None}
         if await self._embed_requested(ctx, ctx.author):
             colour = await self.cache.get_user_setting(ctx.author, "colour")
             colour = colour if colour is not None else await ctx.embed_colour()
