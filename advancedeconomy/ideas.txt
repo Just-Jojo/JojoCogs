@@ -1,7 +1,0 @@
-The main purpose of this cog is to completely do away with the "normal" and "boring" economy system that have plauged Discord bots for, frankly, far too long.
-
-This cog's base system will be tying a job type to a user and giving them currency every hour (done probably in a task loop)
-
-
-For skill points I can either use a level up and a skill tree system probably locked at like 15 points that you can get and spread around to get the most out of your jobs
-or I can go with an experience one in which different jobs train a certain skill point
