@@ -14,11 +14,6 @@ from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.predicates import MessagePredicate
 from tabulate import tabulate
 
-try:
-    import regex as re
-except ImportError:
-    import re  # type:ignore
-
 from .api import *  # type:ignore
 from .converters import *
 from .listeners import BlacklistEvent
@@ -44,7 +39,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
     """An advanced blacklist cog"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.2.2"
+    __version__ = "1.2.3"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -53,8 +48,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         self.config.register_global(**_config_structure["global"])
         self.config.register_guild(**_config_structure["guild"])
 
-        self.blacklist_name_cache: Dict[str, List[bool]] = {}
-        self._cmds: List[commands.Command] = []
+        self._cmds: List[Optional[commands.Command]] = []
 
         self.task: asyncio.Task = self.bot.loop.create_task(self._startup())
         self._schema_task = self.bot.loop.create_task(self._schema_0_to_1())
@@ -106,7 +100,6 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
             for uid in keys:
                 if int(uid) not in blacklist:
                     bl.pop(str(uid))
-        self.blacklist_name_cache = await self.config.names()
         with suppress(RuntimeError):
             self.bot.add_dev_env_value("advblc", lambda s: self)
 
@@ -420,76 +413,6 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         except discord.NotFound:
             return "Unknown or Deleted User."
 
-    @blocklist.group(name="name", aliases=["names"])
-    async def blocklist_name(self, ctx: commands.Context):
-        """Blocklist users by names.
-
-        For example, you can add `Jojo` to it and it would blocklist anyone with the name `Jojo`
-        This also supports regexes, which you can test at https://regex101.com/ (make sure to set it to python)
-        """
-        pass
-
-    @blocklist_name.command(
-        name="add", usage="[use_regex=False] [lower_case=True] <pattern>"
-    )
-    async def blacklist_name_add(
-        self,
-        ctx: commands.Context,
-        use_regex: Optional[bool],
-        case_sensitive: Optional[bool],
-        *,
-        pattern: str,
-    ):
-        """Add a pattern to the blocklisted name cache.
-
-        If you would like a regex, use the command list this `[p]blacklist name add True ^jojo+$`
-        If you would like it to match casing use `[p]blacklist name add <regex value> True Jojo`
-
-        **Arguments**
-            - `use_regex` Whether to use regex or not. Defaults to False.
-            - `case_insensitive` Whether to match the exact casing or not. Defaults to True.
-            - `pattern` The name to watch for. If `use_regex` is True this will need to be a regular expression.
-        """
-        use_regex = use_regex if use_regex is not None else False
-        lower_case = case_sensitive if case_sensitive is not None else True
-        self.blacklist_name_cache[pattern] = [use_regex, lower_case]
-        regex = "will" if use_regex else "won't"
-        lower = "won't" if lower_case else "will"
-        await ctx.send(
-            f"Added this as a blocklist pattern `{pattern}`."
-            f"\nIt {regex} be regex and {lower} be case sensitive."
-        )
-        async with self.config.names() as names:
-            names[pattern] = [use_regex, lower_case]
-
-    @blocklist_name.command(name="list")
-    async def blacklist_name_list(self, ctx: commands.Context):
-        """List the blocklisted names."""
-        if not self.blacklist_name_cache:
-            return await ctx.send("There are no blocklisted user names.")
-        ret = []
-        for pattern, (reg, lc) in self.blacklist_name_cache.items():
-            ret.append([pattern, f"{reg}|{lc}"])
-        tabulated = tabulate(ret, ("Pattern", "Regex? | Case sensitive?"))
-        await ctx.send_interactive(pagify(tabulated), box_lang="")
-
-    @blocklist_name.command(name="remove", aliases=["del", "delete"])
-    async def blacklist_name_remove(self, ctx: commands.Context, *, pattern: str):
-        """Remove a pattern from the blocklisted names cache.
-
-        \u200b
-        **Arguments**
-            - `pattern` The pattern to remove.
-        """
-        if pattern not in self.blacklist_name_cache.keys():
-            return await ctx.send(
-                "I could not find a pattern like that in the blocklisted names."
-            )
-        async with self.config.names() as names:
-            names.pop(pattern)
-            self.blacklist_name_cache.pop(pattern)
-        await ctx.tick()
-
     @blocklist.command(name="add")
     async def blacklist_add(
         self,
@@ -570,28 +493,6 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
                 return await ctx.send("That user is not blocklisted")
             bl[uid] = reason
         await ctx.tick()
-
-    @commands.Cog.listener()
-    async def on_message(self, msg: discord.Message):
-        author_name: str = msg.author.name
-        if await self.bot.is_owner(msg.author) or msg.author.bot:
-            return
-        async with self.config.blacklist() as bl:
-            if str(msg.author.id) in bl.keys():
-                return
-            for pattern, (reg, lower) in self.blacklist_name_cache.items():
-                if lower:
-                    author_name = author_name.lower()
-                    pattern = pattern.lower()
-                if reg:
-                    pattern = re.compile(pattern)
-                if re.search(pattern, author_name) if reg else pattern in author_name:
-                    await add_to_blacklist(self.bot, [msg.author])
-                    bl[str(msg.author.id)] = "Name matched the blocklisted name list."
-                    log.info(
-                        f"Blocklisted {msg.author.name} as they had a blocklisted name."
-                    )
-                    return
 
     @commands.Cog.listener()
     async def on_error_blacklist(self, user: discord.User, command: commands.Command):
