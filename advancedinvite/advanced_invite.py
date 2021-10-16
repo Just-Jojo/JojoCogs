@@ -46,14 +46,11 @@ class AdvancedInvite(commands.Cog):
         self._invite_command: Optional[commands.Command] = self.bot.remove_command("invite")
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(**_config_structure)
-        self._settings_cache: dict = {}
-        self._start = self.bot.loop.create_task(self._sync_settings())
 
     def cog_unload(self):
         if self._invite_command:
             self.bot.remove_command("invite")
             self.bot.add_command(self._invite_command)
-        self._start.cancel()
 
     @staticmethod
     def _humanize_list(data: list) -> list:
@@ -70,9 +67,6 @@ class AdvancedInvite(commands.Cog):
     async def red_delete_data_for_user(self, *args, **kwargs) -> None:
         """Nothing to delete"""
         return
-
-    async def _sync_settings(self):
-        self._settings_cache: dict = await self.config.all()
 
     @commands.command()
     async def inviteversion(self, ctx: commands.Context):
@@ -93,12 +87,16 @@ class AdvancedInvite(commands.Cog):
 
         check = send_in_channel and await self.bot.is_owner(ctx.author)
         channel = await self._get_channel(ctx) if not check else ctx.channel
-        title = self._settings_cache["title"].replace("{bot_name}", ctx.me.name)
-        message = self._settings_cache["custom_message"].replace("{bot_name}", ctx.me.name)
+        settings = await self.config.all()
+        title = settings["title"].replace("{bot_name}", ctx.me.name)
+        message = settings["custom_message"].replace("{bot_name}", ctx.me.name)
         url = await CoreLogic._invite_url(self)
         timestamp = f"<t:{int(datetime.utcnow().timestamp())}>"
-        footer = ret if (ret := self._settings_cache["footer"]) else ""
-        kwargs = {"content": f"**{title}**\n{message}\n{url}\n{timestamp}"}
+        footer = ret if (ret := settings["footer"]) else ""
+        support = settings["support_server"]
+
+        support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
+        kwargs = {"content": f"**{title}**\n{message}{support}\n{url}\n{timestamp}"}
         if await self._embed_requested(ctx, channel):
             embed = discord.Embed(
                 title=title,
@@ -106,7 +104,9 @@ class AdvancedInvite(commands.Cog):
                 colour=await ctx.embed_colour(),
                 timestamp=datetime.utcnow()
             )
-            if curl := self._settings_cache["custom_url"]:
+            if support is not None:
+                embed.add_field(name="Join the support server", value=support)
+            if curl := settings["custom_url"]:
                 embed.set_thumbnail(url=curl)
             kwargs = {"embed": embed}
         try:
@@ -138,7 +138,6 @@ class AdvancedInvite(commands.Cog):
         set_reset = f"set as <{invite}>." if invite else "reset."
         await ctx.send(f"The support server has been {set_reset}")
         await self.config.support_server.set(invite)
-        await self._sync_settings()
 
     @invite_settings.command(name="embed")
     async def invite_embed(self, ctx: commands.Context, toggle: bool):
@@ -150,7 +149,6 @@ class AdvancedInvite(commands.Cog):
         toggled = "enabled" if toggle else "disabled"
         await ctx.send(f"Embeds are now {toggled} for the invite command.")
         await self.config.embeds.set(toggled)
-        await self._sync_settings()
 
     @invite_settings.command(name="message")
     async def invite_message(self, ctx: commands.Context, *, message: NoneStrict):
@@ -170,7 +168,6 @@ class AdvancedInvite(commands.Cog):
 
         await ctx.send(f"The message has been {set_reset}.")
         await self.config.custom_message.set(message)
-        await self._sync_settings()
 
     @invite_settings.command(name="title")
     async def invite_title(self, ctx: commands.Context, *, title: NoneStrict):
@@ -190,15 +187,13 @@ class AdvancedInvite(commands.Cog):
 
         await ctx.send(f"The title has been {set_reset}")
         await self.config.title.set(title)
-        await self._sync_settings()
 
     @invite_settings.command(name="showsettings")
     async def invite_show_settings(self, ctx: commands.Context):
         """Show the settings for the invite command"""
         _data: dict = {}
-        if not self._settings_cache:
-            await self._sync_settings()
-        for key, value in self._settings_cache.items():
+        settings = await self.config.all()
+        for key, value in settings.items():
             if key in ("mobile_check", "footer"):
                 continue
             key = key.replace("_", " ").replace("custom ", "")
@@ -216,9 +211,7 @@ class AdvancedInvite(commands.Cog):
         await ctx.send(**kwargs)
 
     async def _get_channel(self, ctx: commands.Context) -> discord.TextChannel:
-        if not self._settings_cache:
-            await self._sync_settings()
-        if self._settings_cache["send_in_channel"]:
+        if await self.config.send_in_channel():
             return ctx.channel
 
         if ret := ctx.author.dm_channel:
@@ -226,9 +219,7 @@ class AdvancedInvite(commands.Cog):
         return await ctx.author.create_dm()
 
     async def _embed_requested(self, ctx: commands.Context, channel: discord.TextChannel) -> bool:
-        if not self._settings_cache:
-            await self._sync_settings()
-        if not self._settings_cache["embeds"]:
+        if not await self.config.embeds():
             return False
         if isinstance(channel, discord.DMChannel):
             return True
