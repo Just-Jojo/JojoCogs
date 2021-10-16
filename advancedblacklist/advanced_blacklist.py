@@ -368,7 +368,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
             - `reason` The new reason.
         """
         user = str(user.id)
-        async with self.config.guild.blacklist() as lbl:
+        async with self.config.guild(ctx.guild).blacklist() as lbl:
             if not lbl:
                 return await ctx.send("The local blocklist is empty")
             elif user not in lbl.keys():
