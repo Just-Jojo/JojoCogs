@@ -25,7 +25,7 @@ from .listeners import BlacklistEvent
 from .monkey import setup, teardown
 
 log = logging.getLogger("red.JojoCogs.advancedblacklist")
-_config_structure = {
+_config_structure: Dict[str, dict] = {
     "global": {
         "blacklist": {},  # Dict[str, str]. String version of the uid and reason
         "use_reasons": True,
@@ -44,7 +44,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
     """An advanced blacklist cog"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.2.0"
+    __version__ = "1.2.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -102,6 +102,9 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
                 if str(uid) in bl.keys():
                     continue
                 bl[str(uid)] = "No reason provided"
+            for uid in bl:
+                if uid not in blacklist:
+                    bl.pop(str(uid))
         self.blacklist_name_cache = await self.config.names()
         with suppress(RuntimeError):
             self.bot.add_dev_env_value("advblc", lambda s: self)
