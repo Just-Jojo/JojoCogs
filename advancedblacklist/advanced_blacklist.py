@@ -44,7 +44,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
     """An advanced blacklist cog"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.2.1"
+    __version__ = "1.2.2"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -102,8 +102,9 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
                 if str(uid) in bl.keys():
                     continue
                 bl[str(uid)] = "No reason provided"
-            for uid in bl:
-                if uid not in blacklist:
+            keys = list(bl.keys())
+            for uid in keys:
+                if int(uid) not in blacklist:
                     bl.pop(str(uid))
         self.blacklist_name_cache = await self.config.names()
         with suppress(RuntimeError):
