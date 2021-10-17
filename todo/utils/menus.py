@@ -201,6 +201,7 @@ class ViewTodo(menus.Menu):
         data = await self.cache.get_user_data(self.ctx.author.id)
         data["todos"][self.index - 1] = self.data
         await self.cache.set_user_data(self._author_id, data)
+        await self.cache._maybe_autosort(self.ctx.author)
         await self.update_message()
 
     @menus.button("\N{WASTEBASKET}\N{VARIATION SELECTOR-16}")

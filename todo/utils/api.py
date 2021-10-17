@@ -250,3 +250,39 @@ class TodoApi:
     def _get_user(user: User) -> int:
         """An internal function to get a user id based off of the type"""
         return user if isinstance(user, int) else user.id
+
+    async def _maybe_autosort(self, user: Union[discord.Member, discord.User]) -> None:
+        """An internal function to maybe autosort todos"""
+
+        # Okay, so I modified this a bit just for a few reasons
+        # A) Todos need to be "sorted" by pinned todos as otherwise the indexes won't match up
+        # B) I hate myself
+
+        data = await self.get_user_data(user.id)
+        todos = data["todos"]
+        completed = data["completed"]
+        if not any([completed, todos]):
+            return
+        settings = data["user_settings"]
+        reverse = settings["reverse_sort"]
+        autosort = settings["autosorting"]
+
+        if todos:
+            pinned = []
+            extra = []
+            for todo in todos:
+                if todo["pinned"]:
+                    pinned.append(todo)
+                else:
+                    extra.append(todo)
+            if autosort:
+                pinned.sort(key=lambda x: x["task"], reverse=reverse)
+                extra.sort(key=lambda x: x["task"], reverse=reverse)
+            todos = pinned
+            todos.extend(extra)
+        if completed and autosort:
+            completed.sort(reverse=reverse)
+
+        data["completed"] = completed
+        data["todos"] = todos
+        await self.set_user_data(user, data)

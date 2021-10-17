@@ -71,7 +71,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666"]
-    __version__ = "3.0.10.1"
+    __version__ = "3.0.11"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -198,7 +198,7 @@ class ToDo(
             await ctx.send_interactive(pagify(msg))
         else:
             await ctx.send(msg)
-        await self._maybe_autosort(ctx.author)
+        await self.cache._maybe_autosort(ctx.author)
 
     @todo.command(name="list")
     async def todo_list(self, ctx: commands.Context):
@@ -261,7 +261,7 @@ class ToDo(
         current.extend(todos)
         await self.cache.set_user_item(ctx.author, "todos", current)
         await ctx.send("Done. Added those as todos")
-        await self._maybe_autosort(ctx.author)
+        await self.cache._maybe_autosort(ctx.author)
 
     @todo.command(name="gettodos", aliases=["todotofile"])
     @commands.check(attach_or_in_dm)
@@ -382,7 +382,7 @@ class ToDo(
         await ctx.send(
             f"Your todos are now sorted. They {have_not} been sorted in reverse"
         )
-        await self._maybe_autosort(ctx.author)
+        await self.cache._maybe_autosort(ctx.author)
 
     @staticmethod
     async def _get_todos(todos: List[dict]) -> Tuple[List[str], List[str]]:
@@ -403,42 +403,6 @@ class ToDo(
         pagified = list(pagify(joined, page_length=500))
         pages = TodoPage(pagified, title, **settings)
         await TodoMenu(pages).start(ctx)
-
-    async def _maybe_autosort(self, user: Union[discord.Member, discord.User]) -> None:
-        """An internal function to maybe autosort todos"""
-
-        # Okay, so I modified this a bit just for a few reasons
-        # A) Todos need to be "sorted" by pinned todos as otherwise the indexes won't match up
-        # B) I hate myself
-
-        data = await self.cache.get_user_data(user.id)
-        todos = data["todos"]
-        completed = data["completed"]
-        if not any([completed, todos]):
-            return
-        settings = data["user_settings"]
-        reverse = settings["reverse_sort"]
-        autosort = settings["autosorting"]
-
-        if todos:
-            pinned = []
-            extra = []
-            for todo in todos:
-                if todo["pinned"]:
-                    pinned.append(todo)
-                else:
-                    extra.append(todo)
-            if autosort:
-                pinned.sort(key=lambda x: x["task"], reverse=reverse)
-                extra.sort(key=lambda x: x["task"], reverse=reverse)
-            todos = pinned
-            todos.extend(extra)
-        if completed and autosort:
-            completed.sort(reverse=reverse)
-
-        data["completed"] = completed
-        data["todos"] = todos
-        await self.cache.set_user_data(user, data)
 
     async def _embed_requested(self, ctx: commands.Context, user: discord.User) -> bool:
         """An slightly rewritten method for checking if a command should embed or not"""

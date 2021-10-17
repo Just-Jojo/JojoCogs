@@ -53,7 +53,7 @@ class Settings(TodoMixin):
     @commands.group(name="todoset", aliases=["todosettings"])
     async def todo_settings(self, ctx: commands.Context):
         """Commands for configuring your todo list"""
-        # await ctx.invoke(self.todo_show_settings) # TODO Decide on this
+        pass
 
     @todo_settings.command(name="markdown", aliases=["md", "codeblock"])
     async def todo_use_markdown(self, ctx: commands.Context, value: bool):

@@ -77,7 +77,7 @@ class SharedTodos(TodoMixin):
             task = self.bot.loop.create_task(ctx.send_interactive(pagify(msg)))
         else:
             await ctx.send(msg)
-        await self._maybe_autosort(user)
+        await self.cache._maybe_autosort(user)
         if task is not None:
             await task
 
@@ -102,7 +102,7 @@ class SharedTodos(TodoMixin):
             return await ctx.send("You are a manager of that user's list")
         elif not todos:
             return await ctx.send(
-                self._no_todo_shared_message.format(user=user, prefix=prefix)
+                self._no_todo_shared_message.format(user=user, prefix=ctx.clean_prefix)
             )
 
         actual_index = index - 1
@@ -182,7 +182,7 @@ class SharedTodos(TodoMixin):
             return await self.page_logic(
                 ctx,
                 await _format_completed(completed, **settings),
-                f"{user.name}'s Completed Todos" ** settings,
+                f"{user.name}'s Completed Todos", **settings,
             )
 
         pinned, other = await self._get_todos(todos)
@@ -299,7 +299,7 @@ class SharedTodos(TodoMixin):
             await ctx.send(msg)
         await self.cache.set_user_item(user, "todos", todos)
         await self.cache.set_user_item(user, "completed", completed)
-        await self._maybe_autosort(user)
+        await self.cache._maybe_autosort(user)
         if task is not None:
             await task
 

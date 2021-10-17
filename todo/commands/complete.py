@@ -6,6 +6,7 @@ from contextlib import suppress
 
 import discord
 from redbot.core import commands
+from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from ..abc import TodoMixin
@@ -63,7 +64,7 @@ class Complete(TodoMixin):
         data["completed"].extend(completed)
         data["todos"] = todos
         await self.cache.set_user_data(ctx.author, data)
-        await self._maybe_autosort(ctx.author)
+        await self.cache._maybe_autosort(ctx.author)
         if task is not None and not task.done():
             await task
 
