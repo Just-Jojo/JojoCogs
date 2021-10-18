@@ -228,9 +228,14 @@ class ToDo(
 
     @todo.command(name="multiadd")
     async def todo_multi_add(self, ctx: commands.Context, *, todos: str = None):
-        """Add multiple todos in one command!
+        """Add multiple todos in one command. These are split by a newline.
 
-        You can upload a file instead of inputting the todos, or reply to a message that contains a file
+        You can upload a file instead of inputting the todos, or reply to a message that contains a file\
+
+        **Examples**
+        `[p]todo multiadd Todo number 1
+        todo number 2
+        todo number 3`
 
         **Arguments**
             - `todos` The todos you want to add.
