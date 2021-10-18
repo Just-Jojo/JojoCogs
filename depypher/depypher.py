@@ -125,7 +125,7 @@ class Depypher(commands.Cog):
             - `keyword` The keyword for the decryption.
             - `cipher` The ciphered message to decipher.
         """
-        await self._process_message(ctx, _vigenere(key=keyvword).decipher(cipher), cipher)
+        await self._process_message(ctx, _vigenere(key=keyword).decipher(cipher), cipher)
 
     @commands.command()
     async def porta(self, ctx, keyword: str, *, message: str):

@@ -47,7 +47,8 @@ class ErrorBlacklist(commands.Cog):
         plural = "" if len(self.__authors__) == 1 else "s"
         return (
             f"{super().format_help_for_context(ctx)}\n"
-            f"**Author{plural}:** {humanize_list(self.__authors__)}"
+            f"**Author{plural}:** {humanize_list(self.__authors__)}\n"
+            f"**Version:** `{self.__version__}`"
         )
 
     def __init__(self, bot: Red):
@@ -75,7 +76,7 @@ class ErrorBlacklist(commands.Cog):
     async def errblversion(self, ctx: commands.Context):
         """Get the version of error blacklist"""
         await ctx.maybe_send_embed(
-            f"Error blacklist. Version {self.__version__}, written by {', '.join(self.__authors__)}"
+            f"Error blacklist. Version `{self.__version__}`, written by {', '.join(self.__authors__)}"
         )
 
     @commands.is_owner()

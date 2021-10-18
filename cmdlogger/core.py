@@ -1,6 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import discord
 import logging
 from contextlib import suppress
 from functools import wraps
@@ -16,7 +17,7 @@ from .menus import CmdMenu, CmdPages
 log = logging.getLogger("red.JojoCogs.cmd_logger")
 
 
-def humanize_list_with_ticks(data: Iterable) -> List[Any]:
+def humanize_list_with_ticks(data: Iterable) -> str:
     return humanize_list([inline(x) for x in data])
 
 
@@ -56,7 +57,7 @@ class CmdLogger(commands.Cog):
         plural = "" if len(self.__authors__) == 1 else "s"
         return (
             f"{pre}\n"
-            f"Author{plural}: {humanize_list_with_items(self.__authors__)}\n"
+            f"Author{plural}: {humanize_list_with_ticks(self.__authors__)}\n"
             f"Version: `{self.__version__}`"
         )
 
@@ -145,7 +146,7 @@ class CmdLogger(commands.Cog):
                 f"I am not tracking any commands. Use `{ctx.clean_prefix}cmdlog add <command>` to add one"
             )
         data = pagify("\n".join(cmds), page_length=200)
-        await CmdMenu(CmdPages(data)).start(ctx)
+        await CmdMenu(CmdPages(data)).start(ctx) # type:ignore
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):

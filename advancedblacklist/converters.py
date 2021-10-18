@@ -24,9 +24,11 @@ class _NonBotMixin(commands.Converter):
         maybe_user = await self.converter_type().convert(ctx, arg)
         if maybe_user.bot:
             raise commands.BadArgument("That user is a bot")
-        elif maybe_user == ctx.author and not self._whitelist_mode:
+        elif self._whitelist_mode:
+            return maybe_user
+        elif maybe_user == ctx.author:
             raise commands.BadArgument("You cannot blacklist yourself")
-        elif await ctx.bot.is_owner(maybe_user) and not self._whitelist_mode:
+        elif await ctx.bot.is_owner(maybe_user):
             raise commands.BadArgument("You cannot blacklist this bot's owner")
         return maybe_user
 
