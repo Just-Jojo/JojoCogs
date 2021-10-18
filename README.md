@@ -37,23 +37,6 @@ If you would like to contribute, make personal edits, or just about anything jus
 
 Also, read the `CONTRIBUTING.md` file (:
 
-## Cogs
-Here are some of the cogs I've written. Anything marked `X` in the approved section has been approved by me to be pretty much working as intended
-Anything marked with `O`, however, is either not working or hasn't been finished
-
-
-| Name           | Description                                            | Author                 | Type     | Approved | Notes                    |
-|----------------|--------------------------------------------------------|------------------------|----------|----------|--------------------------|
-| AdvancedBlacklist | Allows the bot owner to add reasons for blacklisting users and blacklist users by names | Jojo#7791 | Utility  | X |   |
-| AdvancedInvite | Embed the invite command and other utilities for the invite command | Jojo#7791 | Utility | X | This cog was made at the request of DSC#6238, a good friend of mine. Check out `[p]help invite` for settings commands |
-| Brownies       | Brownie based economy system                           | Jojo#7791, JJW(v2)     | Fun      | X        |                          |
-| CmdLogger      | Log when a user uses a certain command                 | Jojo#7791              | Utility  | X |     |
-| Collectibles   | Collectibles for users to buy and collect              | Jojo#7791              | Fun      | X        |                          |
-| CycleStatus    | Cycles the bot's status                                | Jojo#7791              | Utility  | X        |                          |
-| Ducks          | Ducks! Who could ask for more?                         | Jojo#7791              | Fun      | O        |                          |
-| Depypher       | Encipher and Decipher codes and messages               | Jojo#7791              | Fun      | O        | Eh, it doesn't have much |
-| ToDo           | A todo reminder to make sure you don't forget things   | Jojo#7791              | Utility  | X        | Why did I make it dynamic, oh god why                 |
-
 ## Pull requests
 If you want to make a pull request, first thank you for contributing (because I need help) and second follow this list
 1. Fork the repo
