@@ -52,7 +52,6 @@ class SharedTodos(TodoMixin):
             - `pinned` Whether the todo should be pinned or not. Defaults to False.
             - `todo` The task to add to the user's list.
         """
-        user: discord.Member
         pinned = bool(pinned)
         data = await self.cache.get_user_data(user.id)
         todos: list = data["todos"]
@@ -93,7 +92,6 @@ class SharedTodos(TodoMixin):
             - `user` The user to pin a todo for. This **cannot** be a bot.
             - `index` The index of the todo to pin.
         """
-        user: discord.Member
         data = await self.cache.get_user_data(user.id)
         todos: list = data["todos"]
         managers = data["managers"]
@@ -163,7 +161,6 @@ class SharedTodos(TodoMixin):
         **Arguments**
             - `user` A user who you manage a list for. This **cannot** be a bot.
         """
-        user: discord.Member
         data = await self.cache.get_user_data(user.id)
         todos = data["todos"]
         completed = data["completed"]
@@ -205,8 +202,7 @@ class SharedTodos(TodoMixin):
             - `user` The user you want to edit the list of. This **cannot** be a bot.
             - `index` The index of the todo you want to remove.
         """
-        indexes = [i - 1 for i in indexes]
-        user: discord.Member
+        indexes = [i - 1 for i in indexes] # type:ignore
         data = await self.cache.get_user_data(user.id)
         todos = data["todos"]
         managers = data["managers"]
@@ -247,7 +243,7 @@ class SharedTodos(TodoMixin):
 
     @shared.group(name="complete", aliases=["c"])
     async def shared_complete(
-        self, ctx: commands.Context, user: NonBotMember(False), indexes: PositiveInt
+        self, ctx: commands.Context, user: NonBotMember(False), indexes: PositiveInt # type:ignore
     ):
         """Complete todos on a user's list
 
@@ -257,8 +253,7 @@ class SharedTodos(TodoMixin):
             - `user` The user for completing todos. This **cannot** be a bot.
             - `indexes` The indexes of the todos you want to complete
         """
-        user: discord.Member
-        indexes = [i - 1 for i in indexes]
+        indexes = [i - 1 for i in indexes] # type:ignore
 
         data = await self.cache.get_user_data(user.id)
         todos = data["todos"]

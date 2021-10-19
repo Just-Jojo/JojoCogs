@@ -174,7 +174,7 @@ class ViewTodo(menus.Menu):
 
     async def _format_page(self) -> Dict[str, Union[str, discord.Embed]]:
         todo = "Completed Todo" if self.completed else "Todo"
-        title = f"{self.user.name} {todo} #{self.index}"
+        title = f"{self.user.name} {todo} #{self.index}" # type:ignore
         task = self.data if self.completed else self.data["task"]  # type:ignore
         if await self.ctx.cog._embed_requested(self.ctx, self.ctx.author):
             embed = discord.Embed(

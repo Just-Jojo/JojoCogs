@@ -71,5 +71,5 @@ class Managers(TodoMixin):
         )
 
     def _get_user_name(self, user_id: int) -> str:
-        name = self.bot.get_user(user_id)
-        return name.name if name is not None else "Unknown or Deleted User"
+        user = self.bot.get_user(user_id)
+        return user.name if user is not None else "Unknown or Deleted User"

@@ -23,7 +23,6 @@ class Edit(TodoMixin):
     ):
         """Edit a todo
 
-        \u200b
         **Arguments**
             - `index` The index of the todo you wish to edit
             - `new_todo` The new task

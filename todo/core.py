@@ -148,7 +148,7 @@ class ToDo(
             await self.config.user_from_id(uid).set(new_data)
 
     @commands.group(invoke_without_command=True)
-    async def todo(self, ctx: commands.Context, index: PositiveInt(False)):
+    async def todo(self, ctx: commands.Context, index: PositiveInt(False)): # type:ignore
         """Your todo list inside Discord
 
         **Arguments**
@@ -252,16 +252,16 @@ class ToDo(
             if not maybe_file.filename.endswith(".txt"):
                 return await ctx.send("File format must be `.txt`")
             todos = await maybe_file.read()
-            todos = todos.decode()
+            todos = todos.decode() # type:ignore
         elif ctx.message.attachments:
             maybe_file = ctx.message.attachments[0]
             if not maybe_file.filename.endswith(".txt"):
                 return await ctx.send("File format must be `.txt`")
             todos = await maybe_file.read()
-            todos = todos.decode()
+            todos = todos.decode() # type:ignore
         elif todos is None:  # No files or anything
             raise commands.UserInputError
-        todos = [{"pinned": False, "task": t} for t in todos.split("\n") if t]
+        todos = [{"pinned": False, "task": t} for t in todos.split("\n") if t] # type:ignore
         current = await self.cache.get_user_item(ctx.author, "todos")
         current.extend(todos)
         await self.cache.set_user_item(ctx.author, "todos", current)
