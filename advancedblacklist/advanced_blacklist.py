@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from contextlib import suppress
-from typing import Dict, Iterable, List, Optional, Set, TypeVar, Union
+from typing import Dict, Iterable, List, Optional, Set, TypeVar, Union, Tuple
 
 import discord
 from redbot import VersionInfo, version_info
@@ -48,7 +48,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         self.config.register_global(**_config_structure["global"])
         self.config.register_guild(**_config_structure["guild"])
 
-        self._cmds: Tuple[Optional[commands.Command]] = tuple(
+        self._cmds: Tuple[Optional[commands.Command], ...] = tuple(
             bot.get_command(cmd)
             for cmd in
             (
