@@ -161,11 +161,21 @@ class CmdLogger(commands.Cog):
             channel = conf["log_channel"]
             if not channel:
                 return
-            channel = self.bot.get_channel(channel)
-            if channel is None:
+            async def get_or_fetch_channel(bot, channel_id: int):
+                channel = self.bot.get_channel(channel_id)
+                if not channel:
+                    channel = await bot.fetch_channel(channel_id)
+                return channel
+            try:
+                channel = await get_or_fetch_channel(self.bot, channel)
+            except Exception as e:
+                # I'd rather just catch exception rather than any discord related exception
+                # as it's possible I could miss some
                 log.warning("I could not find the log channel")
+                await self.config.log_channel.clear()
                 return
             try:
                 await channel.send(msg)
             except discord.Forbidden:
                 log.warning(f"I could not send a message to channel '{channel.name}'")
+                await self.config.log_channel.clear()

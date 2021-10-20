@@ -8,6 +8,7 @@ import discord
 from pycipher import pycipher
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_list
+import functools
 
 log = logging.getLogger("red.JojoCogs.depypher")
 
@@ -17,7 +18,7 @@ _vigenere = pycipher.Vigenere
 _porta = pycipher.Porta
 
 
-async def convert_case(original: str, new: str) -> str:
+def convert_case(original: str, new: str) -> str:
     """Convert a string's casing to be the same as the original"""
     ret = ""
     for index, letter in enumerate(original):
@@ -157,7 +158,9 @@ class Depypher(commands.Cog):
     async def _process_message(
         ctx: commands.Context, msg: str, original: str
     ) -> discord.Message:
-        processed = await convert_case(original, msg)
+        async with ctx.typing():
+            case = functools.partial(convert_case, original, msg)
+            processed = await ctx.bot.loop.run_in_executor(None, case)
         return await ctx.send(processed)
 
     async def red_delete_data_for_user(

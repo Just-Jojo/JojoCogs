@@ -48,7 +48,13 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         self.config.register_global(**_config_structure["global"])
         self.config.register_guild(**_config_structure["guild"])
 
-        self._cmds: List[Optional[commands.Command]] = []
+        self._cmds: Tuple[Optional[commands.Command]] = tuple(
+            bot.get_command(cmd)
+            for cmd in
+            (
+                "blocklist", "localblocklist", "allowlist", "localallowlist"
+            )
+        )
 
         self.task: asyncio.Task = self.bot.loop.create_task(self._startup())
         self._schema_task = self.bot.loop.create_task(self._schema_0_to_1())
@@ -74,6 +80,8 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
                 try:
                     self.bot.remove_command(cmd.name)
                 except Exception as e:
+                    # Not sure why/how this would error as it will return `None`
+                    # if the command isn't found but better safe than sorry I guess
                     log.debug(f"Error in removing command: {cmd.name}", exc_info=e)
                 finally:
                     self.bot.add_command(cmd)
@@ -82,16 +90,12 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         with suppress(Exception):
             self.bot.remove_dev_env_value("advblc")
 
-    @classmethod
-    async def init(cls, bot: Red) -> AB:
-        self = cls(bot)
-        for cmd in ["blocklist", "localblocklist", "allowlist", "localallowlist"]:
-            self._cmds.append(self.bot.remove_command(cmd))
-        return self
-
     async def _startup(self) -> None:
         async with self.config.blacklist() as bl:
             blacklist = await get_blacklist(self.bot)
+            # Two things we're doing here
+            # First, check if anyone was added to the blacklist while the cog was unloaded
+            # and second, check if anyone was removed from the blacklist while the cog was unloaded.
             for uid in blacklist:
                 if str(uid) in bl.keys():
                     continue
@@ -109,6 +113,8 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
             return  # Don't care about this
 
         guild_data = conf.pop("local_blacklist", None)
+        # For some reason I had put this as a global key instead of using guild config
+        # ... I'm an idiot :D
         if guild_data is not None:
             for g_id, data in guild_data.keys():
                 await self.config.guild_from_id(int(g_id)).set_raw(
@@ -148,6 +154,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
             - `users` The users to add to the allowlist.
             - `reason` The reason to add these users to the allowlist.
         """
+        # commands.Greedy is wonderful tbh
         if not users:
             raise commands.UserInputError
         reason = reason or "No Reason Provided."
@@ -159,8 +166,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
     @whitelist.command(name="list")
     async def whitelist_list(self, ctx: commands.Context):
         """List [botname]'s allowlist"""
-        wl = await self.config.whitelist()
-        if not wl:
+        if not (wl := await self.config.whitelist()):
             return await ctx.send("There are no users on the allowlist.")
         sending = "Allowlisted Users:"
         for user, reason in wl.items():
