@@ -53,6 +53,7 @@ def attach_or_in_dm(ctx: commands.Context) -> bool:
 class ToDo(
     Complete,
     Deleting,
+    Importer,
     Managers,
     Miscellaneous,
     Settings,
@@ -71,7 +72,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666"]
-    __version__ = "3.0.11"
+    __version__ = "3.0.12"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
