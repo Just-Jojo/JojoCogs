@@ -23,6 +23,7 @@ from .utils import (
     ViewTodo,
     formatting,
     timestamp_format,
+    TimestampFormats
 )
 
 _config_structure = {
@@ -407,7 +408,7 @@ class ToDo(
             task = todo["task"]
             if timestamp:
                 task = (
-                    f"{task} - {timestamp_format(ts)}"
+                    f"{task} - {timestamp_format(ts, ts_format=TimestampFormats.RELATIVE_TIME)}"
                     if (ts := todo.get("timestamp")) and not md
                     else task
                 )

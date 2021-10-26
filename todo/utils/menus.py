@@ -15,7 +15,7 @@ from redbot.core.utils.predicates import MessagePredicate
 from redbot.vendored.discord.ext import menus  # type:ignore
 
 from .api import TodoApi
-from .general import timestamp_format
+from .general import timestamp_format, TimestampFormats
 
 __all__ = ["TodoPage", "TodoMenu", "ViewTodo"]
 log = logging.getLogger("red.JojoCogs.todo.menus")
@@ -183,7 +183,7 @@ class ViewTodo(menus.Menu):
         if self.is_dict:
             ts = self.data.get("timestamp") # type:ignore
             if ts:
-                task = f"{task} - Added {timestamp_format(ts)}"
+                task = f"{task} - Added {timestamp_format(ts, TimestampFormats.RELATIVE_TIME)}"
         if await self.ctx.cog._embed_requested(self.ctx, self.ctx.author):
             embed = discord.Embed(
                 title=title,
