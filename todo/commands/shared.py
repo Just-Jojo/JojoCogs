@@ -182,7 +182,7 @@ class SharedTodos(TodoMixin):
                 f"{user.name}'s Completed Todos", **settings,
             )
 
-        pinned, other = await self._get_todos(todos)
+        pinned, other = await self._get_todos(todos, settings["use_timestamps"], settings["use_markdown"])
         todos = await _format_todos(pinned, other, **settings)
         if completed and settings["combine_lists"]:
             todos.extend(await _format_completed(completed, combined=True, **settings))

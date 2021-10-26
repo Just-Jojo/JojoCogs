@@ -43,7 +43,7 @@ class TodoMixin(ABC):
 
     @staticmethod
     @abstractstaticmethod
-    async def _get_todos(todos: List[dict]) -> Tuple[List[str], ...]: # type:ignore
+    async def _get_todos(todos: List[dict], *, timestamp: bool = False, md: bool = False) -> Tuple[List[str], ...]: # type:ignore
         ...
 
     @staticmethod

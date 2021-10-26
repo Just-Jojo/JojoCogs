@@ -218,7 +218,11 @@ class ToDo(
         elif not todos:
             return await ctx.invoke(self.complete_list)
 
-        pinned, todos = await self._get_todos(todos, timestamp=user_settings["use_timestamps"])
+        pinned, todos = await self._get_todos(
+            todos,
+            timestamp=user_settings["use_timestamps"],
+            md=user_settings["use_markdown"]
+        )
         todos = await formatting._format_todos(pinned, todos, **user_settings)
         if completed and user_settings["combine_lists"]:
             completed = await formatting._format_completed(
@@ -395,7 +399,7 @@ class ToDo(
         await self.cache._maybe_autosort(ctx.author)
 
     @staticmethod
-    async def _get_todos(todos: List[dict], *, timestamp: bool = False) -> Tuple[List[str], List[str]]:
+    async def _get_todos(todos: List[dict], *, timestamp: bool = False, md: bool = False) -> Tuple[List[str], List[str]]:
         """An internal function to get todos sorted by pins"""
         pinned = []
         extra = []
@@ -404,7 +408,7 @@ class ToDo(
             if timestamp:
                 task = (
                     f"{task} - {timestamp_format(ts)}"
-                    if (ts := todo.get("timestamp"))
+                    if (ts := todo.get("timestamp")) and not md
                     else task
                 )
             if todo["pinned"]:
