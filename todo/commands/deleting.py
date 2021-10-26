@@ -34,8 +34,8 @@ class Deleting(TodoMixin):
         **Arguments**
             - `indexes` The indexes of the todos you want to delete
         """
-        indexes = [i - 1 for i in indexes] # type:ignore
-        indexes.sort(reverse=True) # type:ignore
+        indexes = [i - 1 for i in indexes]  # type:ignore
+        indexes.sort(reverse=True)  # type:ignore
         data = await self.cache.get_user_data(ctx.author.id)
         todos = data.get("todos")
         if not todos:

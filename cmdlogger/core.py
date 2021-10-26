@@ -1,12 +1,12 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import discord
 import logging
 from contextlib import suppress
 from functools import wraps
 from typing import Any, Callable, Iterable, List
 
+import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, inline, pagify
@@ -146,7 +146,7 @@ class CmdLogger(commands.Cog):
                 f"I am not tracking any commands. Use `{ctx.clean_prefix}cmdlog add <command>` to add one"
             )
         data = pagify("\n".join(cmds), page_length=200)
-        await CmdMenu(CmdPages(data)).start(ctx) # type:ignore
+        await CmdMenu(CmdPages(data)).start(ctx)  # type:ignore
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):
@@ -161,11 +161,13 @@ class CmdLogger(commands.Cog):
             channel = conf["log_channel"]
             if not channel:
                 return
+
             async def get_or_fetch_channel(bot, channel_id: int):
                 channel = self.bot.get_channel(channel_id)
                 if not channel:
                     channel = await bot.fetch_channel(channel_id)
                 return channel
+
             try:
                 channel = await get_or_fetch_channel(self.bot, channel)
             except Exception as e:

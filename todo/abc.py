@@ -3,12 +3,11 @@
 
 from abc import ABC, abstractmethod, abstractstaticmethod
 from logging import Logger
+from typing import List, Tuple
 
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-
-from typing import List, Tuple
 
 from .utils import TodoApi
 
@@ -34,7 +33,9 @@ class TodoMixin(ABC):
     # The best thing about this is it that I don't have to reimpliment this every time
     # I create a new subclass, just in the main class which will be a subclass of every other class
     @abstractmethod
-    async def page_logic(self, ctx: commands.Context, data: list, title: str, **settings) -> None:
+    async def page_logic(
+        self, ctx: commands.Context, data: list, title: str, **settings
+    ) -> None:
         ...
 
     @abstractmethod
@@ -43,7 +44,9 @@ class TodoMixin(ABC):
 
     @staticmethod
     @abstractstaticmethod
-    async def _get_todos(todos: List[dict], *, timestamp: bool = False, md: bool = False) -> Tuple[List[str], ...]: # type:ignore
+    async def _get_todos(
+        todos: List[dict], *, timestamp: bool = False, md: bool = False
+    ) -> Tuple[List[str], ...]:  # type:ignore
         ...
 
     @staticmethod
@@ -52,7 +55,7 @@ class TodoMixin(ABC):
         ...
 
 
-class MetaClass(type(commands.Cog), type(ABC)): # type:ignore
+class MetaClass(type(commands.Cog), type(ABC)):  # type:ignore
     """Meta class for main class"""
 
     pass

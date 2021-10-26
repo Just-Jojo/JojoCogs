@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Optional, TypeVar, Any
+from typing import Any, Optional, TypeVar
 
 import aiohttp
 import discord
@@ -19,7 +19,8 @@ log = logging.getLogger("red.JojoCogs.advanced_invite")
 
 
 class NoneStrict(NoneConverter):
-    strict=True
+    strict = True
+
 
 async def can_invite(ctx: commands.Context) -> bool:
     return await CoreLogic._can_get_invite_url(ctx)
@@ -43,7 +44,9 @@ class AdvancedInvite(commands.Cog):
 
     def __init__(self, bot: Red):
         self.bot = bot
-        self._invite_command: Optional[commands.Command] = self.bot.remove_command("invite")
+        self._invite_command: Optional[commands.Command] = self.bot.remove_command(
+            "invite"
+        )
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(**_config_structure)
 
@@ -54,7 +57,7 @@ class AdvancedInvite(commands.Cog):
 
     @staticmethod
     def _humanize_list(data: list) -> list:
-        return humanize_list([f"`{i}`" for i in data]) # type:ignore
+        return humanize_list([f"`{i}`" for i in data])  # type:ignore
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         plural = "" if len(self.__authors__) == 1 else "s"
@@ -74,15 +77,17 @@ class AdvancedInvite(commands.Cog):
         msg = (
             "**Advanced Invite**\n"
             f"Version: `{self.__version__}`\n\n"
-            "\"This cog was created for a friend of mine, and as such is close to my heart.\n"
-            "Thanks for being awesome and using my stuff!\" - Jojo (the author of this cog)\n\n"
+            '"This cog was created for a friend of mine, and as such is close to my heart.\n'
+            'Thanks for being awesome and using my stuff!" - Jojo (the author of this cog)\n\n'
             "Created with ❤"
         )
         await ctx.maybe_send_embed(msg)
 
     @commands.group(name="invite", usage="", invoke_without_command=True)
     @commands.check(can_invite)
-    async def invite(self, ctx: commands.Context, send_in_channel: Optional[bool] = False):
+    async def invite(
+        self, ctx: commands.Context, send_in_channel: Optional[bool] = False
+    ):
         """Invite [botname] to your server!"""
 
         check = send_in_channel and await self.bot.is_owner(ctx.author)
@@ -95,14 +100,16 @@ class AdvancedInvite(commands.Cog):
         footer = ret if (ret := settings["footer"]) else ""
         support = settings["support_server"]
 
-        support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
+        support_msg = (
+            f"\nJoin the support server! <{support}>\n" if support is not None else ""
+        )
         kwargs = {"content": f"**{title}**\n{message}{support}\n{url}\n{timestamp}"}
         if await self._embed_requested(ctx, channel):
             embed = discord.Embed(
                 title=title,
                 description=f"{message}\n\n{url}",
                 colour=await ctx.embed_colour(),
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
             if support is not None:
                 embed.add_field(name="Join the support server", value=support)
@@ -199,14 +206,20 @@ class AdvancedInvite(commands.Cog):
             key = key.replace("_", " ").replace("custom ", "")
             key = " ".join(x.capitalize() for x in key.split())
             _data[key] = value
-        msg = (
-            "**Invite settings**\n\n"
-            "\n".join(f"**{key}:** {value}" for key, value in _data.items())
+        msg = "**Invite settings**\n\n" "\n".join(
+            f"**{key}:** {value}" for key, value in _data.items()
         )
         kwargs = {"content": msg}
         if await ctx.embed_requested():
-            embed = discord.Embed(title="Invite settings", colour=await ctx.embed_colour(), timestamp=datetime.utcnow())
-            [embed.add_field(name=key, value=value, inline=False) for key, value in _data.items()]
+            embed = discord.Embed(
+                title="Invite settings",
+                colour=await ctx.embed_colour(),
+                timestamp=datetime.utcnow(),
+            )
+            [
+                embed.add_field(name=key, value=value, inline=False)
+                for key, value in _data.items()
+            ]
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
 
@@ -218,7 +231,9 @@ class AdvancedInvite(commands.Cog):
             return ret
         return await ctx.author.create_dm()
 
-    async def _embed_requested(self, ctx: commands.Context, channel: discord.TextChannel) -> bool:
+    async def _embed_requested(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ) -> bool:
         if not await self.config.embeds():
             return False
         if isinstance(channel, discord.DMChannel):

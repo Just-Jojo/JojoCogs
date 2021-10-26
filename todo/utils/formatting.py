@@ -79,6 +79,6 @@ async def _format_completed(
         ret.insert(
             0,
             f"\n\N{BALLOT BOX WITH CHECK}\N{VARIATION SELECTOR-16} {fmt}Completed todos{fmt}"
-            + _build_underline(data, use_md, True), # type:ignore
+            + _build_underline(data, use_md, True),  # type:ignore
         )
     return ret

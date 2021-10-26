@@ -1,7 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from typing import Any, Dict, Optional, Union, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import discord
 from redbot.core import Config, commands
@@ -152,7 +152,9 @@ class TodoApi:
             return
         self._data[user] = await self.config.user_from_id(user).all()
 
-    async def set_user_item(self, user: User, key: str, data: Any, *, fix: bool = True) -> None:
+    async def set_user_item(
+        self, user: User, key: str, data: Any, *, fix: bool = True
+    ) -> None:
         """|coro|
 
         Save a user item via key
@@ -307,7 +309,7 @@ class TodoApi:
                 todo["pinned"] = False
                 fixer.append((num, todo))
                 continue
-            if ts := todo.get("timestamp") and not isinstance(ts, int): # type:ignore
+            if ts := todo.get("timestamp") and not isinstance(ts, int):  # type:ignore
                 try:
                     ts = int(ts)
                 except ValueError:

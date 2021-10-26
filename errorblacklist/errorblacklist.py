@@ -241,10 +241,7 @@ class ErrorBlacklist(commands.Cog):
 
         whitelist = await self.config.whitelist()
         user = ctx.author
-        if (
-            not await self.config.enabled()
-            or await self.bot.is_owner(user)
-        ):
+        if not await self.config.enabled() or await self.bot.is_owner(user):
             return
 
         name = ctx.command.qualified_name
@@ -272,7 +269,9 @@ class ErrorBlacklist(commands.Cog):
                 f"Blacklisted {user} ({user.id}) as they have used a command that has errored {am} times."
             )
             await add_to_blacklist(self.bot, {user})
-            log.info(f"Blacklisted {user} ({user.id}) as they have used a command that has errored {am} times.")
+            log.info(
+                f"Blacklisted {user} ({user.id}) as they have used a command that has errored {am} times."
+            )
             self.bot.dispatch("error_blacklist", user, ctx.command)
 
     @tasks.loop(hours=24)

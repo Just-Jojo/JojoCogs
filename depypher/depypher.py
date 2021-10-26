@@ -1,6 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import functools
 import logging
 from typing import Callable, Literal, Optional
 
@@ -8,7 +9,6 @@ import discord
 from pycipher import pycipher
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_list
-import functools
 
 log = logging.getLogger("red.JojoCogs.depypher")
 

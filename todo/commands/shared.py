@@ -179,10 +179,13 @@ class SharedTodos(TodoMixin):
             return await self.page_logic(
                 ctx,
                 await _format_completed(completed, **settings),
-                f"{user.name}'s Completed Todos", **settings,
+                f"{user.name}'s Completed Todos",
+                **settings,
             )
 
-        pinned, other = await self._get_todos(todos, timestamp=settings["use_timestamps"], md=settings["use_markdown"])
+        pinned, other = await self._get_todos(
+            todos, timestamp=settings["use_timestamps"], md=settings["use_markdown"]
+        )
         todos = await _format_todos(pinned, other, **settings)
         if completed and settings["combine_lists"]:
             todos.extend(await _format_completed(completed, combined=True, **settings))
@@ -202,7 +205,7 @@ class SharedTodos(TodoMixin):
             - `user` The user you want to edit the list of. This **cannot** be a bot.
             - `index` The index of the todo you want to remove.
         """
-        indexes = [i - 1 for i in indexes] # type:ignore
+        indexes = [i - 1 for i in indexes]  # type:ignore
         data = await self.cache.get_user_data(user.id)
         todos = data["todos"]
         managers = data["managers"]
@@ -243,7 +246,10 @@ class SharedTodos(TodoMixin):
 
     @shared.group(name="complete", aliases=["c"])
     async def shared_complete(
-        self, ctx: commands.Context, user: NonBotMember(False), indexes: PositiveInt # type:ignore
+        self,
+        ctx: commands.Context,
+        user: NonBotMember(False),
+        indexes: PositiveInt,  # type:ignore
     ):
         """Complete todos on a user's list
 
@@ -253,7 +259,7 @@ class SharedTodos(TodoMixin):
             - `user` The user for completing todos. This **cannot** be a bot.
             - `indexes` The indexes of the todos you want to complete
         """
-        indexes = [i - 1 for i in indexes] # type:ignore
+        indexes = [i - 1 for i in indexes]  # type:ignore
 
         data = await self.cache.get_user_data(user.id)
         todos = data["todos"]

@@ -15,7 +15,7 @@ from redbot.core.utils.predicates import MessagePredicate
 from redbot.vendored.discord.ext import menus  # type:ignore
 
 from .api import TodoApi
-from .general import timestamp_format, TimestampFormats
+from .general import TimestampFormats, timestamp_format
 
 __all__ = ["TodoPage", "TodoMenu", "ViewTodo"]
 log = logging.getLogger("red.JojoCogs.todo.menus")
@@ -178,10 +178,10 @@ class ViewTodo(menus.Menu):
 
     async def _format_page(self) -> Dict[str, Union[str, discord.Embed]]:
         todo = "Completed Todo" if self.completed else "Todo"
-        title = f"{self.user.name} {todo} #{self.index}" # type:ignore
+        title = f"{self.user.name} {todo} #{self.index}"  # type:ignore
         task = self.data if self.completed else self.data["task"]  # type:ignore
         if self.is_dict:
-            ts = self.data.get("timestamp") # type:ignore
+            ts = self.data.get("timestamp")  # type:ignore
             if ts:
                 task = f"{task} - Added {timestamp_format(ts, TimestampFormats.RELATIVE_TIME)}"
         if await self.ctx.cog._embed_requested(self.ctx, self.ctx.author):

@@ -4,10 +4,10 @@
 import asyncio
 import logging
 from contextlib import suppress
+from datetime import datetime, timezone
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import discord
-from datetime import timezone, datetime
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import escape, humanize_list, pagify, text_to_file
@@ -17,13 +17,13 @@ from .abc import MetaClass
 from .commands import *
 from .utils import (
     PositiveInt,
+    TimestampFormats,
     TodoApi,
     TodoMenu,
     TodoPage,
     ViewTodo,
     formatting,
     timestamp_format,
-    TimestampFormats
 )
 
 _config_structure = {
@@ -151,7 +151,7 @@ class ToDo(
             await self.config.user_from_id(uid).set(new_data)
 
     @commands.group(invoke_without_command=True)
-    async def todo(self, ctx: commands.Context, index: PositiveInt(False)): # type:ignore
+    async def todo(self, ctx: commands.Context, index: PositiveInt(False)):  # type:ignore
         """Your todo list inside Discord
 
         **Arguments**
@@ -222,7 +222,7 @@ class ToDo(
         pinned, todos = await self._get_todos(
             todos,
             timestamp=user_settings["use_timestamps"],
-            md=user_settings["use_markdown"]
+            md=user_settings["use_markdown"],
         )
         todos = await formatting._format_todos(pinned, todos, **user_settings)
         if completed and user_settings["combine_lists"]:
@@ -259,19 +259,24 @@ class ToDo(
             if not maybe_file.filename.endswith(".txt"):
                 return await ctx.send("File format must be `.txt`")
             todos = await maybe_file.read()
-            todos = todos.decode() # type:ignore
+            todos = todos.decode()  # type:ignore
         elif ctx.message.attachments:
             maybe_file = ctx.message.attachments[0]
             if not maybe_file.filename.endswith(".txt"):
                 return await ctx.send("File format must be `.txt`")
             todos = await maybe_file.read()
-            todos = todos.decode() # type:ignore
+            todos = todos.decode()  # type:ignore
         elif todos is None:  # No files or anything
             raise commands.UserInputError
         todos = [
-            {"pinned": False, "task": t.replace("\\n", "\n"), "timestamp": self._gen_timestamp()}
-            for t in todos.split("\n") if t # type:ignore
-        ] # type:ignore
+            {
+                "pinned": False,
+                "task": t.replace("\\n", "\n"),
+                "timestamp": self._gen_timestamp(),
+            }
+            for t in todos.split("\n")
+            if t  # type:ignore
+        ]  # type:ignore
         current = await self.cache.get_user_item(ctx.author, "todos")
         current.extend(todos)
         await self.cache.set_user_item(ctx.author, "todos", current)
@@ -400,7 +405,9 @@ class ToDo(
         await self.cache._maybe_autosort(ctx.author)
 
     @staticmethod
-    async def _get_todos(todos: List[dict], *, timestamp: bool = False, md: bool = False) -> Tuple[List[str], List[str]]:
+    async def _get_todos(
+        todos: List[dict], *, timestamp: bool = False, md: bool = False
+    ) -> Tuple[List[str], List[str]]:
         """An internal function to get todos sorted by pins"""
         pinned = []
         extra = []

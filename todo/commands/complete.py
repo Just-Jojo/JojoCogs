@@ -3,6 +3,7 @@
 
 import asyncio
 from contextlib import suppress
+from typing import List
 
 import discord
 from redbot.core import commands
@@ -12,8 +13,6 @@ from redbot.core.utils.predicates import MessagePredicate
 from ..abc import TodoMixin
 from ..utils import PositiveInt, ViewTodo
 from ..utils.formatting import _format_completed
-
-from typing import List
 
 __all__ = ["Complete"]
 
@@ -28,13 +27,15 @@ class Complete(TodoMixin):
         pass
 
     @todo.group(invoke_without_command=True, require_var_positional=True, aliases=["c"])
-    async def complete(self, ctx: commands.Context, *indexes: PositiveInt(False)): # type:ignore
+    async def complete(
+        self, ctx: commands.Context, *indexes: PositiveInt(False)
+    ):  # type:ignore
         """Commands having to do with your completed tasks
 
         **Arguments**
             - `indexes` Optional indexes to complete. If left at none the help command will be shown
         """
-        indexes = [i - 1 for i in indexes] # type:ignore
+        indexes = [i - 1 for i in indexes]  # type:ignore
         data = await self.cache.get_user_data(ctx.author.id)
         todos = data["todos"]
         if not todos:
@@ -79,8 +80,8 @@ class Complete(TodoMixin):
         **Arguments**
             - `indexes` A list of integers for the indexes of your completed todos
         """
-        indexes: List[int] = [i - 1 for i in indexes] # type:ignore
-        indexes.sort(reverse=True) # type:ignore
+        indexes: List[int] = [i - 1 for i in indexes]  # type:ignore
+        indexes.sort(reverse=True)  # type:ignore
         completed = await self.cache.get_user_item(ctx.author, "completed")
         if not completed:
             return await ctx.send(
@@ -181,7 +182,9 @@ class Complete(TodoMixin):
         await self.cache.set_user_item(ctx.author, "completed", completed)
 
     @complete.command(name="view")
-    async def complete_view(self, ctx: commands.Context, index: PositiveInt(False)): # type:ignore
+    async def complete_view(
+        self, ctx: commands.Context, index: PositiveInt(False)
+    ):  # type:ignore
         """View a completed todo. This has a similar effect to using `[p]todo <index>`
 
         This will have a menu that will allow you to delete the todo

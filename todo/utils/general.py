@@ -5,7 +5,6 @@
 
 from datetime import datetime
 from enum import Enum
-
 from typing import Union
 
 __all__ = ["TimestampFormats", "timestamp_format"]
@@ -24,8 +23,12 @@ class TimestampFormats(Enum):
 def timestamp_format(
     timestamp: Union[datetime, int] = None, *, ts_format: TimestampFormats = None
 ) -> str:
-    if timestamp is not None and not (isinstance(timestamp, int) or isinstance(timestamp, datetime)):
-        raise TypeError(f"Expected an instance of int or datetime not {timestamp.__class__!r}")
+    if timestamp is not None and not (
+        isinstance(timestamp, int) or isinstance(timestamp, datetime)
+    ):
+        raise TypeError(
+            f"Expected an instance of int or datetime not {timestamp.__class__!r}"
+        )
     if timestamp is None:
         timestamp = datetime.utcnow()
     if isinstance(timestamp, datetime):
