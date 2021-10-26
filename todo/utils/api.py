@@ -1,7 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, List, Tuple
 
 import discord
 from redbot.core import Config, commands
@@ -152,7 +152,7 @@ class TodoApi:
             return
         self._data[user] = await self.config.user_from_id(user).all()
 
-    async def set_user_item(self, user: User, key: str, data: Any) -> None:
+    async def set_user_item(self, user: User, key: str, data: Any, *, fix: bool = True) -> None:
         """|coro|
 
         Save a user item via key
@@ -177,6 +177,8 @@ class TodoApi:
             raise KeyError(f"'{key}' is not a registered value or group")
         await self.config.user_from_id(user).set_raw(key, value=data)
         await self._load_items(user=user)
+        if key == "todos" and fix:
+            await self._maybe_fix_todos(user)
 
     async def set_user_data(self, user: User, data: Dict[str, Any]) -> None:
         """|coro|
@@ -193,6 +195,7 @@ class TodoApi:
         user = self._get_user(user)
         await self.config.user_from_id(user).set(data)
         await self._load_items(user=user)
+        await self._maybe_fix_todos(user)
 
     async def set_user_setting(self, user: User, key: str, setting: Any) -> None:
         """|coro|
@@ -286,3 +289,36 @@ class TodoApi:
         data["completed"] = completed
         data["todos"] = todos
         await self.set_user_data(user, data)
+
+    async def _maybe_fix_todos(self, user_id: int):
+        """Scan todos and fix the fucked ones"""
+        data = await self.get_user_item(user_id, "todos")
+        if not isinstance(data, list):
+            # Super fucked todos
+            await self.set_user_item(user_id, "todos", [], fix=False)
+            return
+        fixer: List[Tuple[int, dict]] = []
+        for num, todo in enumerate(data):
+            if not isinstance(todo, dict):
+                payload = {"task": todo, "pinned": False, "timestamp": None}
+                fixer.append((num, payload))
+                continue
+            if not todo.get("pinned"):
+                todo["pinned"] = False
+                fixer.append((num, todo))
+                continue
+            if ts := todo.get("timestamp") and not isinstance(ts, int): # type:ignore
+                try:
+                    ts = int(ts)
+                except ValueError:
+                    ts = None
+                todo["timestamp"] = ts
+                fixer.append((num, todo))
+        for index, payload in fixer:
+            try:
+                data.pop(index)
+            except IndexError:
+                pass
+            else:
+                data.insert(index, payload)
+        await self.set_user_item(user_id, "todos", data, fix=False)

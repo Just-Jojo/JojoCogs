@@ -269,7 +269,7 @@ class ToDo(
         elif todos is None:  # No files or anything
             raise commands.UserInputError
         todos = [
-            {"pinned": False, "task": t, "timestamp": self._gen_timestamp()}
+            {"pinned": False, "task": t.replace("\\n", "\n"), "timestamp": self._gen_timestamp()}
             for t in todos.split("\n") if t # type:ignore
         ] # type:ignore
         current = await self.cache.get_user_item(ctx.author, "todos")
@@ -288,7 +288,7 @@ class ToDo(
         todos = await self.cache.get_user_item(ctx.author, "todos")
         if not todos:
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
-        todos = "\n".join(t["task"] for t in todos)
+        todos = "\n".join(t["task"].replace("\n", "\\n") for t in todos)
         await ctx.send("Here are your todos", file=text_to_file(todos, "todo.txt"))
 
     @todo.command(name="pin", aliases=["unpin"])
