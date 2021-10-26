@@ -7,6 +7,7 @@ from contextlib import suppress
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import discord
+from datetime import timezone, datetime
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import escape, humanize_list, pagify, text_to_file
@@ -72,7 +73,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666"]
-    __version__ = "3.0.12"
+    __version__ = "3.0.13"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -142,7 +143,7 @@ class ToDo(
                 if isinstance(todo, dict):
                     todos.append(todo)
                 else:
-                    todos.append({"task": todo, "pinned": False})
+                    todos.append({"task": todo, "pinned": False, "timestamp": None})
             new_data["todos"] = todos
             self.log.debug(new_data)
             await self.config.user_from_id(uid).clear()
@@ -185,7 +186,7 @@ class ToDo(
         """
         data = await self.cache.get_user_data(ctx.author.id)
         pinned = bool(pinned)
-        payload = {"task": todo, "pinned": pinned}
+        payload = {"task": todo, "pinned": pinned, "timestamp": self._gen_timestamp()}
         data["todos"].append(payload)
         await self.cache.set_user_item(ctx.author, "todos", data["todos"])
 
@@ -217,7 +218,7 @@ class ToDo(
         elif not todos:
             return await ctx.invoke(self.complete_list)
 
-        pinned, todos = await self._get_todos(todos)
+        pinned, todos = await self._get_todos(todos, timestamp=user_settings["use_timestamps"])
         todos = await formatting._format_todos(pinned, todos, **user_settings)
         if completed and user_settings["combine_lists"]:
             completed = await formatting._format_completed(
@@ -262,7 +263,10 @@ class ToDo(
             todos = todos.decode() # type:ignore
         elif todos is None:  # No files or anything
             raise commands.UserInputError
-        todos = [{"pinned": False, "task": t} for t in todos.split("\n") if t] # type:ignore
+        todos = [
+            {"pinned": False, "task": t, "timestamp": self._gen_timestamp()}
+            for t in todos.split("\n") if t # type:ignore
+        ] # type:ignore
         current = await self.cache.get_user_item(ctx.author, "todos")
         current.extend(todos)
         await self.cache.set_user_item(ctx.author, "todos", current)
@@ -391,16 +395,27 @@ class ToDo(
         await self.cache._maybe_autosort(ctx.author)
 
     @staticmethod
-    async def _get_todos(todos: List[dict]) -> Tuple[List[str], List[str]]:
+    async def _get_todos(todos: List[dict], *, timestamp: bool = False) -> Tuple[List[str], List[str]]:
         """An internal function to get todos sorted by pins"""
         pinned = []
         extra = []
         for todo in todos:
+            task = todo["task"]
+            if timestamp:
+                task = (
+                    f"{task} - {timestamp_format(ts)}"
+                    if (ts := todo.get("timestamp"))
+                    else task
+                )
             if todo["pinned"]:
-                pinned.append(todo["task"])
+                pinned.append(task)
             else:
-                extra.append(todo["task"])
+                extra.append(task)
         return pinned, extra
+
+    @staticmethod
+    def _gen_timestamp():
+        return int(datetime.now(tz=timezone.utc).timestamp())
 
     async def page_logic(
         self, ctx: commands.Context, data: list, title: str, **settings

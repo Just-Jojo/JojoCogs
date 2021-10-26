@@ -46,6 +46,11 @@ class TodoMixin(ABC):
     async def _get_todos(todos: List[dict]) -> Tuple[List[str], ...]: # type:ignore
         ...
 
+    @staticmethod
+    @abstractstaticmethod
+    def _gen_timestamp() -> int:
+        ...
+
 
 class MetaClass(type(commands.Cog), type(ABC)): # type:ignore
     """Meta class for main class"""

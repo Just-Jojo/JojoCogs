@@ -172,10 +172,18 @@ class ViewTodo(menus.Menu):
     def _skip_if_completed(self) -> bool:
         return self.completed
 
+    @property
+    def is_dict(self) -> bool:
+        return isinstance(self.data, dict)
+
     async def _format_page(self) -> Dict[str, Union[str, discord.Embed]]:
         todo = "Completed Todo" if self.completed else "Todo"
         title = f"{self.user.name} {todo} #{self.index}" # type:ignore
         task = self.data if self.completed else self.data["task"]  # type:ignore
+        if self.is_dict:
+            ts = self.data.get("timestamp") # type:ignore
+            if ts:
+                task = f"{task} - Added {timestamp_format(ts)}"
         if await self.ctx.cog._embed_requested(self.ctx, self.ctx.author):
             embed = discord.Embed(
                 title=title,

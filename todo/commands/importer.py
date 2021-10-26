@@ -46,7 +46,7 @@ class Importer(TodoMixin):
                 to_add = todo
                 if isinstance(todo, list):
                     to_add = to_add[1]
-                payload.append({"task": to_add, "pinned": False})
+                payload.append({"task": to_add, "pinned": False, "timestamp": self._gen_timestamp()})
             current_todos.extend(payload)
         await ctx.send("Done. I have imported your todos")
         await self.cache.set_user_item(ctx.author, "todos", current_todos)
