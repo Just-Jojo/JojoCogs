@@ -66,8 +66,8 @@ class AdvancedLog(commands.Cog):
             if user_id in guild_data:
                 await self.config.member_from_ids(guild_id, user_id).clear()
 
-        async def red_get_data_for_user(self, *args, **kwargs):
-            return {}
+    async def red_get_data_for_user(self, *args, **kwargs):
+        return {}
 
     @commands.group()
     @commands.admin_or_permissions(administrator=True)

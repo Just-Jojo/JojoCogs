@@ -80,13 +80,13 @@ class CycleStatus(commands.Cog):
 
     @commands.group()
     @commands.is_owner()
-    async def status(self, ctx):
+    async def status(self, ctx: commands.Context):
         """Commands working with the status"""
         pass
 
     @status.command()
     @commands.check(lambda ctx: ctx.cog.random is False)
-    async def forcenext(self, ctx):
+    async def forcenext(self, ctx: commands.Context):
         """Force the next status to display on the bot"""
         nl = await self.config.next_iter()
         status = (statuses := await self.config.statuses())[nl]
@@ -95,7 +95,7 @@ class CycleStatus(commands.Cog):
         await ctx.tick()
 
     @status.command(name="usehelp")
-    async def status_set(self, ctx, toggle: bool = None):
+    async def status_set(self, ctx: commands.Context, toggle: bool = None):
         """Change whether the status should have ` | [p]help`
 
         \u200b
@@ -109,7 +109,7 @@ class CycleStatus(commands.Cog):
         await ctx.tick()
 
     @status.command(name="add")
-    async def status_add(self, ctx, *, status: str):
+    async def status_add(self, ctx: commands.Context, *, status: str):
         """Add a status to the list
 
         Put `{bot_guild_count}` or `{bot_member_count}` in your message to have the user count and guild count of your bot! You can also put `{bot_prefix}` in your message to have the bot's prefix be displayed (eg. `{bot_prefix}ping`)
@@ -122,7 +122,7 @@ class CycleStatus(commands.Cog):
         await ctx.tick()
 
     @status.command(name="remove", aliases=["del", "rm", "delete"])
-    async def status_remove(self, ctx, num: PositiveInt = None):  # type:ignore
+    async def status_remove(self, ctx: commands.Context, num: PositiveInt = None):  # type:ignore
         """Remove a status from the list
 
         \u200b
@@ -139,14 +139,14 @@ class CycleStatus(commands.Cog):
         await ctx.tick()
 
     @status.command(name="list")
-    async def status_list(self, ctx):
+    async def status_list(self, ctx: commands.Context):
         """List the available statuses"""
         if not (status := await self.config.statuses()):
             return await ctx.send("There are no statuses")
         await self._show_statuses(ctx=ctx, statuses=status)
 
     @status.command(name="clear")
-    async def status_clear(self, ctx):
+    async def status_clear(self, ctx: commands.Context):
         """Clear all of the statuses"""
         msg = await ctx.send("Would you like to clear all of your statuses? (y/n)")
         pred = MessagePredicate.yes_or_no()

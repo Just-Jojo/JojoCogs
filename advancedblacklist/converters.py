@@ -5,11 +5,12 @@ from typing import Union
 
 import discord
 from redbot.core import commands
+from abc import ABC
 
 __all__ = ["NonBotUser", "NonBotMember"]
 
 
-class _NonBotMixin(commands.Converter):
+class _NonBotMixin(commands.Converter, ABC):
     """Remember kids, Don't Repeat Yourself (D.R.Y)"""
 
     converter_type: commands.Converter

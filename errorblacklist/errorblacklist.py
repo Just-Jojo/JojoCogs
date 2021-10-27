@@ -55,7 +55,7 @@ class ErrorBlacklist(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
         for key, value in _config_structure.items():
-            getattr(self.config, f"register_{key}")(**value)
+            getattr(self.config, f"register_{key}", lambda **x: x)(**value)
         self._cache: dict = {}
         self.first_run: bool = True
 

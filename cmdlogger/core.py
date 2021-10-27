@@ -4,7 +4,7 @@
 import logging
 from contextlib import suppress
 from functools import wraps
-from typing import Any, Callable, Iterable, List
+from typing import Any, Callable, Iterable, List, Optional
 
 import discord
 from redbot.core import Config, commands
@@ -47,6 +47,8 @@ class CmdLogger(commands.Cog):
         if 544974305445019651 in self.bot.owner_ids:
             with suppress(RuntimeError):
                 self.bot.add_dev_env_value("cmdlog", lambda x: self)
+
+        self.log_channel: Optional[discord.TextChannel] = None
 
     def cog_unload(self) -> None:
         with suppress(Exception):
@@ -91,11 +93,12 @@ class CmdLogger(commands.Cog):
             - `channel` The channel to log command usages to. Type `None` to reset it.
         """
         conf = await self.config.log_channel()
-        cid = channel if channel is None else channel.id
+        cid = getattr(channel, "id", channel)
         if cid is None and conf is None:
             return await ctx.send("The log channel is already None")
         elif cid is not None and cid == conf:
             return await ctx.send(f"The log channel is already {channel.name}")
+        self.log_channel = channel
         await self.config.log_channel.set(cid)
         await ctx.tick()
 
@@ -131,7 +134,7 @@ class CmdLogger(commands.Cog):
         async with self.config.commands() as cmds:
             if cmd not in cmds:
                 return await ctx.send(
-                    f"I am already not the command `{cmd}`.\n"
+                    f"I am already not tracking the command `{cmd}`.\n"
                     "If this command is being tracked, please make an issue on my github"
                 )
             cmds.remove(cmd)
@@ -152,32 +155,33 @@ class CmdLogger(commands.Cog):
     async def on_command_completion(self, ctx: commands.Context):
         conf = await self.config.all()
         name = ctx.command.qualified_name
-        if ctx.command.qualified_name in conf["commands"]:
-            guild_data = (
-                "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
-            )
-            msg = f"Command '{ctx.command.qualified_name}' was used by {ctx.author} ({ctx.author.id}). {guild_data}"
-            log.info(msg)
+        if ctx.command.qualified_name not in conf["commands"]:
+            return # Large if statements are fucking dumb
+        guild_data = (
+            "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
+        )
+        msg = f"Command '{ctx.command.qualified_name}' was used by {ctx.author} ({ctx.author.id}). {guild_data}"
+        log.info(msg)
+        if not self.log_channel:
             channel = conf["log_channel"]
             if not channel:
                 return
 
             async def get_or_fetch_channel(bot, channel_id: int):
-                channel = self.bot.get_channel(channel_id)
+                channel = bot.get_channel(channel_id)
                 if not channel:
                     channel = await bot.fetch_channel(channel_id)
                 return channel
-
             try:
-                channel = await get_or_fetch_channel(self.bot, channel)
+                self.log_channel = await get_or_fetch_channel(self.bot, channel)
             except Exception as e:
                 # I'd rather just catch exception rather than any discord related exception
                 # as it's possible I could miss some
                 log.warning("I could not find the log channel")
                 await self.config.log_channel.clear()
                 return
-            try:
-                await channel.send(msg)
-            except discord.Forbidden:
-                log.warning(f"I could not send a message to channel '{channel.name}'")
-                await self.config.log_channel.clear()
+        try:
+            await self.log_channel.send(msg)
+        except discord.Forbidden:
+            log.warning(f"I could not send a message to channel '{channel.name}'")
+            await self.config.log_channel.clear()

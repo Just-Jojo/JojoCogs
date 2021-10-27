@@ -291,7 +291,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         ctx: commands.Context,
         users: commands.Greedy[NonBotMember],
         *,
-        reason: str = "No reason provided.",
+        reason: str = None,
     ):
         """Add a user to this guild's blocklist
 
@@ -315,6 +315,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         users = await sorter(users)
         if not users:
             raise commands.UserInputError
+        reason = reason or "No reason provided."
         # I got an api added to red now fuck yes :D
         await add_to_blacklist(self.bot, users, guild=ctx.guild)
         async with self.config.guild(ctx.guild).blacklist() as lbl:
@@ -419,7 +420,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         ctx: commands.Context,
         users: commands.Greedy[NonBotUser],
         *,
-        reason: str = "No reason provided",
+        reason: str = None,
     ):
         """Add a user to the blocklist
 
@@ -431,6 +432,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         """
         if not users:
             raise commands.UserInputError
+        reason = reason or "No reason provided"
         await add_to_blacklist(self.bot, users)
         async with self.config.blacklist() as blacklist:
             for user in users:
