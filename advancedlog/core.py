@@ -17,6 +17,7 @@ log = logging.getLogger("red.JojoCogs.advanced_log")
 _config_structure = {
     "guild": {
         "modlog_enabled": False,
+        "allow_other_edits": False,
     },
     "member": {
         "notes": [],
@@ -28,7 +29,7 @@ class AdvancedLog(commands.Cog):
     """An advanced log for moderators to add notes to users"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -94,6 +95,16 @@ class AdvancedLog(commands.Cog):
             return await ctx.send(f"The modlog logging is already {disabled}")
         await ctx.send(f"Modlog logging is now {disabled}")
         await self.config.guild(ctx.guild).modlog_enabled.set(toggle)
+
+    @modnoteset.command(name="nonauthoredits", aliases=("nae",))
+    async def non_author_edits(self, ctx: commands.Context, toggle: bool):
+        """Allow any moderator to edit notes, regardless of who authored it"""
+        if toggle == await self.config.guild(ctx.guild).allow_other_edits():
+            enabled = "" if toggle else "'t"
+            return await ctx.send(f"Moderators already can{enabled} edit notes that weren't authored by them")
+        await self.config.guild(ctx.guild).allow_other_edits.set(toggle)
+        now_no_longer = "now" if toggle else "no longer"
+        await ctx.send(f"Moderators can {now_no_longer} edit notes not authored by them.")
 
     @commands.group(aliases=("mnote",), invoke_without_command=True)
     @commands.mod_or_permissions(administrator=True)

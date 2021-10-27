@@ -5,6 +5,7 @@ import logging
 from datetime import datetime
 
 import discord  # type:ignore
+from datetime import timezone, datetime
 from redbot.core import Config, commands, modlog
 from redbot.core.bot import Red
 
@@ -74,9 +75,11 @@ class NoteApi:
     ):
         async with self.config.member(user).notes() as notes:
             data = notes[index]
-            if data["author"] != moderator.id:
+            if data["author"] != moderator.id and not await self.config.guild(guild).allow_other_edits():
                 raise NotAuthor(moderator)
             data["note"] = new_note
+            data["amend_author"] = str(moderator)
+            data["amend_time"] = int(datetime.now(timezone.utc).timestamp())
             if await self._modlog_enabled(guild):
                 if not data["case_number"]:
                     case = await modlog.create_case(
@@ -109,7 +112,7 @@ class NoteApi:
     ):
         async with self.config.member(user).notes() as notes:
             note = notes[index]
-            if note["author"] != moderator.id:
+            if note["author"] != moderator.id and not await self.config.guild(guild).allow_other_edits():
                 raise NotAuthor(moderator)
             notes.pop(index)
             if await self._modlog_enabled(guild) and (cn := note["case_number"]):
