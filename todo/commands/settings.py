@@ -307,6 +307,13 @@ class Settings(TodoMixin):
                     hex(value).replace("0x", "#") if value is not None else "Bot colour"
                 )
                 continue
+            if key.endswith("emoji"):
+                _k = key.split("_")[0]
+                default = "\N{LARGE GREEN SQUARE}" if _k == "todo" else "\N{WHITE HEAVY CHECK MARK}"
+                emoji = value or default
+                key = key.replace("_", " ").capitalize()
+                settings_dict[key] = emoji
+                continue
             if key in ("private", "reverse_sort"):
                 continue
             key = key.replace("_", " ").capitalize()

@@ -56,7 +56,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666", "kato#0666"]
-    __version__ = "3.0.13"
+    __version__ = "3.0.14"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -77,10 +77,10 @@ class ToDo(
         pre = super().format_help_for_context(ctx)
         plural = "s" if len(self.__authors__) > 1 else ""
         return (
-            f"{pre}\n"
-            f"Author{plural}: {humanize_list([f'`{a}`' for a in self.__authors__])}\n"
-            "Suggestors: Use `[p]todo suggestors`!"
-            f"Version: `{self.__version__}`"
+            f"{pre}\n\n"
+            f"**Author{plural}:** {humanize_list([f'`{a}`' for a in self.__authors__])}\n"
+            "**Suggestors:** Use `[p]todo suggestors`!"
+            f"**Version:** `{self.__version__}`"
         )
 
     async def red_delete_data_for_user(
