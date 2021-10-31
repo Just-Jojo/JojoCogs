@@ -2,11 +2,9 @@
 # Licensed under MIT
 
 from typing import List
-import logging
 
 __all__ = ["_format_todos", "_format_completed", "_build_underline"]
 
-log = logging.getLogger("red.jojocogs.todo.formatting")
 
 def _build_underline(data: str, md: bool = False, emoji: bool = False) -> str:
     """An internal function to return a rough estimate of an underline"""
