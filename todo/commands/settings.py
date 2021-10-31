@@ -16,7 +16,9 @@ from ..utils import timestamp_format
 
 
 async def no_markdown(ctx: commands.Context):
-    return not await ctx.cog.cache.get_user_setting(ctx.author, "use_markdown")
+    md = await ctx.cog.cache.get_user_setting(ctx.author, "use_markdown")
+    pretty = await ctx.cog.cache.get_user_setting(ctx.author, "pretty_todos")
+    return not md and pretty
 
 class PresetsEnum(Enum):
     minimal = {
@@ -308,6 +310,8 @@ class Settings(TodoMixin):
                 )
                 continue
             if key.endswith("emoji"):
+                if not user_settings["pretty_todos"] or user_settings["use_markdown"]:
+                    continue
                 _k = key.split("_")[0]
                 default = "\N{LARGE GREEN SQUARE}" if _k == "todo" else "\N{WHITE HEAVY CHECK MARK}"
                 emoji = value or default
