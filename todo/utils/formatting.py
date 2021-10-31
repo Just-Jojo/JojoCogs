@@ -8,7 +8,6 @@ __all__ = ["_format_todos", "_format_completed", "_build_underline"]
 
 def _build_underline(data: str, md: bool = False, emoji: bool = False) -> str:
     """An internal function to return a rough estimate of an underline"""
-    text_len = len(data)
     add = 3
     if md and not emoji:
         add = 0
@@ -24,6 +23,8 @@ async def _format_todos(pinned: List[str], other: List[str], **settings) -> List
     pretty = settings.get("pretty_todos", False)
     use_md = settings.get("use_markdown", False)
     number = settings.get("number_todos", False)
+    emoji = settings.get("todo_emoji", "\N{LARGE GREEN SQUARE}") if not use_md else "\N{LARGE GREEN SQUARE}"
+    emoji = emoji or "\N{LARGE GREEN SQUARE}"
     fmt = "" if use_md else "**"
     should_insert = len(pinned) > 0
     should_insert_todos = len(other) > 0
@@ -36,7 +37,7 @@ async def _format_todos(pinned: List[str], other: List[str], **settings) -> List
         if number:
             task = f"{num}. {task}"
         if pretty:
-            task = f"\N{LARGE GREEN SQUARE} {task}"
+            task = f"{emoji} {task}"
         ret.append(task)
     if should_insert:
         ret.insert(
@@ -64,16 +65,19 @@ async def _format_completed(
 ) -> List[str]:
     pretty = settings.get("pretty_todos")
     number = settings.get("number_todos")
+    use_md = settings.get("use_markdown")
+    fallback = "\N{WHITE HEAVY CHECK MARK}"
+    completed_emoji: str = settings.get("completed_emoji", fallback) if not use_md else fallback
+    completed_emoji = completed_emoji or fallback # Sometimes this is none which is annoying
     fmt = "" if settings.get("use_markdown") else "**"
     ret = []
     for num, task in enumerate(completed, 1):
         if number:
             task = f"{num}. {task}"
         if pretty:
-            task = f"\N{WHITE HEAVY CHECK MARK} {task}"
+            task = f"{completed_emoji} {task}"
         ret.append(task)
     if combined:
-        use_md = settings.get("use_markdown")
         emoji = "✅" if use_md else "☑"
         data = f"{emoji} Completed todos"
         ret.insert(

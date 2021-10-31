@@ -25,25 +25,7 @@ from .utils import (
     formatting,
     timestamp_format,
 )
-
-_config_structure = {
-    "todos": [],  # List[Dict[str, Any]] "task": str, "pinned": False
-    "completed": [],  # List[str]
-    "managers": [],  # List[int] Discord member id's
-    "user_settings": {
-        "autosorting": False,
-        "colour": None,
-        "combine_lists": False,
-        "extra_details": False,
-        "number_todos": True,
-        "pretty_todos": False,
-        "private": False,
-        "reverse_sort": False,
-        "use_embeds": True,
-        "use_markdown": False,
-        "use_timestamps": False,
-    },
-}
+from .consts import config_structure
 
 
 def attach_or_in_dm(ctx: commands.Context) -> bool:
@@ -73,8 +55,8 @@ class ToDo(
     __authors__ = [
         "Jojo#7791",
     ]
-    __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666"]
-    __version__ = "3.0.13"
+    __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666", "kato#0666"]
+    __version__ = "3.0.14"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -82,7 +64,7 @@ class ToDo(
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 19924714019, True)
-        self.config.register_user(**_config_structure)
+        self.config.register_user(**config_structure)
         self.cache = TodoApi(self.bot, self.config)
         self._startup_task = self.bot.loop.create_task(self._initialize())
         self.log = logging.getLogger("red.JojoCogs.todo")
@@ -95,10 +77,10 @@ class ToDo(
         pre = super().format_help_for_context(ctx)
         plural = "s" if len(self.__authors__) > 1 else ""
         return (
-            f"{pre}\n"
-            f"Author{plural}: {humanize_list([f'`{a}`' for a in self.__authors__])}\n"
-            "Suggestors: Use `[p]todo suggestors`!"
-            f"Version: `{self.__version__}`"
+            f"{pre}\n\n"
+            f"**Author{plural}:** {humanize_list([f'`{a}`' for a in self.__authors__])}\n"
+            "**Suggestors:** Use `[p]todo suggestors`!"
+            f"**Version:** `{self.__version__}`"
         )
 
     async def red_delete_data_for_user(
@@ -274,9 +256,9 @@ class ToDo(
                 "task": t.replace("\\n", "\n"),
                 "timestamp": self._gen_timestamp(),
             }
-            for t in todos.split("\n")
-            if t  # type:ignore
-        ]  # type:ignore
+            for t in todos.split("\n") # type:ignore
+            if t
+        ]
         current = await self.cache.get_user_item(ctx.author, "todos")
         current.extend(todos)
         await self.cache.set_user_item(ctx.author, "todos", current)

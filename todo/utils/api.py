@@ -7,6 +7,8 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
+from ..consts import config_structure
+
 User = Union[int, discord.Member, discord.User]
 __all__ = [
     "TodoApi",
@@ -174,8 +176,7 @@ class TodoApi:
         See :meth:`get_user_data` for more
         """
         user = self._get_user(user)
-        user_data = await self.get_user_data(user)
-        if key not in user_data.keys():
+        if key not in config_structure.keys():
             raise KeyError(f"'{key}' is not a registered value or group")
         await self.config.user_from_id(user).set_raw(key, value=data)
         await self._load_items(user=user)
@@ -220,7 +221,7 @@ class TodoApi:
         """
         user = self._get_user(user)
         data = await self.get_user_item(user, "user_settings")
-        if key not in data.keys():
+        if key not in config_structure["user_settings"].keys(): # type:ignore
             raise KeyError(f"'{key}' was not in the user's settings")
         data[key] = setting
         await self.set_user_item(user, "user_settings", data)
