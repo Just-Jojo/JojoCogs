@@ -250,7 +250,7 @@ class Settings(TodoMixin):
             await self.cache.set_user_setting(ctx.author, "todo_emoji", None)
             return await ctx.send("Done. Your emoji has been reset.")
         msg = await ctx.send("Please react with the emoji you want for the uncompleted todos")
-        pred = ReactionPredicate.same_context(message=msg)
+        pred = ReactionPredicate.same_context(message=msg, user=ctx.author)
         try:
             emoji = (await self.bot.wait_for("reaction_add", check=pred))[0].emoji
         except asyncio.TimeoutError:
@@ -275,7 +275,7 @@ class Settings(TodoMixin):
             await self.cache.set_user_setting(ctx.author, "completed_emoji", None)
             return await ctx.send("Done. Your emoji has been reset.")
         msg = await ctx.send("Please react with the emoji you want for the completed todos")
-        pred = ReactionPredicate.same_context(message=msg)
+        pred = ReactionPredicate.same_context(message=msg, user=ctx.author)
         try:
             emoji = (await self.bot.wait_for("reaction_add", check=pred))[0].emoji
         except asyncio.TimeoutError:
