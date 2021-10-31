@@ -25,25 +25,7 @@ from .utils import (
     formatting,
     timestamp_format,
 )
-
-_config_structure = {
-    "todos": [],  # List[Dict[str, Any]] "task": str, "pinned": False
-    "completed": [],  # List[str]
-    "managers": [],  # List[int] Discord member id's
-    "user_settings": {
-        "autosorting": False,
-        "colour": None,
-        "combine_lists": False,
-        "extra_details": False,
-        "number_todos": True,
-        "pretty_todos": False,
-        "private": False,
-        "reverse_sort": False,
-        "use_embeds": True,
-        "use_markdown": False,
-        "use_timestamps": False,
-    },
-}
+from .consts import config_structure
 
 
 def attach_or_in_dm(ctx: commands.Context) -> bool:
@@ -82,7 +64,7 @@ class ToDo(
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 19924714019, True)
-        self.config.register_user(**_config_structure)
+        self.config.register_user(**config_structure)
         self.cache = TodoApi(self.bot, self.config)
         self._startup_task = self.bot.loop.create_task(self._initialize())
         self.log = logging.getLogger("red.JojoCogs.todo")
@@ -274,9 +256,9 @@ class ToDo(
                 "task": t.replace("\\n", "\n"),
                 "timestamp": self._gen_timestamp(),
             }
-            for t in todos.split("\n")
-            if t  # type:ignore
-        ]  # type:ignore
+            for t in todos.split("\n") # type:ignore
+            if t
+        ]
         current = await self.cache.get_user_item(ctx.author, "todos")
         current.extend(todos)
         await self.cache.set_user_item(ctx.author, "todos", current)
