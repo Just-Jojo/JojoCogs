@@ -33,6 +33,7 @@ _config_structure = {
     "embeds": True,
     "title": "Invite {bot_name}",
     "support_server": None,
+    "footer": None
 }
 
 
@@ -40,7 +41,7 @@ class AdvancedInvite(commands.Cog):
     """An advanced invite for [botname]"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "3.0.0"
+    __version__ = "3.0.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -194,6 +195,18 @@ class AdvancedInvite(commands.Cog):
 
         await ctx.send(f"The title has been {set_reset}")
         await self.config.title.set(title)
+
+    @invite_settings.command(name="footer")
+    async def invite_footer(self, ctx: commands.Context, *, footer: NoneConverter):
+        """Set the footer for the invite command"""
+
+        if not footer:
+            await self.config.footer.set(None)
+            return await ctx.send("The footer has been reset.")
+        if len(footer) > 500:
+            return await ctx.send("The footer's length cannot be over 500 characters long.")
+        await self.config.footer.set(footer)
+        await ctx.send("The footer has been set.")
 
     @invite_settings.command(name="showsettings")
     async def invite_show_settings(self, ctx: commands.Context):
