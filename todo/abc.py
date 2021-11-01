@@ -54,6 +54,10 @@ class TodoMixin(ABC):
     def _gen_timestamp() -> int:
         ...
 
+    @abstractmethod
+    async def _embed_colour(self, ctx: commands.Context) -> discord.Colour:
+        ...
+
 
 class MetaClass(type(commands.Cog), type(ABC)):  # type:ignore
     """Meta class for main class"""

@@ -37,6 +37,7 @@ def attach_or_in_dm(ctx: commands.Context) -> bool:
 class ToDo(
     Complete,
     Deleting,
+    Edit,
     Importer,
     Managers,
     Miscellaneous,
@@ -56,7 +57,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666", "kato#0666"]
-    __version__ = "3.0.14"
+    __version__ = "3.0.15"
     _no_todo_message = (
         "You do not have any todos. You can add one with `{prefix}todo add <task>`"
     )
@@ -300,36 +301,6 @@ class ToDo(
         todos.insert(act_index, todo)
         await self.cache.set_user_item(ctx.author, "todos", todos)
 
-    @todo.command(name="edit")
-    async def todo_edit(self, ctx: commands.Context, index: PositiveInt, *, todo: str):
-        """Edit a todo
-
-
-        **Arguments**
-            - `index` The index of the todo you want to edit
-            - `todo` The new todo
-        """
-        act_index = index - 1
-        if not (todos := await self.cache.get_user_item(ctx.author, "todos")):
-            return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
-
-        try:
-            _todo = todos.pop(act_index)
-        except IndexError:
-            return await ctx.send("That index was bigger than your todo list!")
-        old_task = _todo["task"]
-        _todo["task"] = todo
-        todos.insert(act_index, _todo)
-        await self.cache.set_user_item(ctx.author, "todos", todos)
-
-        msg = (
-            f"**Todo Edit**\n\n" f"**Old Todo**\n'{old_task}'\n" f"**New Todo**\n'{todo}'"
-        )
-        if len(msg) <= 2000:
-            await ctx.send(msg)
-        else:
-            await ctx.send_interactive(pagify(msg))
-
     @todo.command(name="reorder", aliases=["move"], usage="<from> <to>")
     async def todo_reorder(
         self, ctx: commands.Context, original: PositiveInt, new: PositiveInt
@@ -424,3 +395,7 @@ class ToDo(
         if ctx.guild and not ctx.channel.permissions_for(ctx.me).embed_links:
             return False
         return await self.cache.get_user_setting(user, "use_embeds")
+
+    async def _embed_colour(self, ctx: commands.Context) -> discord.Colour:
+        colour = await self.cache.get_user_setting(ctx.author, "colour")
+        return colour or await ctx.embed_colour()
