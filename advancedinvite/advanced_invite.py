@@ -41,7 +41,7 @@ class AdvancedInvite(commands.Cog):
     """An advanced invite for [botname]"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "3.0.1"
+    __version__ = "3.0.2"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -94,12 +94,16 @@ class AdvancedInvite(commands.Cog):
         check = send_in_channel and await self.bot.is_owner(ctx.author)
         channel = await self._get_channel(ctx) if not check else ctx.channel
         settings = await self.config.all()
-        title = settings["title"].replace("{bot_name}", ctx.me.name)
-        message = settings["custom_message"].replace("{bot_name}", ctx.me.name)
+        title = settings.get(
+            "title", _config_structure["title"]
+        ).replace("{bot_name}", ctx.me.name)
+        message = settings.get(
+            "custom_message", _config_structure["custom_message"]
+        ).replace("{bot_name}", ctx.me.name)
         url = await CoreLogic._invite_url(self)
         timestamp = f"<t:{int(datetime.utcnow().timestamp())}>"
-        footer = ret if (ret := settings["footer"]) else ""
-        support = settings["support_server"]
+        footer = ret if (ret := settings.get("footer")) else ""
+        support = settings.get("support_server")
 
         support_msg = (
             f"\nJoin the support server! <{support}>\n" if support is not None else ""
@@ -114,7 +118,7 @@ class AdvancedInvite(commands.Cog):
             )
             if support is not None:
                 embed.add_field(name="Join the support server", value=support)
-            if curl := settings["custom_url"]:
+            if curl := settings.get("custom_url"):
                 embed.set_thumbnail(url=curl)
             kwargs = {"embed": embed}
         try:
