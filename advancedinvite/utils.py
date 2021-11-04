@@ -71,9 +71,7 @@ class InviteNoneConverter(NoneConverter):
     def __init__(self):
         self.strict = False
 
-    async def convert(
-        self, ctx: commands.Context, arg: str
-    ) -> Union[NoneType, discord.Invite]:
+    async def convert(self, ctx: commands.Context, arg: str) -> Union[NoneType, discord.Invite]:
         arg = await super().convert(ctx, arg)
         if arg is None:
             return arg

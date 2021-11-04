@@ -101,7 +101,9 @@ class AdvancedLog(commands.Cog):
         """Allow any moderator to edit notes, regardless of who authored it"""
         if toggle == await self.config.guild(ctx.guild).allow_other_edits():
             enabled = "" if toggle else "'t"
-            return await ctx.send(f"Moderators already can{enabled} edit notes that weren't authored by them")
+            return await ctx.send(
+                f"Moderators already can{enabled} edit notes that weren't authored by them"
+            )
         await self.config.guild(ctx.guild).allow_other_edits.set(toggle)
         now_no_longer = "now" if toggle else "no longer"
         await ctx.send(f"Moderators can {now_no_longer} edit notes not authored by them.")
@@ -186,7 +188,5 @@ class AdvancedLog(commands.Cog):
                 ]
             )
         msg = "# Moderator\tNote\n"
-        msg += "\n".join(
-            f"{num}. {mod}\t\t{note}" for num, (mod, note) in enumerate(act, 1)
-        )
+        msg += "\n".join(f"{num}. {mod}\t\t{note}" for num, (mod, note) in enumerate(act, 1))
         await Menu(Page(list(pagify(msg)), f"{user.name}'s notes")).start(ctx)

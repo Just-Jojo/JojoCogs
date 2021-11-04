@@ -111,9 +111,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         guild_data = conf.pop("local_blacklist", None)
         if guild_data is not None:
             for g_id, data in guild_data.keys():
-                await self.config.guild_from_id(int(g_id)).set_raw(
-                    "blacklist", value=data
-                )
+                await self.config.guild_from_id(int(g_id)).set_raw("blacklist", value=data)
         conf["schema_v1"] = True
         await self.config.clear_all_globals()
         await self.config.set(conf)
@@ -167,9 +165,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
             sending += f"\n\t- [{user}] {await self._get_user_name(user)}: {reason}"
         await ctx.send_interactive(pagify(sending, page_length=1995), box_lang="yaml")
 
-    @whitelist.command(
-        name="remove", aliases=["del", "delete"], require_var_positional=True
-    )
+    @whitelist.command(name="remove", aliases=["del", "delete"], require_var_positional=True)
     async def whitelist_remove(self, ctx: commands.Context, *users: discord.User):
         """Remove users from [botname]'s allowlist.
 
@@ -479,9 +475,7 @@ class AdvancedBlacklist(BlacklistEvent, commands.Cog):
         await ctx.tick()
 
     @blocklist.command(name="reason")
-    async def blacklist_reason(
-        self, ctx: commands.Context, user: discord.User, *, reason: str
-    ):
+    async def blacklist_reason(self, ctx: commands.Context, user: discord.User, *, reason: str):
         """Add or edit the reason for a blocklisted user
 
         \u200b

@@ -19,9 +19,7 @@ BOT: Optional[Red] = None
 
 
 @copy_doc(WBM.add_to_blacklist)
-async def add_to_blacklist(
-    self: WBM, guild: Optional[discord.Guild], role_or_user: Iterable[int]
-):
+async def add_to_blacklist(self: WBM, guild: Optional[discord.Guild], role_or_user: Iterable[int]):
     d = await _FUNCS[0](self, guild, role_or_user)
     if BOT:
         BOT.dispatch("blacklist_add", guild, set(role_or_user))
@@ -47,9 +45,7 @@ async def clear_blacklist(self: WBM, guild: Optional[discord.Guild]):
 
 
 @copy_doc(WBM.add_to_whitelist)
-async def add_to_whitelist(
-    self: WBM, guild: Optional[discord.Guild], role_or_user: Iterable[int]
-):
+async def add_to_whitelist(self: WBM, guild: Optional[discord.Guild], role_or_user: Iterable[int]):
     d = await _FUNCS[3](self, guild, role_or_user)
     if BOT:
         BOT.dispatch("whitelist_add", guild, set(role_or_user))

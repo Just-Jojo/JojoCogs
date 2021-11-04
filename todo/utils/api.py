@@ -154,9 +154,7 @@ class TodoApi:
             return
         self._data[user] = await self.config.user_from_id(user).all()
 
-    async def set_user_item(
-        self, user: User, key: str, data: Any, *, fix: bool = True
-    ) -> None:
+    async def set_user_item(self, user: User, key: str, data: Any, *, fix: bool = True) -> None:
         """|coro|
 
         Save a user item via key
@@ -221,7 +219,7 @@ class TodoApi:
         """
         user = self._get_user(user)
         data = await self.get_user_item(user, "user_settings")
-        if key not in config_structure["user_settings"].keys(): # type:ignore
+        if key not in config_structure["user_settings"].keys():  # type:ignore
             raise KeyError(f"'{key}' was not in the user's settings")
         data[key] = setting
         await self.set_user_item(user, "user_settings", data)

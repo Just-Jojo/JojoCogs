@@ -26,9 +26,7 @@ def timestamp_format(
     if timestamp is not None and not (
         isinstance(timestamp, int) or isinstance(timestamp, datetime)
     ):
-        raise TypeError(
-            f"Expected an instance of int or datetime not {timestamp.__class__!r}"
-        )
+        raise TypeError(f"Expected an instance of int or datetime not {timestamp.__class__!r}")
     if timestamp is None:
         timestamp = datetime.utcnow()
     if isinstance(timestamp, datetime):

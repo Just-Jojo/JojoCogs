@@ -20,10 +20,7 @@ class Miscellaneous(TodoMixin):
     @todo.command(name="version")
     async def todo_version(self, ctx: commands.Context):
         """Get todo's version"""
-        msg = (
-            f"ToDo, created with ❤ by Jojo#7791. Version `{self.__version__}`\n"
-            f"Have fun :)"
-        )
+        msg = f"ToDo, created with ❤ by Jojo#7791. Version `{self.__version__}`\n" f"Have fun :)"
         await self.maybe_send_embed(ctx, msg)
 
     @todo.command(name="suggestions", aliases=["suggest"])
@@ -31,9 +28,7 @@ class Miscellaneous(TodoMixin):
         """Get information about how you can suggest features for this cog"""
         url = "https://github.com/Just-Jojo/JojoCogs/issues/15"
         hyper_link = (
-            f"[link]({url})"
-            if await self._embed_requested(ctx, ctx.author)
-            else f"link: <{url}>"
+            f"[link]({url})" if await self._embed_requested(ctx, ctx.author) else f"link: <{url}>"
         )
         msg = (
             f"First, thanks! Suggestions help me keep todo user friendly and fun to work with\n"

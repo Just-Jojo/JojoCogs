@@ -74,9 +74,7 @@ class CmdLogger(commands.Cog):
     @cmd_logger.command(name="version")
     async def cmd_log_version(self, ctx: commands.Context):
         """Get the version of Cmd Logger that [botname] is running"""
-        await ctx.send(
-            f"Cmd Logger, Version `{self.__version__}`. Made with :heart: by Jojo#7791"
-        )
+        await ctx.send(f"Cmd Logger, Version `{self.__version__}`. Made with :heart: by Jojo#7791")
 
     @cmd_logger.group(name="settings", aliases=["set"])
     async def cmd_settings(self, ctx: commands.Context):
@@ -156,10 +154,8 @@ class CmdLogger(commands.Cog):
         conf = await self.config.all()
         name = ctx.command.qualified_name
         if ctx.command.qualified_name not in conf["commands"]:
-            return # Large if statements are fucking dumb
-        guild_data = (
-            "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
-        )
+            return  # Large if statements are fucking dumb
+        guild_data = "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
         msg = f"Command '{ctx.command.qualified_name}' was used by {ctx.author} ({ctx.author.id}). {guild_data}"
         log.info(msg)
         if not self.log_channel:
@@ -172,6 +168,7 @@ class CmdLogger(commands.Cog):
                 if not channel:
                     channel = await bot.fetch_channel(channel_id)
                 return channel
+
             try:
                 self.log_channel = await get_or_fetch_channel(self.bot, channel)
             except Exception as e:

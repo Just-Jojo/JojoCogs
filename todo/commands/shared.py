@@ -18,7 +18,9 @@ class SharedTodos(TodoMixin):
     These are lists that can be managed by other people and are given access to by the owner of the list
     """
 
-    _no_todo_shared_message = "{user} does not have any todos. Use `{prefix}todo shared add {user} <task>` to add one"
+    _no_todo_shared_message = (
+        "{user} does not have any todos. Use `{prefix}todo shared add {user} <task>` to add one"
+    )
 
     @commands.group()
     async def todo(self, *args):
@@ -81,9 +83,7 @@ class SharedTodos(TodoMixin):
             await task
 
     @shared.command(name="pin", aliases=["unpin"])
-    async def todo_shared_pin(
-        self, ctx: commands.Context, user: NonBotMember, index: PositiveInt
-    ):
+    async def todo_shared_pin(self, ctx: commands.Context, user: NonBotMember, index: PositiveInt):
         """Pin a user's todo
 
         This will only work if you manage that user's list
@@ -172,9 +172,7 @@ class SharedTodos(TodoMixin):
         elif not todos:
             if not all([completed, settings["combine_lists"]]):
                 return await ctx.send(
-                    self._no_todo_shared_message.format(
-                        user=user, prefix=ctx.clean_prefix
-                    )
+                    self._no_todo_shared_message.format(user=user, prefix=ctx.clean_prefix)
                 )
             return await self.page_logic(
                 ctx,
@@ -189,9 +187,7 @@ class SharedTodos(TodoMixin):
         todos = await _format_todos(pinned, other, **settings)
         if completed and settings["combine_lists"]:
             todos.extend(await _format_completed(completed, combined=True, **settings))
-        await self.page_logic(
-            ctx, todos, title=f"{user.display_name}'s Todos", **settings
-        )
+        await self.page_logic(ctx, todos, title=f"{user.display_name}'s Todos", **settings)
 
     @shared.command(name="remove", aliases=["del", "delete"], require_var_positional=True)
     async def todo_shared_delete(
@@ -321,11 +317,7 @@ class SharedTodos(TodoMixin):
         if not managers or ctx.author.id not in managers:
             return await ctx.send("You are not a manager of that user's todo list")
         elif not completed:
-            return await ctx.send(
-                self._no_completed_message.format(prefix=ctx.clean_prefix)
-            )
+            return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
 
         completed = await _format_completed(completed, **settings)
-        await self.page_logic(
-            ctx, completed, f"{user.display_name}'s Completed Todos", **settings
-        )
+        await self.page_logic(ctx, completed, f"{user.display_name}'s Completed Todos", **settings)

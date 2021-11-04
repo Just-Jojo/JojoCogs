@@ -23,9 +23,7 @@ class Deleting(TodoMixin):
     async def todo(self, *args):
         pass
 
-    @todo.command(
-        name="delete", aliases=["del", "remove", "clear"], require_var_positional=True
-    )
+    @todo.command(name="delete", aliases=["del", "remove", "clear"], require_var_positional=True)
     async def todo_delete(self, ctx: commands.Context, *indexes: PositiveInt):
         """Delete a todo task
 
@@ -76,9 +74,7 @@ class Deleting(TodoMixin):
             - `confirm` Skips the confirmation check. Defaults to False
         """
         if not confirm:
-            msg = await ctx.send(
-                "Are you sure you would like to remove all of your todos? (y/N)"
-            )
+            msg = await ctx.send("Are you sure you would like to remove all of your todos? (y/N)")
             pred = MessagePredicate.yes_or_no(ctx)
             try:
                 umsg = await self.bot.wait_for("message", check=pred)

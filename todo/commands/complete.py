@@ -27,9 +27,7 @@ class Complete(TodoMixin):
         pass
 
     @todo.group(invoke_without_command=True, require_var_positional=True, aliases=["c"])
-    async def complete(
-        self, ctx: commands.Context, *indexes: PositiveInt(False)
-    ):  # type:ignore
+    async def complete(self, ctx: commands.Context, *indexes: PositiveInt(False)):  # type:ignore
         """Commands having to do with your completed tasks
 
         **Arguments**
@@ -84,9 +82,7 @@ class Complete(TodoMixin):
         indexes.sort(reverse=True)  # type:ignore
         completed = await self.cache.get_user_item(ctx.author, "completed")
         if not completed:
-            return await ctx.send(
-                self._no_completed_message.format(prefix=ctx.clean_prefix)
-            )
+            return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
         for index in indexes:
             try:
                 completed.pop(index)
@@ -137,14 +133,10 @@ class Complete(TodoMixin):
         data = await self.cache.get_user_data(ctx.author.id)
         completed = data["completed"]
         if not completed:
-            return await ctx.send(
-                self._no_completed_message.format(prefix=ctx.clean_prefix)
-            )
+            return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
         settings = data["user_settings"]
         completed = await _format_completed(completed, False, **settings)
-        await self.page_logic(
-            ctx, completed, f"{ctx.author.name}'s Completed Todos", **settings
-        )
+        await self.page_logic(ctx, completed, f"{ctx.author.name}'s Completed Todos", **settings)
 
     @complete.command(name="reorder", aliases=["move"], usage="<from> <to>")
     async def complete_reorder(
@@ -159,22 +151,16 @@ class Complete(TodoMixin):
             - `to` The new index of the completed todo
         """
         if original == new:
-            return await ctx.send(
-                "You cannot move a todo from one index... to the same index"
-            )
+            return await ctx.send("You cannot move a todo from one index... to the same index")
         completed = await self.cache.get_user_item(ctx.author, "completed")
         if not completed:
-            return await ctx.send(
-                self._no_completed_message.format(prefix=ctx.clean_prefix)
-            )
+            return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
         act_orig = original - 1
         act_new = new - 1
         try:
             task = completed.pop(act_orig)
         except IndexError:
-            return await ctx.send(
-                f"I could not find a completed todo at index `{original}`"
-            )
+            return await ctx.send(f"I could not find a completed todo at index `{original}`")
         completed.insert(act_new, task)
         msg = f"Moved a completed todo from {original} to {new}"
         await ctx.send(msg)
@@ -182,9 +168,7 @@ class Complete(TodoMixin):
         await self.cache.set_user_item(ctx.author, "completed", completed)
 
     @complete.command(name="view")
-    async def complete_view(
-        self, ctx: commands.Context, index: PositiveInt(False)
-    ):  # type:ignore
+    async def complete_view(self, ctx: commands.Context, index: PositiveInt(False)):  # type:ignore
         """View a completed todo. This has a similar effect to using `[p]todo <index>`
 
         This will have a menu that will allow you to delete the todo
@@ -198,9 +182,7 @@ class Complete(TodoMixin):
         settings = data["user_settings"]
 
         if not completed:
-            return await ctx.send(
-                self._no_completed_message.format(prefix=ctx.clean_prefix)
-            )
+            return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
         try:
             todo = completed[actual_index]
         except IndexError:

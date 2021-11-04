@@ -74,9 +74,7 @@ class Depypher(commands.Cog):
         **Arguments**
             - `cipher` The ciphered message to decipher.
         """
-        await self._process_message(
-            ctx, _caesar.decipher(string=cipher, keep_punct=True), cipher
-        )
+        await self._process_message(ctx, _caesar.decipher(string=cipher, keep_punct=True), cipher)
 
     @commands.command()
     async def atbash(self, ctx, *, message: str):
@@ -99,9 +97,7 @@ class Depypher(commands.Cog):
         **Arguments**
             - `cipher` The ciphered message to decipher.
         """
-        await self._process_message(
-            ctx, _atbash.decipher(string=cipher, keep_punct=True), cipher
-        )
+        await self._process_message(ctx, _atbash.decipher(string=cipher, keep_punct=True), cipher)
 
     @commands.command()
     async def vigenere(self, ctx, keyword: str, *, message: str):
@@ -113,9 +109,7 @@ class Depypher(commands.Cog):
             - `keyword` The keyword for the encryption.
             - `message` The message to encipher.
         """
-        await self._process_message(
-            ctx, _vigenere(key=keyword).encipher(message), message
-        )
+        await self._process_message(ctx, _vigenere(key=keyword).encipher(message), message)
 
     @commands.command()
     async def devigenere(self, ctx, keyword: str, *, cipher: str):
@@ -137,9 +131,7 @@ class Depypher(commands.Cog):
             - `keyword` The keyword for the encryption.
             - `message` The message to encipher.
         """
-        await self._process_message(
-            ctx, _porta(key=keyword).encipher(string=message), message
-        )
+        await self._process_message(ctx, _porta(key=keyword).encipher(string=message), message)
 
     @commands.command()
     async def deporta(self, ctx, keyword: str, *, cipher: str):
@@ -150,14 +142,10 @@ class Depypher(commands.Cog):
             - `keyword` The keyword for the decryption.
             - `cipher` The ciphered message to decipher.
         """
-        await self._process_message(
-            ctx, _porta(key=keyword).decipher(string=cipher), cipher
-        )
+        await self._process_message(ctx, _porta(key=keyword).decipher(string=cipher), cipher)
 
     @staticmethod
-    async def _process_message(
-        ctx: commands.Context, msg: str, original: str
-    ) -> discord.Message:
+    async def _process_message(ctx: commands.Context, msg: str, original: str) -> discord.Message:
         async with ctx.typing():
             case = functools.partial(convert_case, original, msg)
             processed = await ctx.bot.loop.run_in_executor(None, case)

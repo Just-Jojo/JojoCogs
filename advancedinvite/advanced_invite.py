@@ -33,7 +33,7 @@ _config_structure = {
     "embeds": True,
     "title": "Invite {bot_name}",
     "support_server": None,
-    "footer": None
+    "footer": None,
 }
 
 
@@ -45,9 +45,7 @@ class AdvancedInvite(commands.Cog):
 
     def __init__(self, bot: Red):
         self.bot = bot
-        self._invite_command: Optional[commands.Command] = self.bot.remove_command(
-            "invite"
-        )
+        self._invite_command: Optional[commands.Command] = self.bot.remove_command("invite")
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(**_config_structure)
 
@@ -86,28 +84,24 @@ class AdvancedInvite(commands.Cog):
 
     @commands.group(name="invite", usage="", invoke_without_command=True)
     @commands.check(can_invite)
-    async def invite(
-        self, ctx: commands.Context, send_in_channel: Optional[bool] = False
-    ):
+    async def invite(self, ctx: commands.Context, send_in_channel: Optional[bool] = False):
         """Invite [botname] to your server!"""
 
         check = send_in_channel and await self.bot.is_owner(ctx.author)
         channel = await self._get_channel(ctx) if not check else ctx.channel
         settings = await self.config.all()
-        title = settings.get(
-            "title", _config_structure["title"]
-        ).replace("{bot_name}", ctx.me.name)
-        message = settings.get(
-            "custom_message", _config_structure["custom_message"]
-        ).replace("{bot_name}", ctx.me.name)
+        title = settings.get("title", _config_structure["title"]).replace(
+            "{bot_name}", ctx.me.name
+        )
+        message = settings.get("custom_message", _config_structure["custom_message"]).replace(
+            "{bot_name}", ctx.me.name
+        )
         url = await CoreLogic._invite_url(self)
         timestamp = f"<t:{int(datetime.utcnow().timestamp())}>"
         footer = ret if (ret := settings.get("footer")) else ""
         support = settings.get("support_server")
 
-        support_msg = (
-            f"\nJoin the support server! <{support}>\n" if support is not None else ""
-        )
+        support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
         kwargs = {"content": f"**{title}**\n{message}{support}\n{url}\n{timestamp}"}
         if await self._embed_requested(ctx, channel):
             embed = discord.Embed(
@@ -233,10 +227,7 @@ class AdvancedInvite(commands.Cog):
                 colour=await ctx.embed_colour(),
                 timestamp=datetime.utcnow(),
             )
-            [
-                embed.add_field(name=key, value=value, inline=False)
-                for key, value in _data.items()
-            ]
+            [embed.add_field(name=key, value=value, inline=False) for key, value in _data.items()]
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
 
@@ -248,9 +239,7 @@ class AdvancedInvite(commands.Cog):
             return ret
         return await ctx.author.create_dm()
 
-    async def _embed_requested(
-        self, ctx: commands.Context, channel: discord.TextChannel
-    ) -> bool:
+    async def _embed_requested(self, ctx: commands.Context, channel: discord.TextChannel) -> bool:
         if not await self.config.embeds():
             return False
         if isinstance(channel, discord.DMChannel):

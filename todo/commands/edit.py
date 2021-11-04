@@ -1,14 +1,14 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+from datetime import datetime
+
 import discord
 from redbot.core import commands
 from tabulate import tabulate
-from datetime import datetime
 
 from ..abc import TodoMixin
 from ..utils import PositiveInt
-
 
 __all__ = ["Edit"]
 
@@ -36,17 +36,17 @@ class Edit(TodoMixin):
         todo["task"] = new_todo
         todos.insert(actual_index, todo)
 
-        kwargs = {
-            "content": (
-                tabulate([[old_todo, new_todo]], headers=("Old todo", "New todo"))
-            )
-        }
+        kwargs = {"content": (tabulate([[old_todo, new_todo]], headers=("Old todo", "New todo")))}
         if await self._embed_requested(ctx, ctx.author):
             embed = discord.Embed(
-                title="Todo Edit", colour=await self._embed_colour(ctx),
-                timestamp=datetime.utcnow()
+                title="Todo Edit",
+                colour=await self._embed_colour(ctx),
+                timestamp=datetime.utcnow(),
             )
-            [embed.add_field(name=key, value=value, inline=True) for key, value in {"Old todo": old_todo, "New todo": new_todo}.items()]
+            [
+                embed.add_field(name=key, value=value, inline=True)
+                for key, value in {"Old todo": old_todo, "New todo": new_todo}.items()
+            ]
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
         await self.cache.set_user_item(ctx.author, "todos", todos)

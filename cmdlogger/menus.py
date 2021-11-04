@@ -6,13 +6,7 @@ from typing import Union
 
 import discord
 from redbot.core import commands
-from redbot.vendored.discord.ext.menus import (
-    First,
-    Last,
-    ListPageSource,
-    MenuPages,
-    button,
-)
+from redbot.vendored.discord.ext.menus import First, Last, ListPageSource, MenuPages, button
 
 __all__ = ["CmdMenu", "CmdPages"]
 

@@ -23,7 +23,11 @@ async def _format_todos(pinned: List[str], other: List[str], **settings) -> List
     pretty = settings.get("pretty_todos", False)
     use_md = settings.get("use_markdown", False)
     number = settings.get("number_todos", False)
-    emoji = settings.get("todo_emoji", "\N{LARGE GREEN SQUARE}") if not use_md else "\N{LARGE GREEN SQUARE}"
+    emoji = (
+        settings.get("todo_emoji", "\N{LARGE GREEN SQUARE}")
+        if not use_md
+        else "\N{LARGE GREEN SQUARE}"
+    )
     emoji = emoji or "\N{LARGE GREEN SQUARE}"
     fmt = "" if use_md else "**"
     should_insert = len(pinned) > 0
@@ -54,21 +58,18 @@ async def _format_todos(pinned: List[str], other: List[str], **settings) -> List
     else:
         ret.insert(
             0,
-            f"\N{RADIO BUTTON} {fmt}Todos{fmt}"
-            + _build_underline("🔘 Todos", use_md, True),
+            f"\N{RADIO BUTTON} {fmt}Todos{fmt}" + _build_underline("🔘 Todos", use_md, True),
         )
     return ret
 
 
-async def _format_completed(
-    completed: List[str], combined: bool = False, **settings
-) -> List[str]:
+async def _format_completed(completed: List[str], combined: bool = False, **settings) -> List[str]:
     pretty = settings.get("pretty_todos")
     number = settings.get("number_todos")
     use_md = settings.get("use_markdown")
     fallback = "\N{WHITE HEAVY CHECK MARK}"
     completed_emoji: str = settings.get("completed_emoji", fallback) if not use_md else fallback
-    completed_emoji = completed_emoji or fallback # Sometimes this is none which is annoying
+    completed_emoji = completed_emoji or fallback  # Sometimes this is none which is annoying
     fmt = "" if settings.get("use_markdown") else "**"
     ret = []
     for num, task in enumerate(completed, 1):

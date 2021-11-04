@@ -2,7 +2,6 @@
 # Licensed under MIT
 
 import asyncio
-
 from datetime import datetime
 from enum import Enum
 from typing import Union
@@ -19,6 +18,7 @@ async def no_markdown(ctx: commands.Context):
     md = await ctx.cog.cache.get_user_setting(ctx.author, "use_markdown")
     pretty = await ctx.cog.cache.get_user_setting(ctx.author, "pretty_todos")
     return not md and pretty
+
 
 class PresetsEnum(Enum):
     minimal = {
@@ -46,9 +46,7 @@ class PresetsEnum(Enum):
 class PresetConverter(commands.Converter):
     async def convert(self, ctx: commands.Context, arg: str) -> PresetsEnum:
         if arg.lower() not in ("pretty", "minimal"):
-            raise commands.BadArgument(
-                f'Argument must be "minimal" or "pretty" not "{arg}"'
-            )
+            raise commands.BadArgument(f'Argument must be "minimal" or "pretty" not "{arg}"')
         return getattr(PresetsEnum, arg.lower())
 
 
@@ -119,9 +117,7 @@ class Settings(TodoMixin):
         await self.cache.set_user_setting(ctx.author, "number_todos", value)
 
     @todo_settings.command(name="colour")
-    async def todo_colour(
-        self, ctx: commands.Context, colour: Union[discord.Colour, None]
-    ):
+    async def todo_colour(self, ctx: commands.Context, colour: Union[discord.Colour, None]):
         """Set the colour of your todo list's embeds
 
         **NOTE** this will only work if you have embeds enabled and the bot can embed links in the channel
@@ -313,7 +309,9 @@ class Settings(TodoMixin):
                 if not user_settings["pretty_todos"] or user_settings["use_markdown"]:
                     continue
                 _k = key.split("_")[0]
-                default = "\N{LARGE GREEN SQUARE}" if _k == "todo" else "\N{WHITE HEAVY CHECK MARK}"
+                default = (
+                    "\N{LARGE GREEN SQUARE}" if _k == "todo" else "\N{WHITE HEAVY CHECK MARK}"
+                )
                 emoji = value or default
                 key = key.replace("_", " ").capitalize()
                 settings_dict[key] = emoji
@@ -326,11 +324,7 @@ class Settings(TodoMixin):
         msg = "\n".join(f"**{k}** {v}" for k, v in settings_dict.items())
         title = f"{ctx.author.name}'s todo settings"
         if await ctx.embed_requested():
-            colour = (
-                k
-                if (k := user_settings["colour"]) is not None
-                else await ctx.embed_colour()
-            )
+            colour = k if (k := user_settings["colour"]) is not None else await ctx.embed_colour()
             embed = discord.Embed(
                 title=title, description=msg, colour=colour, timestamp=datetime.utcnow()
             )

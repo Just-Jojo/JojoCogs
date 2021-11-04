@@ -66,9 +66,7 @@ class Managers(TodoMixin):
             )
         managers = [f"{self._get_user_name(i)} | ({i})" for i in managers]
 
-        await self.page_logic(
-            ctx, managers, f"{ctx.author.name}'s Todo Managers", **settings
-        )
+        await self.page_logic(ctx, managers, f"{ctx.author.name}'s Todo Managers", **settings)
 
     def _get_user_name(self, user_id: int) -> str:
         user = self.bot.get_user(user_id)

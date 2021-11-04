@@ -1,11 +1,11 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+from abc import ABC
 from typing import Union
 
 import discord
 from redbot.core import commands
-from abc import ABC
 
 __all__ = ["NonBotUser", "NonBotMember"]
 

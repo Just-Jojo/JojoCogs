@@ -27,9 +27,7 @@ class TodoPage(menus.ListPageSource):
         self.settings = settings
         self.title = title
 
-    async def format_page(
-        self, menu: menus.MenuPages, page: str
-    ) -> Union[str, discord.Embed]:
+    async def format_page(self, menu: menus.MenuPages, page: str) -> Union[str, discord.Embed]:
         ctx: commands.Context = menu.ctx
         bot: Red = menu.bot
 
@@ -223,9 +221,7 @@ class ViewTodo(menus.Menu):
         with contextlib.suppress(discord.NotFound):
             await msg.delete()
         if not pred.result:
-            return await self.ctx.send(
-                "Okay, I will not delete that todo.", delete_after=5.0
-            )
+            return await self.ctx.send("Okay, I will not delete that todo.", delete_after=5.0)
         self.stop()
         await self.update_message(message="Deleted todo!")
         key = "completed" if self.completed else "todos"
@@ -246,9 +242,7 @@ class ViewTodo(menus.Menu):
         with contextlib.suppress(discord.NotFound):
             await msg.delete()
         if not pred.result:
-            return await self.ctx.send(
-                "Okay, I will not complete that todo.", delete_after=5.0
-            )
+            return await self.ctx.send("Okay, I will not complete that todo.", delete_after=5.0)
         self.completed = True
         self.data = self.data["task"]
         await self.update_message()

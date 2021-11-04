@@ -206,8 +206,7 @@ class CycleStatus(commands.Cog):
         }
         title = "Your Cycle Status settings"
         kwargs = {
-            "content": f"**{title}**\n\n"
-            + "\n".join(f"**{k}** {v}" for k, v in settings.items())
+            "content": f"**{title}**\n\n" + "\n".join(f"**{k}** {v}" for k, v in settings.items())
         }
         if await ctx.embed_requested():
             embed = discord.Embed(

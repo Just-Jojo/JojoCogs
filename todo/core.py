@@ -15,17 +15,9 @@ from redbot.core.utils.predicates import MessagePredicate
 
 from .abc import MetaClass
 from .commands import *
-from .utils import (
-    PositiveInt,
-    TimestampFormats,
-    TodoApi,
-    TodoMenu,
-    TodoPage,
-    ViewTodo,
-    formatting,
-    timestamp_format,
-)
 from .consts import config_structure
+from .utils import (PositiveInt, TimestampFormats, TodoApi, TodoMenu, TodoPage, ViewTodo,
+                    formatting, timestamp_format)
 
 
 def attach_or_in_dm(ctx: commands.Context) -> bool:
@@ -58,9 +50,7 @@ class ToDo(
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666", "kato#0666"]
     __version__ = "3.0.15"
-    _no_todo_message = (
-        "You do not have any todos. You can add one with `{prefix}todo add <task>`"
-    )
+    _no_todo_message = "You do not have any todos. You can add one with `{prefix}todo add <task>`"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -148,9 +138,7 @@ class ToDo(
             return await ctx.send("You do not have a todo at that index.")
         else:
             if todo is None:
-                return await ctx.send(
-                    self._no_todo_message.format(prefix=ctx.clean_prefix)
-                )
+                return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         await ViewTodo(
             index,
             self.cache,
@@ -231,9 +219,7 @@ class ToDo(
             - `todos` The todos you want to add.
             This is an optional argument and you can upload a file instead
         """
-        if ctx.message.reference and not any(
-            [todos is not None, ctx.message.attachments]
-        ):
+        if ctx.message.reference and not any([todos is not None, ctx.message.attachments]):
             # Message references get checked first
             msg = ctx.message.reference.resolved
             if not msg.attachments:
@@ -257,7 +243,7 @@ class ToDo(
                 "task": t.replace("\\n", "\n"),
                 "timestamp": self._gen_timestamp(),
             }
-            for t in todos.split("\n") # type:ignore
+            for t in todos.split("\n")  # type:ignore
             if t
         ]
         current = await self.cache.get_user_item(ctx.author, "todos")
@@ -302,9 +288,7 @@ class ToDo(
         await self.cache.set_user_item(ctx.author, "todos", todos)
 
     @todo.command(name="reorder", aliases=["move"], usage="<from> <to>")
-    async def todo_reorder(
-        self, ctx: commands.Context, original: PositiveInt, new: PositiveInt
-    ):
+    async def todo_reorder(self, ctx: commands.Context, original: PositiveInt, new: PositiveInt):
         """Move a todo from one index to another
 
         This will error if the index is larger than your todo list
@@ -346,15 +330,11 @@ class ToDo(
             with suppress(discord.NotFound, discord.Forbidden):
                 await msg.delete()
                 await umsg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-            reverse = bool(
-                pred.result
-            )  # Calling bool because `pred.result` starts as `None`
+            reverse = bool(pred.result)  # Calling bool because `pred.result` starts as `None`
         await self.cache.set_user_setting(ctx.author, "reverse_sort", reverse)
         await self.cache.set_user_setting(ctx.author, "autosorting", True)
         have_not = "have" if reverse else "have not"
-        await ctx.send(
-            f"Your todos are now sorted. They {have_not} been sorted in reverse"
-        )
+        await ctx.send(f"Your todos are now sorted. They {have_not} been sorted in reverse")
         await self.cache._maybe_autosort(ctx.author)
 
     @staticmethod
@@ -382,9 +362,7 @@ class ToDo(
     def _gen_timestamp():
         return int(datetime.now(tz=timezone.utc).timestamp())
 
-    async def page_logic(
-        self, ctx: commands.Context, data: list, title: str, **settings
-    ) -> None:
+    async def page_logic(self, ctx: commands.Context, data: list, title: str, **settings) -> None:
         joined = "\n".join(data)
         pagified = list(pagify(joined, page_length=500))
         pages = TodoPage(pagified, title, **settings)
