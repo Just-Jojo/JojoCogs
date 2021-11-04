@@ -8,7 +8,7 @@ from discord.utils import copy_doc
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_list as hl
 
-__all__ = ["humanize_list", "PositiveInt", "UserOrCommand"]
+__all__ = ["humanize_list", "PositiveInt", "UserOrCommandCog", "ChannelOrGuild", "NoneConverter"]
 
 
 @copy_doc(hl)
@@ -28,14 +28,37 @@ class PositiveInt(commands.Converter):
             return ret
 
 
-class UserOrCommand(commands.Converter):
+class UserOrCommandCog(commands.Converter):
     async def convert(
         self, ctx: commands.Context, arg: str
     ) -> Union[discord.User, commands.Command]:
         maybe_com = ctx.bot.get_command(arg)
         if maybe_com:
             return maybe_com
+        maybe_cog = ctx.bot.get_cog(arg)
+        if maybe_cog:
+            return maybe_cog
         try:
             return await commands.UserConverter().convert(ctx, arg)
         except commands.UserNotFound:
             raise commands.BadArgument("I could not find a user or a command.") from None
+
+
+class ChannelOrGuild(commands.Converter):
+    async def convert(self, ctx: commands.Context, arg: str):
+        try:
+            ret = await commands.TextChannelConverter().convert(ctx, arg)
+        except commands.ChannelNotFound:
+            try:
+                ret = await commands.GuildConverter().convert(ctx, arg)
+            except commands.GuildNotFound:
+                raise commands.BadArgument("That was neither a guild or a channel.")
+
+        return ret
+
+
+class NoneConverter(commands.Converter):
+    async def convert(self, ctx: commands.Context, arg: str) -> Union[str, None]:
+        if arg.lower() in ("none", "no", "nothing"):
+            return None
+        return arg

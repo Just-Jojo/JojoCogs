@@ -12,17 +12,18 @@ __all__ = ["Page", "Menu"]
 
 
 class Page(menus.ListPageSource):
-    def __init__(self, data: list):
+    def __init__(self, data: list, *, title: str = None):
         super().__init__(data, per_page=1)
+        self.title = title or "Whitelist List"
 
     async def format_page(self, menu: "Menu", page: str) -> Union[discord.Embed, str]:
         footer = f"Page {menu.current_page + 1}/{self.get_max_pages()}"
         ctx: commands.Context = menu.ctx
 
-        ret = f"{page}\n\n{footer}"
+        ret = f"**{self.title}**\n\n{page}\n\n{footer}"
         if await ctx.embed_requested():
             ret = discord.Embed(
-                title="Whitelist List", description=page, colour=await ctx.embed_colour()
+                title=self.title, description=page, colour=await ctx.embed_colour()
             ).set_footer(text=footer)
         return ret
 
