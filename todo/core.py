@@ -10,6 +10,7 @@ from typing import Dict, List, Literal, Optional, Tuple, Union
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
+from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import escape, humanize_list, pagify, text_to_file
 from redbot.core.utils.predicates import MessagePredicate
 
@@ -345,6 +346,9 @@ class ToDo(
         pinned = []
         extra = []
         for todo in todos:
+            if not isinstance(todo, dict):
+                extra.append(str(todo))
+                continue
             task = todo["task"]
             if timestamp:
                 task = (
