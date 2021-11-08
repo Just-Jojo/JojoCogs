@@ -41,7 +41,7 @@ class AdvancedInvite(commands.Cog):
     """An advanced invite for [botname]"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "3.0.2"
+    __version__ = "3.0.3"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -102,11 +102,11 @@ class AdvancedInvite(commands.Cog):
         support = settings.get("support_server")
 
         support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
-        kwargs = {"content": f"**{title}**\n{message}{support}\n{url}\n{timestamp}"}
+        kwargs = {"content": f"**{title}**\n{message}{support}\n{timestamp}"}
         if await self._embed_requested(ctx, channel):
             embed = discord.Embed(
                 title=title,
-                description=f"{message}\n\n{url}",
+                description=f"{message}",
                 colour=await ctx.embed_colour(),
                 timestamp=datetime.utcnow(),
             )
@@ -115,8 +115,10 @@ class AdvancedInvite(commands.Cog):
             if curl := settings.get("custom_url"):
                 embed.set_thumbnail(url=curl)
             kwargs = {"embed": embed}
+        kwargs["channel"] = channel
+        kwargs["url"] = url
         try:
-            await channel.send(**kwargs)
+            await send_button(ctx, **kwargs)
         except discord.HTTPException:
             await ctx.send("I could not dm you!")
 
@@ -205,6 +207,13 @@ class AdvancedInvite(commands.Cog):
             return await ctx.send("The footer's length cannot be over 500 characters long.")
         await self.config.footer.set(footer)
         await ctx.send("The footer has been set.")
+
+    @invite_settings.command(name="public")
+    async def invite_send_in_channel(self, ctx: commands.Context, toggle: bool):
+        """Set whether the invite command should send in the channel it was invoked in"""
+        await self.config.send_in_channel.set(toggle)
+        now_no_longer = "now" if toggle else "no longer"
+        await ctx.send(f"The invite command will {now_no_longer} send the message in the channel it was invoked in")
 
     @invite_settings.command(name="showsettings")
     async def invite_show_settings(self, ctx: commands.Context):

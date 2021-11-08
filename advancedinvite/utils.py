@@ -15,6 +15,7 @@ __all__ = [
     "timestamp_format",
     "NoneConverter",
     "InviteNoneConverter",
+    "send_button",
 ]
 NoneType = type(None)
 
@@ -76,3 +77,47 @@ class InviteNoneConverter(NoneConverter):
         if arg is None:
             return arg
         return await commands.InviteConverter().convert(ctx, arg)
+
+
+class Route(discord.http.Route):
+    BASE = "https://discord.com/api/v8"
+
+
+async def send_button(ctx: commands.Context, url: str, content: str = None, **kwargs) -> discord.Message:
+    """Send with a button!"""
+    payload = {}
+    state = ctx._state
+    if content:
+        payload["content"] = str(content)
+    emb, embs = kwargs.get("embed"), kwargs.get("embeds")
+    if emb and embs:
+        raise TypeError("You cannot specify both 'embed' and 'embeds'")
+    if emb:
+        payload["embeds"] = [emb.to_dict()]
+    if embs:
+        payload["embeds"] = [e.to_dict() for e in embs]
+    payload["components"] = [
+        {
+            "type": 1,
+            "components": [
+                {
+                    "type": 2,
+                    "label": f"Click here to invite {ctx.me.name}",
+                    "style": 5,
+                    "url": str(url),
+                }
+            ]
+        }
+    ]
+    if al := kwargs.get("allowed_mentions"):
+        if state.allowed_mentions is not None:
+            payload["allowed_mentions"] = state.allowed_mentions.merge(al).to_dict()
+        else:
+            payload["allowed_mentions"] = allowed_mentions.to_dict()
+    else:
+        payload["allowed_mentions"] = state.allowed_mentions and state.allowed_mentions.to_dict()
+    channel = kwargs.get("channel", ctx.channel)
+    r = Route("POST", "/channels/{channel_id}/messages", channel_id=channel.id)
+    data = await ctx.bot.http.request(r, json=payload)
+    return discord.Message(state=state, channel=channel, data=data)
+
