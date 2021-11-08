@@ -50,7 +50,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666", "kato#0666"]
-    __version__ = "3.0.15"
+    __version__ = "3.0.15.1"
     _no_todo_message = "You do not have any todos. You can add one with `{prefix}todo add <task>`"
 
     def __init__(self, bot: Red):
@@ -368,7 +368,7 @@ class ToDo(
 
     async def page_logic(self, ctx: commands.Context, data: list, title: str, **settings) -> None:
         joined = "\n".join(data)
-        pagified = list(pagify(joined, page_length=500))
+        pagified = list(pagify(joined, page_length=1000))
         pages = TodoPage(pagified, title, **settings)
         await TodoMenu(pages).start(ctx)
 
