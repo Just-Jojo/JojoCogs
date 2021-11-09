@@ -3,7 +3,7 @@
 
 import asyncio
 import logging
-from contextlib import suppress
+from contextlib import suppresmaybe_s
 from datetime import datetime, timezone
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
@@ -263,6 +263,7 @@ class ToDo(
         todos = await self.cache.get_user_item(ctx.author, "todos")
         if not todos:
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+        todos = await self.cache._maybe_fix_todos(ctx.author.id)
         todos = "\n".join(t["task"].replace("\n", "\\n") for t in todos)
         await ctx.send("Here are your todos", file=text_to_file(todos, "todo.txt"))
 
@@ -282,6 +283,8 @@ class ToDo(
             todo = todos.pop(act_index)
         except IndexError:
             return await ctx.send("That index was bigger than your todo list!")
+        if not isinstance(todo, dict):
+            todo = {"task": str(todo), "pinned": False, "timestamp": None}
         todo["pinned"] = not todo["pinned"]
         pinned = "" if todo["pinned"] else "un"
         await ctx.send(f"Done. That todo is now {pinned}pinned")
