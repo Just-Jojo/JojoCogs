@@ -260,6 +260,7 @@ class ToDo(
 
         This is handy for moving todos over from bot to bot
         """
+        await self.cache._maybe_fix_todos(ctx.author.id)
         todos = await self.cache.get_user_item(ctx.author, "todos")
         if not todos:
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
@@ -282,6 +283,8 @@ class ToDo(
             todo = todos.pop(act_index)
         except IndexError:
             return await ctx.send("That index was bigger than your todo list!")
+        if not isinstance(todo, dict):
+            todo = {"task": str(todo), "pinned": False}
         todo["pinned"] = not todo["pinned"]
         pinned = "" if todo["pinned"] else "un"
         await ctx.send(f"Done. That todo is now {pinned}pinned")

@@ -263,7 +263,7 @@ class TodoApi:
         # B) I hate myself
 
         data = await self.get_user_data(user.id)
-        todos = data["todos"]
+        todos = await self._maybe_fix_todos(user.id)
         completed = data["completed"]
         if not any([completed, todos]):
             return
@@ -323,3 +323,4 @@ class TodoApi:
             else:
                 data.insert(index, payload)
         await self.set_user_item(user_id, "todos", data, fix=False)
+        return data
