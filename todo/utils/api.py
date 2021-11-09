@@ -262,7 +262,6 @@ class TodoApi:
         # A) Todos need to be "sorted" by pinned todos as otherwise the indexes won't match up
         # B) I hate myself
 
-        await self._maybe_fix_todos(user.id)
         data = await self.get_user_data(user.id)
         todos = data["todos"]
         completed = data["completed"]
@@ -292,7 +291,7 @@ class TodoApi:
         data["todos"] = todos
         await self.set_user_data(user, data)
 
-    async def _maybe_fix_todos(self, user_id: int) -> Dict[str, Any]:
+    async def _maybe_fix_todos(self, user_id: int):
         """Scan todos and fix the fucked ones"""
         data = await self.get_user_item(user_id, "todos")
         if not isinstance(data, list):
@@ -324,4 +323,3 @@ class TodoApi:
             else:
                 data.insert(index, payload)
         await self.set_user_item(user_id, "todos", data, fix=False)
-        return data
