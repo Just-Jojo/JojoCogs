@@ -1,9 +1,6 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-# TODO(Jojo) Rewrite regular emoji commands to allow for default emojis to be used with markdown
-# remove commands from settings.py, test things, and docstrings :D
-
 import discord
 
 from redbot.core import commands
@@ -29,7 +26,7 @@ class Emojis(TodoMixin):
 
     @todo_settings.group(name="categoryemojis", aliases=["catemojis"])
     async def category_emoji(self, ctx: commands.Context):
-        """Set your category emojis... or something whatever"""
+        """Set your category emojis"""
         pass
 
     @category_emoji.command(name="todoemoji", aliases=["temoji"])
