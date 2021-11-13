@@ -80,7 +80,7 @@ async def _format_completed(completed: List[str], combined: bool = False, **sett
         if number:
             task = f"{num}. {task}"
         if pretty:
-            task = f"{completed_emoji} {task}"
+            task = f"{emoji} {task}"
         ret.append(task)
     if combined:
         emoji = "✅" if use_md else "☑"
