@@ -23,12 +23,12 @@ async def _format_todos(pinned: List[str], other: List[str], **settings) -> List
     pretty = settings.get("pretty_todos", False)
     use_md = settings.get("use_markdown", False)
     number = settings.get("number_todos", False)
-    emoji = (
-        settings.get("todo_emoji", "\N{LARGE GREEN SQUARE}")
-        if not use_md
-        else "\N{LARGE GREEN SQUARE}"
-    )
-    emoji = emoji or "\N{LARGE GREEN SQUARE}"
+    emoji = settings.get("todo_emoji", "\N{LARGE GREEN SQUARE}")
+    if emoji.startswith("<") and use_md: # Custom emoji
+        emoji = "\N{LARGE GREEN SQUARE}"
+    cat_emoji = settings.get("todo_category_emoji", "\N{RADIO BUTTON}")
+    if cat_emoji.startswith("<") and use_md:
+        cat_emoji = "\N{RADIO BUTTON}"
     fmt = "" if use_md else "**"
     should_insert = len(pinned) > 0
     should_insert_todos = len(other) > 0
@@ -52,13 +52,13 @@ async def _format_todos(pinned: List[str], other: List[str], **settings) -> List
         if should_insert_todos:
             ret.insert(
                 to_insert,
-                f"\n\N{RADIO BUTTON} {fmt}Other todos{fmt}"
+                f"\n{cat_emoji} {fmt}Other todos{fmt}"
                 + _build_underline("🔘 Other todos", use_md, True),
             )
     else:
         ret.insert(
             0,
-            f"\N{RADIO BUTTON} {fmt}Todos{fmt}" + _build_underline("🔘 Todos", use_md, True),
+            f"{cat_emoji} {fmt}Todos{fmt}" + _build_underline("🔘 Todos", use_md, True),
         )
     return ret
 
@@ -68,8 +68,12 @@ async def _format_completed(completed: List[str], combined: bool = False, **sett
     number = settings.get("number_todos")
     use_md = settings.get("use_markdown")
     fallback = "\N{WHITE HEAVY CHECK MARK}"
-    completed_emoji: str = settings.get("completed_emoji", fallback) if not use_md else fallback
-    completed_emoji = completed_emoji or fallback  # Sometimes this is none which is annoying
+    emoji = settings.get("completed_emoji", fallback)
+    if not emoji or emoji.startswith("<") and use_md:
+        emoji = fallback
+    cat_emoji = settings.get("completed_category_emoji", "\N{BALLOT BOX WITH CHECK}")
+    if not cat_emoji or cat_emoji.startswith("<") and use_md:
+        cat_emoji = "\N{BALLOT BOX WITH CHECK}"
     fmt = "" if settings.get("use_markdown") else "**"
     ret = []
     for num, task in enumerate(completed, 1):
@@ -83,7 +87,7 @@ async def _format_completed(completed: List[str], combined: bool = False, **sett
         data = f"{emoji} Completed todos"
         ret.insert(
             0,
-            f"\n\N{BALLOT BOX WITH CHECK}\N{VARIATION SELECTOR-16} {fmt}Completed todos{fmt}"
+            f"\n{cat_emoji} \N{VARIATION SELECTOR-16} {fmt}Completed todos{fmt}"
             + _build_underline(data, use_md, True),  # type:ignore
         )
     return ret

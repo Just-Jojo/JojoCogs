@@ -231,57 +231,6 @@ class Settings(TodoMixin):
         await self.cache.set_user_setting(ctx.author, "autosorting", value)
         await ctx.send(f"Autosorting is now {enabled}")
 
-    @commands.check(no_markdown)
-    @todo_settings.command(name="todoemoji", aliases=("temoji",))
-    async def todo_emoji(self, ctx: commands.Context, reset: bool = False):
-        """Set the emoji used for todos
-
-        This will prompt you to react with an emoji. Note that the emoji must be one the bot can use.
-
-        **Arguments**
-            - `reset` Whether to reset the emoji back to default.
-        """
-
-        if reset:
-            await self.cache.set_user_setting(ctx.author, "todo_emoji", None)
-            return await ctx.send("Done. Your emoji has been reset.")
-        msg = await ctx.send("Please react with the emoji you want for the uncompleted todos")
-        pred = ReactionPredicate.same_context(message=msg, user=ctx.author)
-        try:
-            emoji = (await self.bot.wait_for("reaction_add", check=pred))[0].emoji
-        except asyncio.TimeoutError:
-            return await ctx.send("Okay, I won't set your emojis")
-        if not isinstance(emoji, str) and not self.bot.get_emoji(emoji.id):
-            return await ctx.send("Please use an emoji that I can use.")
-        todo_emoji = str(emoji)
-        await self.cache.set_user_setting(ctx.author, "todo_emoji", todo_emoji)
-        await ctx.send(f"I have set your todo emoji to '{todo_emoji}'")
-
-    @todo_settings.command(name="completeemoji", aliases=("cemoji",))
-    async def todo_complete_emoji(self, ctx: commands.Context, reset: bool = False):
-        """Set the completed emoji used for completed todos.
-
-        This will prompt you to react with an emoji.
-        Note that only emojis that [botname] can use will work
-
-        **Arguments**
-            - `reset` Whether to reset the emoji back to default.
-        """
-        if reset:
-            await self.cache.set_user_setting(ctx.author, "completed_emoji", None)
-            return await ctx.send("Done. Your emoji has been reset.")
-        msg = await ctx.send("Please react with the emoji you want for the completed todos")
-        pred = ReactionPredicate.same_context(message=msg, user=ctx.author)
-        try:
-            emoji = (await self.bot.wait_for("reaction_add", check=pred))[0].emoji
-        except asyncio.TimeoutError:
-            return await ctx.send("Okay, I won't set your emoji")
-        if not isinstance(emoji, str) and not self.bot.get_emoji(emoji.id):
-            return await ctx.send("Please use an emoji that I can use.")
-        emoji = str(emoji)
-        await self.cache.set_user_setting(ctx.author, "completed_emoji", emoji)
-        await ctx.send(f"I have set your completed emoji to '{emoji}'")
-
     @todo_settings.command(name="showsettings")
     async def todo_show_settings(self, ctx: commands.Context):
         """Show your todo settings
@@ -289,6 +238,7 @@ class Settings(TodoMixin):
         This will list the following:
             - `indexed todos`
             - `colour`
+            - `emojis`
             - `embedded`
             - `markdown`
             - `autosort`
@@ -312,6 +262,10 @@ class Settings(TodoMixin):
                 default = (
                     "\N{LARGE GREEN SQUARE}" if _k == "todo" else "\N{WHITE HEAVY CHECK MARK}"
                 )
+                if "category" in key:
+                    default = (
+                        "\N{RADIO BUTTON}" if _k == "todo" else "\N{BALLOT BOX WITH CHECK}"
+                    )
                 emoji = value or default
                 key = key.replace("_", " ").capitalize()
                 settings_dict[key] = emoji
