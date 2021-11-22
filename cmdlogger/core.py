@@ -182,3 +182,4 @@ class CmdLogger(commands.Cog):
         except discord.Forbidden:
             log.warning(f"I could not send a message to channel '{channel.name}'")
             await self.config.log_channel.clear()
+            self.log_channel = None  # maybe this is wise?
