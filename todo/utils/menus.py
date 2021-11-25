@@ -181,7 +181,7 @@ class ViewTodo(menus.Menu):
         if self.is_dict:
             ts = self.data.get("timestamp")  # type:ignore
             if ts:
-                task = f"{task} - Added {timestamp_format(ts, TimestampFormats.RELATIVE_TIME)}"
+                task = f"{task} - Added {timestamp_format(ts, ts_format=TimestampFormats.RELATIVE_TIME)}"
         if await self.ctx.cog._embed_requested(self.ctx, self.ctx.author):
             embed = discord.Embed(
                 title=title,
