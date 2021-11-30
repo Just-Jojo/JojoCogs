@@ -1,6 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import asyncio
 import discord
 
 from redbot.core import commands

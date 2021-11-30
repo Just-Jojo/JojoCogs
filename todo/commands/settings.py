@@ -10,7 +10,7 @@ import discord
 from redbot.core import commands
 from redbot.core.utils.predicates import ReactionPredicate
 
-from ..abc import TodoMixin
+from .emojis import Emojis
 from ..utils import timestamp_format
 
 
@@ -50,7 +50,7 @@ class PresetConverter(commands.Converter):
         return getattr(PresetsEnum, arg.lower())
 
 
-class Settings(TodoMixin):
+class Settings(Emojis):
     """Commands for todo's settings"""
 
     @staticmethod

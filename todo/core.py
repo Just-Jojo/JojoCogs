@@ -31,7 +31,6 @@ class ToDo(
     Complete,
     Deleting,
     Edit,
-    Emojis,
     Importer,
     Managers,
     Miscellaneous,
@@ -72,7 +71,7 @@ class ToDo(
         return (
             f"{pre}\n\n"
             f"**Author{plural}:** {humanize_list([f'`{a}`' for a in self.__authors__])}\n"
-            "**Suggestors:** Use `[p]todo suggestors`!"
+            "**Suggestors:** Use `[p]todo suggestors`!\n"
             f"**Version:** `{self.__version__}`"
         )
 
