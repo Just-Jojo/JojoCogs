@@ -41,7 +41,7 @@ class AdvancedInvite(commands.Cog):
     """An advanced invite for [botname]"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "3.0.3"
+    __version__ = "3.0.4"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -102,11 +102,11 @@ class AdvancedInvite(commands.Cog):
         support = settings.get("support_server")
 
         support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
-        kwargs = {"content": f"**{title}**\n{message}{support}\n{timestamp}"}
+        kwargs = {"content": f"**{title}**\n{message}\n<{url}>{support_msg}\n{timestamp}"}
         if await self._embed_requested(ctx, channel):
             embed = discord.Embed(
                 title=title,
-                description=f"{message}",
+                description=f"{message}\n{url}",
                 colour=await ctx.embed_colour(),
                 timestamp=datetime.utcnow(),
             )
@@ -117,6 +117,10 @@ class AdvancedInvite(commands.Cog):
             kwargs = {"embed": embed}
         kwargs["channel"] = channel
         kwargs["url"] = url
+        buttons = [Button(f"Invite {ctx.me.name}!", url)]
+        if support is not None:
+            buttons.append(Button("Join the support server!", url=support))
+        kwargs["components"] = [Component(buttons)]
         try:
             await send_button(ctx, **kwargs)
         except discord.HTTPException:
@@ -213,7 +217,9 @@ class AdvancedInvite(commands.Cog):
         """Set whether the invite command should send in the channel it was invoked in"""
         await self.config.send_in_channel.set(toggle)
         now_no_longer = "now" if toggle else "no longer"
-        await ctx.send(f"The invite command will {now_no_longer} send the message in the channel it was invoked in")
+        await ctx.send(
+            f"The invite command will {now_no_longer} send the message in the channel it was invoked in"
+        )
 
     @invite_settings.command(name="showsettings")
     async def invite_show_settings(self, ctx: commands.Context):
