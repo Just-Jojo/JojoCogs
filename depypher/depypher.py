@@ -24,9 +24,7 @@ def convert_case(original: str, new: str) -> str:
     for index, letter in enumerate(original):
         if not letter.isalpha():
             ret += letter
-            _ = list(new)  # type:ignore
-            _.insert(index, letter)
-            new = "".join(_)
+            new = f"{new[:index]}{letter}{new[index + 1:]}"
             continue
         if letter.isupper():
             ret += new[index].upper()
