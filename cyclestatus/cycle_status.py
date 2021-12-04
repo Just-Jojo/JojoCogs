@@ -131,7 +131,7 @@ class CycleStatus(commands.Cog):
         """
         if num is None:
             return await ctx.invoke(self.status_list)
-        num -= 1
+        num -= 1  # type:ignore
         async with self.config.statuses() as sts:
             if num >= len(sts):
                 return await ctx.send("You don't have that many statuses, silly")
@@ -153,7 +153,7 @@ class CycleStatus(commands.Cog):
         try:
             await self.bot.wait_for("message", check=pred)
         except asyncio.TimeoutError:
-            pred.result = False
+            pass
         await msg.delete()
         if not pred.result:
             return await ctx.send("Okay! I won't remove your statuses")

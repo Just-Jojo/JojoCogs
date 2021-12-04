@@ -7,7 +7,7 @@ import discord
 from redbot.core import commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box
-from redbot.vendored.discord.ext import menus
+from redbot.vendored.discord.ext import menus  # type:ignore
 
 __all__ = ["Pages"]
 
