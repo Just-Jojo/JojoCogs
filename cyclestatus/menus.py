@@ -128,4 +128,4 @@ class PositiveInt(commands.Converter):
             raise commands.BadArgument("That was not an integer")
         if ret <= 0:
             raise commands.BadArgument(f"'{arg}' is not a positive integer")
-        return arg
+        return ret

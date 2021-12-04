@@ -38,7 +38,7 @@ class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.8"
+    __version__ = "1.0.9"
     # These people have suggested something for this cog!
     __suggesters__ = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
 
