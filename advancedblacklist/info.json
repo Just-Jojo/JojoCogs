@@ -1,21 +1,16 @@
 {
     "name": "advancedblacklist",
-    "short": "An advanced Blacklist",
-    "description": "Blacklist users with reasons",
-    "end_user_data_statement": "This cog stores reasons for blacklisting via user id.",
-    "install_msg": "Thank you for installing Jojo's advanced blacklist cog!\nIf you have an issue make an issue on my repo",
+    "short": "An advanced blacklist cog",
+    "description": "An advanced blacklist cog allowing you to get more out of the blacklist feature.",
+    "end_user_data_statement": "This cog does not store end user data.",
+    "install_msg": "Thanks for installing Jojo's advanced blacklist.\n\nIf you come across any errors please report them :)",
     "author": [
         "Jojo#7791"
     ],
     "required_cogs": {},
-    "requirements": [
-        "tabulate"
-    ],
-    "tags": [
-        "utility",
-        "blacklist"
-    ],
-    "min_bot_version": "3.4.6",
+    "requirements": [],
+    "tags": ["utility", "blacklist"],
+    "min_bot_version": "3.4.10",
     "hidden": false,
     "disabled": false,
     "type": "COG"
