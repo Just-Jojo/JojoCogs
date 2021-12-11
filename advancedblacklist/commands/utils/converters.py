@@ -1,13 +1,11 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from abc import ABC
-from redbot.core import commands
-from typing import Any
-
 import logging
-from typing import TYPE_CHECKING, Literal, TypeVar
+from abc import ABC
+from typing import TYPE_CHECKING, Any, Literal, TypeVar
 
+from redbot.core import commands
 
 __all__ = ["NonBotMember", "NonBotUser"]
 log = logging.getLogger("red.jojocogs.advancedblacklist.converters")
@@ -30,10 +28,10 @@ class _NonBotMixin(commands.Converter, ABC):
         if ret.bot:
             raise commands.BadArgument
         elif not self._whitelist_mode:
-            if await ctx.bot.is_owner(ctx.author):
+            if await ctx.bot.is_owner(ret):
                 log.debug("Is a bot owner")
                 raise commands.BadArgument
-            elif ctx.guild and ctx.guild.owner_id == ctx.author.id:
+            elif ctx.guild and ctx.guild.owner_id == ret.id:
                 log.debug("Is a guild owner")
                 raise commands.BadArgument
 

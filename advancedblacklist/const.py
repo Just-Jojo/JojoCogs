@@ -13,7 +13,7 @@ _config_structure: Dict[str, Dict[str, Any]] = {
     },
 }
 
-__version__ = "2.0.0.dev1"
+__version__ = "2.0.0"
 
 
 class _Lazy(list):

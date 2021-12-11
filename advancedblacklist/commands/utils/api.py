@@ -11,22 +11,20 @@ from ...const import _config_structure  # type:ignore
 
 __all__ = [
     "add_to_blacklist",
-    "remove_from_blacklist",
-    "get_blacklist",
-    "in_blacklist",
-    "clear_blacklist",
     "add_to_whitelist",
-    "remove_from_whitelist",
-    "get_whitelist",
-    "in_whitelist",
+    "clear_blacklist",
     "clear_whitelist",
+    "edit_reason",
+    "get_blacklist",
+    "get_whitelist",
+    "in_blacklist",
+    "in_whitelist",
+    "remove_from_blacklist",
+    "remove_from_whitelist",
 ]
 
 _config = Config.get_conf(None, 544974305445019651, True, "AdvancedBlacklist")
-[
-    getattr(_config, f"register_{x}", lambda **z: z)(**z)
-    for x, z in _config_structure.items()
-]
+[getattr(_config, f"register_{x}", lambda **z: z)(**z) for x, z in _config_structure.items()]
 UserOrRole = Union[Role, Member, User]
 
 
@@ -45,7 +43,7 @@ async def add_to_blacklist(
             bl[item] = reason
     if override:
         return
-    await bot._whiteblacklist_cache.add_to_blacklist( # type:ignore
+    await bot._whiteblacklist_cache.add_to_blacklist(  # type:ignore
         guild, {getattr(u, "id", u) for u in users_or_roles}, dispatch=False
     )
 
@@ -64,7 +62,7 @@ async def remove_from_blacklist(
             bl.pop(item, None)
     if override:
         return
-    await bot._whiteblacklist_cache.remove_from_blacklist( # type:ignore
+    await bot._whiteblacklist_cache.remove_from_blacklist(  # type:ignore
         guild, {getattr(u, "id", u) for u in users_or_roles}, dispatch=False
     )
 
@@ -73,6 +71,21 @@ async def in_blacklist(bot: Red, id: int, guild: Optional[Guild] = None) -> bool
     coro = _config if not guild else _config.guild(guild)
     data = await coro.blacklist()
     return str(id) in data.keys()
+
+
+async def edit_reason(
+    bot: Red,
+    user: Union[User, Member, int],
+    reason: str,
+    whitelist: bool,
+    *,
+    guild: Optional[Guild] = None,
+) -> None:
+    attr = "whitelist" if whitelist else "blacklist"
+    coro = getattr((_config if not guild else _config.guild(guild)), attr)
+    uid = getattr(user, "id", user)
+    async with coro() as edit:
+        edit[str(uid)] = reason
 
 
 async def get_blacklist(bot: Red, guild: Optional[Guild] = None) -> Dict[str, str]:
@@ -87,7 +100,7 @@ async def clear_blacklist(
     await coro.blacklist.clear()
     if override:
         return
-    await bot._whiteblacklist_cache.clear_blacklist(guild, dispatch=False) # type:ignore
+    await bot._whiteblacklist_cache.clear_blacklist(guild, dispatch=False)  # type:ignore
 
 
 async def add_to_whitelist(
@@ -105,7 +118,7 @@ async def add_to_whitelist(
             wl[item] = reason
     if override:
         return
-    await bot._whiteblacklist_cache.add_to_whitelist( # type:ignore
+    await bot._whiteblacklist_cache.add_to_whitelist(  # type:ignore
         guild, {getattr(u, "id", u) for u in users_or_roles}, dispatch=False
     )
 
@@ -124,7 +137,7 @@ async def remove_from_whitelist(
             wl.pop(item, None)
     if override:
         return
-    await bot._whiteblacklist_cache.remove_from_whitelist( # type:ignore
+    await bot._whiteblacklist_cache.remove_from_whitelist(  # type:ignore
         guild, {getattr(u, "id", u) for u in users_or_roles}, dispatch=False
     )
 
@@ -147,4 +160,4 @@ async def clear_whitelist(
     await coro.whitelist.clear()
     if override:
         return
-    await bot._whiteblacklist_cache.clear_whitelist(guild, dispatch=False) # type:ignore
+    await bot._whiteblacklist_cache.clear_whitelist(guild, dispatch=False)  # type:ignore

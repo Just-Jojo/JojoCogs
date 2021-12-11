@@ -10,24 +10,17 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list
 
 from .abc import CompositeMetaclass
-from .commands import Whitelist
-from .commands.utils import (
-    add_to_blacklist,
-    add_to_whitelist,
-    clear_blacklist,
-    clear_whitelist,
-    in_blacklist,
-    in_whitelist,
-    remove_from_blacklist,
-    remove_from_whitelist,
-)
+from .commands import Blacklist, Whitelist
+from .commands.utils import (add_to_blacklist, add_to_whitelist, clear_blacklist, clear_whitelist,
+                             in_blacklist, in_whitelist, remove_from_blacklist,
+                             remove_from_whitelist)
 from .const import __authors__, __version__, _config_structure
 from .patch import destroy, init
 
 log = logging.getLogger("red.jojocogs.advancedblacklist")
 
 
-class AdvancedBlacklist(Whitelist, commands.Cog, metaclass=CompositeMetaclass):
+class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeMetaclass):
     """An advanced blacklist cog for more control over your blacklist"""
 
     def __init__(self, bot: Red):
@@ -71,9 +64,7 @@ class AdvancedBlacklist(Whitelist, commands.Cog, metaclass=CompositeMetaclass):
         users = {u for u in users if not await in_blacklist(self.bot, u, guild)}
         if not users:
             return
-        await add_to_blacklist(
-            self.bot, users, "No reason provided.", guild=guild, override=True
-        )
+        await add_to_blacklist(self.bot, users, "No reason provided.", guild=guild, override=True)
 
     @commands.Cog.listener()
     async def on_blacklist_remove(self, guild: discord.Guild, users: Set[int]):
@@ -91,9 +82,7 @@ class AdvancedBlacklist(Whitelist, commands.Cog, metaclass=CompositeMetaclass):
         users = {u for u in users if not await in_whitelist(self.bot, u, guild)}
         if not users:
             return
-        await add_to_whitelist(
-            self.bot, users, "No reason provided.", guild=guild, override=True
-        )
+        await add_to_whitelist(self.bot, users, "No reason provided.", guild=guild, override=True)
 
     @commands.Cog.listener()
     async def on_whitelist_remove(self, guild: discord.Guild, users: Set[int]):

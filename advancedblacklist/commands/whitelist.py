@@ -1,21 +1,15 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import logging
+
 import discord
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import box, pagify
-import logging
 
 from ..abc import ABMixin  # type:ignore
-from .utils import (
-    add_to_whitelist,
-    clear_whitelist,
-    get_whitelist,
-    in_whitelist,
-    remove_from_whitelist,
-    NonBotUser,
-    NonBotMember
-)
+from .utils import (NonBotMember, NonBotUser, add_to_whitelist, clear_whitelist, edit_reason,
+                    get_whitelist, in_whitelist, remove_from_whitelist)
 
 log = logging.getLogger("red.jojocogs.advancedblacklist.whitelist")
 
@@ -51,11 +45,35 @@ class Whitelist(ABMixin):
             raise commands.UserInputError
         reason = reason or "No reason provided."
         await add_to_whitelist(self.bot, users, reason)
-        await ctx.send("Done. Added those users to the whitelist.")
+        that = "that user" if len(users) == 1 else "those users"
+        await ctx.send(f"Done. Added {that} to the whitelist.")
 
-    @whitelist.command(name="remove", aliases=["del", "delete", "rm"])
-    async def whitelist_remove(self, ctx: commands.Context, *users: NonBotUser[True]): # type:ignore
-        ...
+    @whitelist.command(name="remove", aliases=["del", "delete", "rm"], require_var_positional=True)
+    async def whitelist_remove(self, ctx: commands.Context, *users: discord.User):  # type:ignore
+        """Remove users from the whitelist.
+
+        **Arguments**
+            - `users` The users to remove from the whitelist.
+        """
+        if not await get_whitelist(self.bot):
+            return await ctx.send("There are no users in the whitelist.")
+        await remove_from_whitelist(self.bot, users)
+
+        that = "that user" if len(users) == 1 else "those users"
+        await ctx.send(f"Done. Removed {that} from the whitelist.")
+
+    @whitelist.command(name="reason")
+    async def whitelist_reason(
+        self, ctx: commands.Context, user: NonBotUser[True], *, reason: str
+    ):  # type:ignore
+        """Edit the reason for a whitelisted user."""
+        if not await in_whitelist(self.bot, user.id):
+            return await ctx.send("That user is not in the whitelist.")
+        try:
+            await edit_reason(self.bot, user, reason, True)
+        except KeyError:
+            return await ctx.send("That user was not in the whitelist.")
+        await ctx.send("Done. The reason for that user has been updated.")
 
     @whitelist.command(name="list")
     async def whitelist_list(self, ctx: commands.Context):
@@ -68,14 +86,6 @@ class Whitelist(ABMixin):
             msg += f"\n\t- [{uid}] {user}: {reason}"
         await ctx.send_interactive(pagify(msg, page_length=1800), "yml")
 
-    @whitelist.command(name="reason")
-    async def whitelist_reason(self, ctx: commands.Context, user: NonBotUser[True], *, reason: str): # type:ignore
-        """Edit the reason for a whitelisted user."""
-        if not await in_whitelist(self.bot, user.id):
-            return await ctx.send("That user is not in the whitelist.")
-        await add_to_whitelist(self.bot, {user}, reason, override=True)
-        await ctx.send("Done. The reason for that user has been updated.")
-
     @commands.group(name="localwhitelist", aliases=("localallowlist",))
     @commands.admin_or_permissions(manage_guild=True)
     @commands.guild_only()
@@ -85,7 +95,11 @@ class Whitelist(ABMixin):
 
     @local_whitelist.command(name="add")
     async def local_whitelist_add(
-        self, ctx: commands.Context, users: commands.Greedy[NonBotMember[True]], *, reason: str = None
+        self,
+        ctx: commands.Context,
+        users: commands.Greedy[NonBotMember[True]],
+        *,
+        reason: str = None,
     ):
         """Add users to the local whitelist.
 
@@ -117,6 +131,32 @@ class Whitelist(ABMixin):
         that = "that user" if len(users) == 1 else "those users"
         await ctx.send(f"Done. Added {that} to the local whitelist.")
 
+    @local_whitelist.command(name="remove", aliases=["del", "delete"], require_var_positional=True)
+    async def local_whitelist_remove(self, ctx: commands.Context, *users: discord.Member):
+        """Remove users from the local whitelist
+
+        **Arguments**
+            - `users` The users to remove from the local whitelist.
+        """
+        if not await get_whitelist(self.bot, ctx.guild):
+            return await ctx.send("There are no users in the local whitelist.")
+        await remove_from_whitelist(self.bot, set(users), guild=ctx.guild)
+        that = "that user" if len(users) == 1 else "those users"
+        await ctx.send(f"Done. Removed {that} from the local whitelist.")
+
+    @local_whitelist.command(name="reason")
+    async def local_whitelist_reason(
+        self, ctx: commands.Context, user: NonBotMember[True], *, reason: str
+    ):  # type:ignore
+        """Edit the reason for a locally whitelisted user"""
+        if not await in_whitelist(self.bot, user.id, ctx.guild):
+            return await ctx.send("That user is not whitelisted.")
+        try:
+            await edit_reason(self.bot, user, reason, True)
+        except KeyError:
+            return await ctx.send("That user was not in the local blacklist.")
+        await ctx.send("Done. The reason for that user has been updated.")
+
     @local_whitelist.command(name="list")
     async def local_whitelist_list(self, ctx: commands.Context):
         """List the locally whitelisted users"""
@@ -129,20 +169,3 @@ class Whitelist(ABMixin):
             name = u.name if (u := ctx.guild.get_member(int(uid))) else "Unknown or Deleted User"
             msg += f"\n\t- [{uid}] {name}: {reason}"
         await ctx.send_interactive(pagify(msg, page_length=1800), "yml")
-
-    @local_whitelist.command(name="reason")
-    async def local_whitelist_reason(self, ctx: commands.Context, user: NonBotMember[True], *, reason: str): # type:ignore
-        """Edit the reason for a locally whitelisted user"""
-        if not await in_whitelist(self.bot, user.id, ctx.guild):
-            return await ctx.send("That user is not whitelisted.")
-        await add_to_whitelist(self.bot, {user.id}, reason, guild=ctx.guild)
-        await ctx.send("Done. The reason for that user has been updated.")
-
-    @local_whitelist.command(name="remove", aliases=["del", "delete"], require_var_positional=True)
-    async def local_whitelist_remove(self, ctx: commands.Context, *users: NonBotMember[True]): # type:ignore
-        """Remove users from the local whitelist"""
-        if not await get_whitelist(self.bot, ctx.guild):
-            return await ctx.send("There are no users in the local whitelist.")
-        await remove_from_whitelist(self.bot, set(users), guild=ctx.guild)
-        that = "That user" if len(users) == 1 else "Those users"
-        await ctx.send(f"Done. {that} have been removed from the local whitelist.")
