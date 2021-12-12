@@ -2,6 +2,7 @@
 # Licensed under MIT
 
 import logging
+from contextlib import suppress
 from typing import Optional, Set
 
 import discord  # type:ignore
@@ -20,6 +21,12 @@ from .patch import destroy, init
 log = logging.getLogger("red.jojocogs.advancedblacklist")
 
 
+def api_tool(ctx: commands.Context):
+    from .commands.utils import api
+
+    return api
+
+
 class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeMetaclass):
     """An advanced blacklist cog for more control over your blacklist"""
 
@@ -28,6 +35,10 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         self._commands: Set[Optional[commands.Command]] = set()
         # Fuckery because I'm lazy
         init(self.bot)
+        with suppress(RuntimeError):
+            self.bot.add_dev_env_value("advbl", lambda x: self)
+        with suppress(RuntimeError):
+            self.bot.add_dev_env_value("abapi", api_tool)
 
     def cog_unload(self):
         for cmd in self._commands:
@@ -40,7 +51,6 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         for c in ["blocklist", "allowlist"]:
             self._commands |= {self.bot.remove_command(y) for y in (c, f"local{c}")}
             # I am lazy :)
-        log.debug(self._commands)
         return self
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
@@ -64,6 +74,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if not await in_blacklist(self.bot, u, guild)}
         if not users:
             return
+        log.debug(f"Adding these users to the blacklist config. {users = }")
         await add_to_blacklist(self.bot, users, "No reason provided.", guild=guild, override=True)
 
     @commands.Cog.listener()
@@ -71,10 +82,12 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if await in_blacklist(self.bot, u, guild)}
         if not users:
             return
+        log.debug(f"Removing these users from the blacklist config. {users = }")
         await remove_from_blacklist(self.bot, users, guild=guild, override=True)
 
     @commands.Cog.listener()
     async def on_blacklist_clear(self, guild: discord.Guild):
+        log.debug("Clearing blacklist config.")
         await clear_blacklist(self.bot, guild, True)
 
     @commands.Cog.listener()
@@ -82,6 +95,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if not await in_whitelist(self.bot, u, guild)}
         if not users:
             return
+        log.debug(f"Adding these users to the whitelist config. {users = }")
         await add_to_whitelist(self.bot, users, "No reason provided.", guild=guild, override=True)
 
     @commands.Cog.listener()
@@ -89,10 +103,12 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if await in_whitelist(self.bot, u, guild)}
         if not users:
             return
+        log.debug(f"Removing these users from the whitelist config. {users = }")
         await remove_from_whitelist(self.bot, users, guild=guild, override=True)
 
     @commands.Cog.listener()
     async def on_whitelist_clear(self, guild: discord.Guild):
+        log.debug("Clearing the whitelist config.")
         await clear_whitelist(self.bot, guild)
 
     @commands.Cog.listener()
