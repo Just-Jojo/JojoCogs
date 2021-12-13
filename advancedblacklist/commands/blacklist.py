@@ -16,6 +16,7 @@ class Blacklist(ABMixin):
     """Commands for the blacklist side of the cog"""
 
     @commands.group(name="blacklist", aliases=["blocklist"])
+    @commands.is_owner()
     async def blacklist(self, ctx: commands.Context):
         """Manage [botname]'s blacklist"""
         pass
