@@ -263,9 +263,7 @@ class Settings(Emojis):
                     "\N{LARGE GREEN SQUARE}" if _k == "todo" else "\N{WHITE HEAVY CHECK MARK}"
                 )
                 if "category" in key:
-                    default = (
-                        "\N{RADIO BUTTON}" if _k == "todo" else "\N{BALLOT BOX WITH CHECK}"
-                    )
+                    default = "\N{RADIO BUTTON}" if _k == "todo" else "\N{BALLOT BOX WITH CHECK}"
                 emoji = value or default
                 key = key.replace("_", " ").capitalize()
                 settings_dict[key] = emoji

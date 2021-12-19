@@ -17,8 +17,16 @@ from redbot.core.utils.predicates import MessagePredicate
 from .abc import MetaClass
 from .commands import *
 from .consts import config_structure
-from .utils import (PositiveInt, TimestampFormats, TodoApi, TodoMenu, TodoPage, ViewTodo,
-                    formatting, timestamp_format)
+from .utils import (
+    PositiveInt,
+    TimestampFormats,
+    TodoApi,
+    TodoMenu,
+    TodoPage,
+    ViewTodo,
+    formatting,
+    timestamp_format,
+)
 
 
 def attach_or_in_dm(ctx: commands.Context) -> bool:

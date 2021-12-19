@@ -218,13 +218,9 @@ class ErrorBlacklist(commands.Cog):
         to_add = getattr(user_or_command, "qualified_name", user_or_command.id)
         val = getattr(self.config.whitelist, f"{user}s")
         if to_add in await val():
-            return await ctx.send(
-                f"That {user} is already in the whitelist."
-            )
+            return await ctx.send(f"That {user} is already in the whitelist.")
         user = f"{user} id" if is_user else user
-        await ctx.send(
-            f"Done. Added `{to_add}` to the whitelist as a {user}."
-        )
+        await ctx.send(f"Done. Added `{to_add}` to the whitelist as a {user}.")
         async with val() as f:
             f.append(to_add)
 
@@ -248,9 +244,7 @@ class ErrorBlacklist(commands.Cog):
         if to_add not in await val():
             return await ctx.send(f"That {user} is not in the whitelist.")
         user = f"{user} id" if is_user else user
-        await ctx.send(
-            f"Done. Removed `{to_add}` from the whitelist as a {user}"
-        )
+        await ctx.send(f"Done. Removed `{to_add}` from the whitelist as a {user}")
 
         async with val() as f:
             f.remove(to_add)
@@ -288,7 +282,7 @@ class ErrorBlacklist(commands.Cog):
     @error_blacklist_message.command(name="set")
     async def message_set(self, ctx: commands.Context, *, message: NoneConverter):
         """Set the warning message that gets sent when a user uses an erroring command
-        
+
         Type `None` to reset it.
 
         **Arguments**
@@ -354,7 +348,7 @@ class ErrorBlacklist(commands.Cog):
 
         if ctx.guild:
             log.debug("In a guild")
-            gid, cid = [getattr(ctx, x).id for x in ("guild", "channel")] # LAZY
+            gid, cid = [getattr(ctx, x).id for x in ("guild", "channel")]  # LAZY
             coro = self.config.ignore
             if gid in await coro.guilds() or cid in await coro.channels():
                 log.debug("Ignored tbh")

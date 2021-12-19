@@ -24,7 +24,7 @@ async def _format_todos(pinned: List[str], other: List[str], **settings) -> List
     use_md = settings.get("use_markdown", False)
     number = settings.get("number_todos", False)
     emoji = settings.get("todo_emoji", "\N{LARGE GREEN SQUARE}")
-    if emoji is None or emoji.startswith("<") and use_md: # Custom emoji
+    if emoji is None or emoji.startswith("<") and use_md:  # Custom emoji
         emoji = "\N{LARGE GREEN SQUARE}"
     cat_emoji = settings.get("todo_category_emoji", "\N{RADIO BUTTON}")
     if cat_emoji is None or cat_emoji.startswith("<") and use_md:

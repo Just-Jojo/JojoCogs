@@ -31,7 +31,9 @@ class Emojis(TodoMixin):
         pass
 
     @category_emoji.command(name="todoemoji", aliases=["temoji"])
-    async def category_todo_emoji(self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None):
+    async def category_todo_emoji(
+        self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None
+    ):
         """Set the emoji for the todo category.
 
         If you have markdown enabled only default emojis will work.
@@ -63,12 +65,16 @@ class Emojis(TodoMixin):
                 return await ctx.send("You can't use custom emojis whilst having markdown enabled")
             if not self.bot.get_emoji(emoji.id):
                 return await ctx.send("Please use an emoji that I can use.")
-        c_emoji = str(emoji) # If it's animated then this will return the actual string for using the emoji, otherwise it's str("string") lol
+        c_emoji = str(
+            emoji
+        )  # If it's animated then this will return the actual string for using the emoji, otherwise it's str("string") lol
         await self.cache.set_user_setting(ctx.author, "todo_category_emoji", c_emoji)
         await ctx.send(f"I have set your todo category emoji to '{c_emoji}'.")
 
     @category_emoji.command(name="completedemoji", aliases=["cemoji"])
-    async def category_completed_emoji(self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None):
+    async def category_completed_emoji(
+        self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None
+    ):
         """Set the emoji for the completed category.
 
         If you have markdown enabled only default emojis will work.
@@ -89,7 +95,9 @@ class Emojis(TodoMixin):
             emoji = str(emoji)
             await self.cache.set_user_setting(ctx.author, "completed_category_emoji", emoji)
             return await ctx.send(f"Your completed category emoji has been set to '{emoji}'.")
-        msg = await ctx.send("Please react with the emoji you want for the completed category emoji")
+        msg = await ctx.send(
+            "Please react with the emoji you want for the completed category emoji"
+        )
         pred = ReactionPredicate.same_context(message=msg, user=ctx.author)
         try:
             emoji = (await self.bot.wait_for("reaction_add", check=pred))[0].emoji
@@ -106,7 +114,9 @@ class Emojis(TodoMixin):
 
     @commands.check(pretty)
     @todo_settings.command(name="todoemoji", aliases=("temoji",))
-    async def todo_emoji(self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None):
+    async def todo_emoji(
+        self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None
+    ):
         """Set the emoji used for todos
 
         This will prompt you to react with an emoji. Note that the emoji must be one the bot can use.
@@ -115,7 +125,7 @@ class Emojis(TodoMixin):
 
         **Arguments**
             - `reset` Whether to reset the emoji back to default.
-            - `emoji` The emoji that will be used for this 
+            - `emoji` The emoji that will be used for this
         """
 
         if reset:
@@ -145,7 +155,9 @@ class Emojis(TodoMixin):
 
     @commands.check(pretty)
     @todo_settings.command(name="completeemoji", aliases=("cemoji",))
-    async def todo_complete_emoji(self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None):
+    async def todo_complete_emoji(
+        self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None
+    ):
         """Set the completed emoji used for completed todos.
 
         This will prompt you to react with an emoji.
@@ -179,4 +191,3 @@ class Emojis(TodoMixin):
         emoji = str(emoji)
         await self.cache.set_user_setting(ctx.author, "completed_emoji", emoji)
         await ctx.send(f"I have set your completed emoji to '{emoji}'")
-
