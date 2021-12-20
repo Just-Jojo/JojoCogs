@@ -80,9 +80,9 @@ class Settings(Emojis):
         current = await self.cache.get_user_setting(ctx.author, "use_markdown")
         enabled = self._get_enabled_status(value)
         if current == value:
-            return await ctx.send(f"Markdown blocks are already {enabled}")
+            return await ctx.send(f"Markdown blocks are already {enabled}.")
         await self.cache.set_user_setting(ctx.author, "use_markdown", value)
-        await ctx.send(f"Markdown blocks are now {enabled}")
+        await ctx.send(f"Markdown blocks are now {enabled}.")
 
     @todo_settings.command(name="embeds", aliases=["embed"])
     async def todo_use_embeds(self, ctx: commands.Context, value: bool):
@@ -96,9 +96,9 @@ class Settings(Emojis):
         current = await self.cache.get_user_setting(ctx.author, "use_embeds")
         enabled = self._get_enabled_status(value)
         if current == value:
-            return await ctx.send(f"Embeds are already {enabled}")
+            return await ctx.send(f"Embeds are already {enabled}.")
         await self.cache.set_user_setting(ctx.author, "use_embeds", value)
-        await ctx.send(f"Embeds are now {enabled}")
+        await ctx.send(f"Embeds are now {enabled}.")
 
     @todo_settings.command(name="number", aliases=["index"])
     async def todo_number_todos(self, ctx: commands.Context, value: bool):
@@ -113,7 +113,7 @@ class Settings(Emojis):
             do_do_not = "" if value else "do not "
             return await ctx.send(f"Todo lists already {do_do_not}index todos")
         now_no_longer = "now" if value else "no longer"
-        await ctx.send(f"Todo will {now_no_longer} index todos")
+        await ctx.send(f"Todo will {now_no_longer} index todos.")
         await self.cache.set_user_setting(ctx.author, "number_todos", value)
 
     @todo_settings.command(name="colour")
@@ -126,10 +126,10 @@ class Settings(Emojis):
             - `colour` The colour you would like the embed to be. Type `None` to set it to the bot's default embed colour
         """
         if colour is not None:
-            msg = f"Set the colour to `{colour}`"
+            msg = f"Set the colour to `{colour}`."
             colour = colour.value
         else:
-            msg = "Reset the colour to the bot's default embed colour"
+            msg = "Reset the colour to the bot's default embed colour."
         await ctx.send(msg)
         await self.cache.set_user_setting(ctx.author, "colour", colour)
 
@@ -146,9 +146,9 @@ class Settings(Emojis):
         if current == value:
             currently = "" if value else "does not "
             s = "s" if value else ""
-            return await ctx.send(f"Todo already {current}use{s} timestamps")
+            return await ctx.send(f"Todo already {current}use{s} timestamps.")
         enabled = self._get_enabled_status(value)
-        await ctx.send(f"Timestamps are now {enabled}")
+        await ctx.send(f"Timestamps are now {enabled}.")
         await self.cache.set_user_setting(ctx.author, "use_timestamps", value)
 
     @todo_settings.command(name="combine", aliases=["combined"])
@@ -163,8 +163,8 @@ class Settings(Emojis):
         current = await self.cache.get_user_setting(ctx.author, "combine_lists")
         enabled = self._get_enabled_status(value)
         if current == value:
-            return await ctx.send(f"Combined lists are already {enabled}")
-        await ctx.send(f"Combined lists are now {enabled}")
+            return await ctx.send(f"Combined lists are already {enabled}.")
+        await ctx.send(f"Combined lists are now {enabled}.")
         await self.cache.set_user_setting(ctx.author, "combine_lists", value)
 
     @todo_settings.command(name="pretty")
@@ -179,8 +179,8 @@ class Settings(Emojis):
         current = await self.cache.get_user_setting(ctx.author, "pretty_todos")
         enabled = self._get_enabled_status(value)
         if current == value:
-            return await ctx.send(f"Pretty todos are already {enabled}")
-        await ctx.send(f"Pretty todos are now {enabled}")
+            return await ctx.send(f"Pretty todos are already {enabled}.")
+        await ctx.send(f"Pretty todos are now {enabled}.")
         await self.cache.set_user_setting(ctx.author, "pretty_todos", value)
 
     @todo_settings.command(name="details")
@@ -195,8 +195,8 @@ class Settings(Emojis):
         current = await self.cache.get_user_setting(ctx.author, "extra_details")
         enabled = self._get_enabled_status(value)
         if current == value:
-            return await ctx.send(f"Extra details are already {enabled}")
-        await ctx.send(f"Extra details are now {enabled}")
+            return await ctx.send(f"Extra details are already {enabled}.")
+        await ctx.send(f"Extra details are now {enabled}.")
         await self.cache.set_user_setting(ctx.author, "extra_details", value)
 
     @todo_settings.command(name="preset")
@@ -212,7 +212,7 @@ class Settings(Emojis):
         old_settings = await self.cache.get_user_item(ctx.author, "user_settings")
         old_settings.update(data)
         await self.cache.set_user_item(ctx.author, "user_settings", old_settings)
-        await ctx.send(f'Done. Your settings are now set to the preset "{preset.name}"')
+        await ctx.send(f'Done. Your settings are now set to the preset "{preset.name}".')
 
     @todo_settings.command(name="autosort")
     async def todo_autosort(self, ctx: commands.Context, value: bool):
@@ -227,9 +227,9 @@ class Settings(Emojis):
         current = await self.cache.get_user_setting(ctx.author, "autosorting")
         enabled = self._get_enabled_status(value)
         if current == value:
-            return await ctx.send(f"Autosorting is already {enabled}")
+            return await ctx.send(f"Autosorting is already {enabled}.")
         await self.cache.set_user_setting(ctx.author, "autosorting", value)
-        await ctx.send(f"Autosorting is now {enabled}")
+        await ctx.send(f"Autosorting is now {enabled}.")
 
     @todo_settings.command(name="showsettings")
     async def todo_show_settings(self, ctx: commands.Context):
