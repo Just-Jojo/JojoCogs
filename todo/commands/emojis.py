@@ -8,6 +8,9 @@ from redbot.core import commands
 from redbot.core.utils.predicates import ReactionPredicate
 from typing import Optional
 
+from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
+
+from typing import Union
 from ..abc import TodoMixin
 
 
@@ -16,6 +19,12 @@ __all__ = ["Emojis"]
 
 async def pretty(ctx: commands.Context):
     return await ctx.cog.cache.get_user_setting(ctx.author, "pretty_todos")
+
+
+class EmojiConverter(commands.EmojiConverter):
+    async def convert(self, ctx: commands.Context, arg: str) -> Union[str, discord.Emoji]:
+        arg = arg.strip()
+        return arg if arg in UNICODE_EMOJI_ENGLISH.keys() else await super().convert(ctx, arg)
 
 
 class Emojis(TodoMixin):
@@ -32,7 +41,7 @@ class Emojis(TodoMixin):
 
     @category_emoji.command(name="todoemoji", aliases=["temoji"])
     async def category_todo_emoji(
-        self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None
+        self, ctx: commands.Context, reset: Optional[bool], emoji: EmojiConverter = None
     ):
         """Set the emoji for the todo category.
 
@@ -47,33 +56,18 @@ class Emojis(TodoMixin):
         if reset:
             await self.cache.set_user_setting(ctx.author, "todo_category_emoji", None)
             return await ctx.send("Your todo category emoji has been reset.")
+        elif not emoji:
+            return await ctx.send_help()
         use_md = await self.cache.get_user_setting(ctx.author, "use_markdown")
-        if emoji:
-            if use_md:
-                return await ctx.send("You can't use custom emojis while having markdown enabled")
-            emoji = str(emoji)
-            await self.cache.set_user_setting(ctx.author, "todo_category_emoji", emoji)
-            return await ctx.send(f"Your todo category emoji has been set to '{emoji}'.")
-        msg = await ctx.send("Please react with the emoji you want for the todo category emoji")
-        pred = ReactionPredicate.same_context(message=msg, user=ctx.author)
-        try:
-            emoji = (await self.bot.wait_for("reaction_add", check=pred)[0]).emoji
-        except asyncio.TimeoutError:
-            return await ctx.send("Okay, I won't set your emojis")
-        if not isinstance(emoji, str):
-            if use_md:
-                return await ctx.send("You can't use custom emojis whilst having markdown enabled")
-            if not self.bot.get_emoji(emoji.id):
-                return await ctx.send("Please use an emoji that I can use.")
-        c_emoji = str(
-            emoji
-        )  # If it's animated then this will return the actual string for using the emoji, otherwise it's str("string") lol
-        await self.cache.set_user_setting(ctx.author, "todo_category_emoji", c_emoji)
-        await ctx.send(f"I have set your todo category emoji to '{c_emoji}'.")
+        if use_md:
+            return await ctx.send("You can't use custom emojis while having markdown enabled")
+        emoji = str(emoji)
+        await self.cache.set_user_setting(ctx.author, "todo_category_emoji", emoji)
+        return await ctx.send(f"Your todo category emoji has been set to '{emoji}'.")
 
     @category_emoji.command(name="completedemoji", aliases=["cemoji"])
     async def category_completed_emoji(
-        self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None
+        self, ctx: commands.Context, reset: Optional[bool], emoji: EmojiConverter = None
     ):
         """Set the emoji for the completed category.
 
@@ -88,34 +82,19 @@ class Emojis(TodoMixin):
         if reset:
             await self.cache.set_user_setting(ctx.author, "completed_category_emoji", None)
             return await ctx.send("Your completed category emoji has been reset")
+        elif not emoji:
+            return await ctx.send_help()
         use_md = await self.cache.get_user_setting(ctx.author, "use_markdown")
-        if emoji:
-            if use_md:
-                return await ctx.send("You can't use custom emojis while having markdown enabled")
-            emoji = str(emoji)
-            await self.cache.set_user_setting(ctx.author, "completed_category_emoji", emoji)
-            return await ctx.send(f"Your completed category emoji has been set to '{emoji}'.")
-        msg = await ctx.send(
-            "Please react with the emoji you want for the completed category emoji"
-        )
-        pred = ReactionPredicate.same_context(message=msg, user=ctx.author)
-        try:
-            emoji = (await self.bot.wait_for("reaction_add", check=pred))[0].emoji
-        except asyncio.TimeoutError:
-            return await ctx.send("Okay, I won't set your emojis")
-        if not isinstance(emoji, str):
-            if use_md:
-                return await ctx.send("You can't use custom emojis whilst having markdown enabled")
-            if not self.bot.get_emoji(emoji.id):
-                return await ctx.send("Please use an emoji that I can use.")
-        c_emoji = str(emoji)
-        await self.cache.set_user_setting(ctx.author, "completed_category_emoji", c_emoji)
-        await ctx.send(f"I have set your completed category emoji to '{c_emoji}'.")
+        if use_md:
+            return await ctx.send("You can't use custom emojis while having markdown enabled")
+        emoji = str(emoji)
+        await self.cache.set_user_setting(ctx.author, "completed_category_emoji", emoji)
+        return await ctx.send(f"Your completed category emoji has been set to '{emoji}'.")
 
     @commands.check(pretty)
     @todo_settings.command(name="todoemoji", aliases=("temoji",))
     async def todo_emoji(
-        self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None
+        self, ctx: commands.Context, reset: Optional[bool], emoji: EmojiConverter = None
     ):
         """Set the emoji used for todos
 
@@ -131,32 +110,19 @@ class Emojis(TodoMixin):
         if reset:
             await self.cache.set_user_setting(ctx.author, "todo_emoji", None)
             return await ctx.send("Done. Your emoji has been reset.")
+        elif not emoji:
+            return await ctx.send_help()
         use_md = await self.cache.get_user_setting(ctx.author, "use_markdown")
-        if emoji:
-            if use_md:
-                return await ctx.send("You can't have custom emojis while markdown is enabled")
-            emoji = str(emoji)
-            await self.cache.set_user_setting(ctx.author, "todo_emoji", emoji)
-            return await ctx.send(f"I have set your todo emoji to '{emoji}'")
-        msg = await ctx.send("Please react with the emoji you want for the uncompleted todos")
-        pred = ReactionPredicate.same_context(message=msg, user=ctx.author)
-        try:
-            emoji = (await self.bot.wait_for("reaction_add", check=pred))[0].emoji
-        except asyncio.TimeoutError:
-            return await ctx.send("Okay, I won't set your emojis")
-        if not isinstance(emoji, str):
-            if use_md:
-                return await ctx.send("You can't have custom emojis whilst markdown is enabled")
-            if not self.bot.get_emoji(emoji.id):
-                return await ctx.send("Please use an emoji that I can use.")
-        todo_emoji = str(emoji)
-        await self.cache.set_user_setting(ctx.author, "todo_emoji", todo_emoji)
-        await ctx.send(f"I have set your todo emoji to '{todo_emoji}'")
+        if use_md:
+            return await ctx.send("You can't have custom emojis while markdown is enabled")
+        emoji = str(emoji)
+        await self.cache.set_user_setting(ctx.author, "todo_emoji", emoji)
+        return await ctx.send(f"I have set your todo emoji to '{emoji}'")
 
     @commands.check(pretty)
     @todo_settings.command(name="completeemoji", aliases=("cemoji",))
     async def todo_complete_emoji(
-        self, ctx: commands.Context, reset: Optional[bool], emoji: discord.Emoji = None
+        self, ctx: commands.Context, reset: Optional[bool], emoji: EmojiConverter = None
     ):
         """Set the completed emoji used for completed todos.
 
@@ -170,24 +136,11 @@ class Emojis(TodoMixin):
         if reset:
             await self.cache.set_user_setting(ctx.author, "completed_emoji", None)
             return await ctx.send("Done. Your emoji has been reset.")
+        elif not emoji:
+            return await ctx.send_help()
         use_md = await self.cache.get_user_setting(ctx.author, "use_markdown")
-        if emoji:
-            if use_md:
-                return await ctx.send("You can't have custom emojis while markdown is enabled")
-            emoji = str(emoji)
-            await self.cache.set_user_setting(ctx.author, "completed_emoji", emoji)
-            return await ctx.send(f"I have set your completed emoji to '{emoji}'")
-        msg = await ctx.send("Please react with the emoji you want for the completed todos")
-        pred = ReactionPredicate.same_context(message=msg, user=ctx.author)
-        try:
-            emoji = (await self.bot.wait_for("reaction_add", check=pred))[0].emoji
-        except asyncio.TimeoutError:
-            return await ctx.send("Okay, I won't set your emoji")
-        if not isinstance(emoji, str):
-            if use_md:
-                return await ctx.send("You can't use custom emojis whilst markdown is enabled")
-            if not self.bot.get_emoji(emoji.id):
-                return await ctx.send("Please use an emoji that I can use.")
+        if use_md:
+            return await ctx.send("You can't have custom emojis while markdown is enabled")
         emoji = str(emoji)
         await self.cache.set_user_setting(ctx.author, "completed_emoji", emoji)
-        await ctx.send(f"I have set your completed emoji to '{emoji}'")
+        return await ctx.send(f"I have set your completed emoji to '{emoji}'")
