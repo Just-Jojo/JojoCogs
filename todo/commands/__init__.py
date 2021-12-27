@@ -5,5 +5,6 @@ from .emojis import Emojis
 from .importer import Importer
 from .managers import Managers
 from .misc import Miscellaneous
+from .search import Search
 from .settings import Settings
 from .shared import SharedTodos

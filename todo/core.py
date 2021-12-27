@@ -42,6 +42,7 @@ class ToDo(
     Importer,
     Managers,
     Miscellaneous,
+    Search,
     Settings,
     SharedTodos,
     commands.Cog,
@@ -58,7 +59,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666", "kato#0666", "MAX#1000"]
-    __version__ = "3.0.18"
+    __version__ = "3.0.19"
     _no_todo_message = "You do not have any todos. You can add one with `{prefix}todo add <task>`"
 
     def __init__(self, bot: Red):
