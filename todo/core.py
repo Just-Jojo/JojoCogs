@@ -42,7 +42,6 @@ class ToDo(
     Importer,
     Managers,
     Miscellaneous,
-    Search,
     Settings,
     SharedTodos,
     commands.Cog,
@@ -59,7 +58,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666", "kato#0666", "MAX#1000"]
-    __version__ = "3.0.19"
+    __version__ = "3.0.19.1"
     _no_todo_message = "You do not have any todos. You can add one with `{prefix}todo add <task>`"
 
     def __init__(self, bot: Red):
@@ -349,6 +348,23 @@ class ToDo(
         have_not = "have" if reverse else "have not"
         await ctx.send(f"Your todos are now sorted. They {have_not} been sorted in reverse")
         await self.cache._maybe_autosort(ctx.author)
+
+    @todo.command(name="search")
+    async def todo_search(self, ctx: commands.Context, *, query: str):
+        """Query your todo list for todos containing certain words
+        
+        **Arguments**
+            - `query` The words to search for.
+        """
+        if not (todos := await self.cache.get_user_item(ctx.author, "todos")):
+            return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
+        todos = list(filter(lambda x: query in x["task"], query))
+        if not todos:
+            return await ctx.send("I could not find any todos matching that query")
+        user_settings = await self.cache.get_user_item(ctx.author, "user_settings")
+        pinned, todos = await self._get_todos(todos, timestamp=user_settings["use_timestamps"], md=user_settings["use_markdown"])
+        todos = await formatting._format_todos(pinned, todos, **user_settings)
+        await self.page_logic(ctx, todos, title="Todos matching that query", **user_settings)
 
     @staticmethod
     async def _get_todos(
