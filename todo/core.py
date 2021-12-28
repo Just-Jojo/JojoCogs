@@ -58,7 +58,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666", "kato#0666", "MAX#1000"]
-    __version__ = "3.0.19.1"
+    __version__ = "3.0.19.2"
     _no_todo_message = "You do not have any todos. You can add one with `{prefix}todo add <task>`"
 
     def __init__(self, bot: Red):
@@ -72,6 +72,7 @@ class ToDo(
     def cog_unload(self) -> None:
         with suppress(KeyError):
             self.bot.remove_dev_env_value("todo")
+        self.cache._pool.close()
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         pre = super().format_help_for_context(ctx)
@@ -350,15 +351,17 @@ class ToDo(
         await self.cache._maybe_autosort(ctx.author)
 
     @todo.command(name="search")
-    async def todo_search(self, ctx: commands.Context, *, query: str):
+    async def todo_search(self, ctx: commands.Context, regex: Optional[bool], *, query: str):
         """Query your todo list for todos containing certain words
-        
+
         **Arguments**
             - `query` The words to search for.
         """
         if not (todos := await self.cache.get_user_item(ctx.author, "todos")):
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
-        todos = list(filter(lambda x: query in x["task"], query))
+        await ctx.send("This might take a while...")
+        async with ctx.typing():
+            todos = await self.cache.query_list(ctx.author, regex=bool(regex), query=query)
         if not todos:
             return await ctx.send("I could not find any todos matching that query")
         user_settings = await self.cache.get_user_item(ctx.author, "user_settings")

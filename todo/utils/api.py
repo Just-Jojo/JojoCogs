@@ -1,11 +1,41 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+# This file contains some code from TrustyJAID's retrigger cog, which is licensed under MIT
+# https://github.com/TrustyJAID/trusty-cogs/
+# MIT License
+
+# Copyright (c) 2017 TrustyJAID
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+from typing import Any, Dict, List, Optional, Tuple, Union, Coroutine, Iterable, AsyncGenerator, TypeVar, Callable
 
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
+
+import asyncio
+import functools
+
+import multiprocessing as mp
+from multiprocessing.pool import Pool
 
 from ..consts import config_structure
 import logging
@@ -30,6 +60,18 @@ All this is to say that I don't know why I built this cog and I hate myself :D
 """
 
 log = logging.getLogger("red.jojocogs.todo.api")
+T = TypeVar("T")
+Coro = Callable[..., Coroutine[Any, Any, T]]
+
+async def async_filter(async_pred: Coro, iterable: Iterable[Any]) -> AsyncGenerator[Any, None]:
+    for item in iterable:
+        if await async_pred(item):
+            yield item
+
+
+class InvalidRegex(commands.UserFeedbackCheckFailure):
+    def __init__(self):
+        super().__init__(message="That regex is invalid.")
 
 
 class TodoApi:
@@ -39,6 +81,8 @@ class TodoApi:
         self.bot = bot
         self.config = config
         self._data: Dict[int, Dict[str, Any]] = {}
+        self._pool: Pool = Pool()
+        self._loop: asyncio.AbstractEventLoop = self.bot.loop
 
     async def delete_data(self, user_id: int) -> None:
         """|coro|
@@ -332,3 +376,43 @@ class TodoApi:
                 data.insert(index, payload)
         await self.set_user_item(user_id, "todos", data, fix=False)
         return data
+
+    async def query_list(self, user: User, *, regex: bool, query: str) -> List[Dict[str, str]]:
+        uid = self._get_user(user)
+        first_time: bool = True # aight, so to prevent multiple regex checks I'll set this and use it later
+        async def method(t: Dict[str, Any]):
+            nonlocal first_time
+            task = t["task"]
+            if regex:
+                passed, worked = await self._safe_regex(query, task)
+                if not passed:
+                    raise InvalidRegex
+                return worked
+            return query in task
+        todos = await self.get_user_item(uid, "todos")
+        return [x async for x in async_filter(method, todos)]
+
+    async def _safe_regex(self, regex: str, item: str) -> Tuple[bool, Optional[bool]]:
+        # I got this from TrustyJAID's retrigger cog, which is licensed under MIT
+        # here is the source for that method:
+        # https://github.com/TrustyJAID/Trusty-cogs/blob/master/retrigger/triggerhandler.py#L507-#L552
+        # This is licensed under MIT which you can find here:
+        # https://github.com/TrustyJAID/Trusty-cogs/blob/master/LICENSE.txt
+        try:
+            process = self._pool.apply_async(re.search, (regex, item))
+            task = functools.partial(process.get, timeout=15.0)
+            new_task = await self._loop.run_in_executor(None, task)
+            search = await asyncio.wait_for(new_task, timeout=20.0)
+        except mp.TimeoutError:
+            log.debug("Regex processing took too long.")
+            return False, None
+        except asyncio.TimeoutError:
+            log.debug("Regex asycnio took too long.")
+            return False, None
+        except ValueError as e:
+            log.debug("Value error?", exc_info=e)
+            return False, None
+        except Exception:
+            return True, False # Not gonna return this tbh
+        else:
+            return True, search
