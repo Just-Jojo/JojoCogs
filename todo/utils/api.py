@@ -8,6 +8,12 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 
 from ..consts import config_structure
+import logging
+
+try:
+    import regex as re
+except ImportError:
+    import re # type:ignore
 
 User = Union[int, discord.Member, discord.User]
 __all__ = [
@@ -22,6 +28,8 @@ It's design is so odd and frankly strange that I doubt I will be able to replica
 
 All this is to say that I don't know why I built this cog and I hate myself :D
 """
+
+log = logging.getLogger("red.jojocogs.todo.api")
 
 
 class TodoApi:
@@ -324,3 +332,13 @@ class TodoApi:
                 data.insert(index, payload)
         await self.set_user_item(user_id, "todos", data, fix=False)
         return data
+
+    async def query_list(self, user: User, *, regex: bool, query: str) -> List[Dict[str, str]]:
+        uid = self._get_user(user)
+        def method(t: Dict[str, Any]):
+            t = t["task"]
+            if regex:
+                return re.search(query, t)
+            return query in t
+        todos = await self.get_user_item(uid, "todos")
+        return list(filter(method, todos))
