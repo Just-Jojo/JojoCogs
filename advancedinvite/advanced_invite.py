@@ -4,10 +4,11 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Any, Optional, TypeVar
+from typing import Any, Optional, TypeVar, Dict
 
 import aiohttp
 import discord
+from redbot import VersionInfo, version_info
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.core_commands import CoreLogic
@@ -41,7 +42,7 @@ class AdvancedInvite(commands.Cog):
     """An advanced invite for [botname]"""
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "3.0.4"
+    __version__ = "3.0.5"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -96,13 +97,13 @@ class AdvancedInvite(commands.Cog):
         message = settings.get("custom_message", _config_structure["custom_message"]).replace(
             "{bot_name}", ctx.me.name
         )
-        url = await CoreLogic._invite_url(self)
+        url = await self._invite_url()
         timestamp = f"<t:{int(datetime.utcnow().timestamp())}>"
         footer = ret if (ret := settings.get("footer")) else ""
         support = settings.get("support_server")
 
         support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
-        kwargs = {"content": f"**{title}**\n{message}\n<{url}>{support_msg}\n{timestamp}"}
+        kwargs: Dict[str, Any] = {"content": f"**{title}**\n{message}\n<{url}>{support_msg}\n{timestamp}"}
         if await self._embed_requested(ctx, channel):
             embed = discord.Embed(
                 title=title,
@@ -260,3 +261,16 @@ class AdvancedInvite(commands.Cog):
         if isinstance(channel, discord.DMChannel):
             return True
         return channel.permissions_for(ctx.me).embed_links
+
+    async def _invite_url(self) -> str:
+        if version_info >= VersionInfo.from_str("3.4.16"):
+            return await self.bot.get_invite_url()
+        elif version_info <= VersionInfo.from_str("3.4.14"):
+            return await CoreLogic._invite_url(self)
+        app_info = await self.bot.application_info()
+        data = await self.bot._config.all()
+        commands_scope = data["invite_commands_scope"]
+        scopes = ("bot", "applications.commands") if commands_scope else None
+        perms_int = data["invite_perm"]
+        permissions = discord.Permissions(perms_int)
+        return discord.utils.oauth_url(app_info.id, permissions, scopes=scopes)
