@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Any, Optional, TypeVar, Dict
+from typing import Any, Dict, Optional, TypeVar
 
 import aiohttp
 import discord
@@ -103,7 +103,9 @@ class AdvancedInvite(commands.Cog):
         support = settings.get("support_server")
 
         support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
-        kwargs: Dict[str, Any] = {"content": f"**{title}**\n{message}\n<{url}>{support_msg}\n{timestamp}"}
+        kwargs: Dict[str, Any] = {
+            "content": f"**{title}**\n{message}\n<{url}>{support_msg}\n{timestamp}"
+        }
         if await self._embed_requested(ctx, channel):
             embed = discord.Embed(
                 title=title,
@@ -265,8 +267,6 @@ class AdvancedInvite(commands.Cog):
     async def _invite_url(self) -> str:
         if version_info >= VersionInfo.from_str("3.4.16"):
             return await self.bot.get_invite_url()
-        elif version_info <= VersionInfo.from_str("3.4.14"):
-            return await CoreLogic._invite_url(self)
         app_info = await self.bot.application_info()
         data = await self.bot._config.all()
         commands_scope = data["invite_commands_scope"]

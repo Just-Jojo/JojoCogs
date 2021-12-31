@@ -3,7 +3,7 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Union, Dict, Any, List
+from typing import Any, Dict, List, Union
 
 import discord
 from redbot.core import commands
