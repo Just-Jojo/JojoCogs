@@ -27,10 +27,12 @@ class TodoPage(menus.ListPageSource):
         self.settings = settings
         self.title = title
 
+    def is_paginating(self) -> bool:
+        return True
+
     async def format_page(self, menu: menus.MenuPages, page: str) -> Union[str, discord.Embed]:
         ctx: commands.Context = menu.ctx
         bot: Red = menu.bot
-
         if self.settings["use_markdown"]:
             page = box(page, "md")
         footer = f"Page {menu.current_page + 1}/{self.get_max_pages()}"
@@ -64,9 +66,6 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):  # type:ignore
     @property
     def source(self) -> TodoPage:
         return self._source
-    
-    def is_paginating(self) -> bool:
-        return True
 
     async def send_initial_message(self, ctx, channel) -> discord.Message:
         page = await self.source.get_page(0)
