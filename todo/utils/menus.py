@@ -64,6 +64,9 @@ class TodoMenu(menus.MenuPages, inherit_buttons=False):  # type:ignore
     @property
     def source(self) -> TodoPage:
         return self._source
+    
+    def is_paginating(self) -> bool:
+        return True
 
     async def send_initial_message(self, ctx, channel) -> discord.Message:
         page = await self.source.get_page(0)
