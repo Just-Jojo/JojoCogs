@@ -200,7 +200,7 @@ class ErrorBlacklist(commands.Cog):
 
     @error_blacklist_whitelist.command(name="add", usage="<user_com_or_cog>")
     async def whitelist_add(self, ctx: commands.Context, user_or_command: UserOrCommandCog):
-        """Add an itme to the whitelist.
+        """Add a user, cog, or command to the whitelist.
 
         If it's a user that user will be ignored by the error checker.
         If it's a command when the command errors it will be ignored by the error checker.

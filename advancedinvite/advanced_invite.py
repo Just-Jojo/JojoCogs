@@ -3,7 +3,7 @@
 
 import asyncio
 import logging
-from datetime import datetime
+import datetime
 from typing import Any, Dict, Optional, TypeVar
 
 import aiohttp
@@ -39,7 +39,10 @@ _config_structure = {
 
 
 class AdvancedInvite(commands.Cog):
-    """An advanced invite for [botname]"""
+    """An advanced invite for [botname]
+
+    To configure the invite command, check out `[p]invite set`.
+    """
 
     __authors__ = ["Jojo#7791"]
     __version__ = "3.0.5"
@@ -98,25 +101,28 @@ class AdvancedInvite(commands.Cog):
             "{bot_name}", ctx.me.name
         )
         url = await self._invite_url()
-        timestamp = f"<t:{int(datetime.utcnow().timestamp())}>"
-        footer = ret if (ret := settings.get("footer")) else ""
+        time = datetime.datetime.now(tz=datetime.timezone.utc)
+        timestamp = f"<t:{int(time.timestamp())}>"
+        footer = settings.get("footer") or ""
         support = settings.get("support_server")
 
         support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
         kwargs: Dict[str, Any] = {
-            "content": f"**{title}**\n{message}\n<{url}>{support_msg}\n{timestamp}"
+            "content": f"**{title}**\n{message}\n<{url}>{support_msg}\n\n{footer}\n{timestamp}"
         }
         if await self._embed_requested(ctx, channel):
             embed = discord.Embed(
                 title=title,
                 description=f"{message}\n{url}",
                 colour=await ctx.embed_colour(),
-                timestamp=datetime.utcnow(),
+                timestamp=time,
             )
             if support is not None:
                 embed.add_field(name="Join the support server", value=support)
             if curl := settings.get("custom_url"):
                 embed.set_thumbnail(url=curl)
+            if footer:
+                embed.set_footer(text=footer)
             kwargs = {"embed": embed}
         kwargs["channel"] = channel
         kwargs["url"] = url
@@ -163,7 +169,7 @@ class AdvancedInvite(commands.Cog):
         """
         toggled = "enabled" if toggle else "disabled"
         await ctx.send(f"Embeds are now {toggled} for the invite command.")
-        await self.config.embeds.set(toggled)
+        await self.config.embeds.set(toggle)
 
     @invite_settings.command(name="message")
     async def invite_message(self, ctx: commands.Context, *, message: NoneStrict):
@@ -179,6 +185,8 @@ class AdvancedInvite(commands.Cog):
         if message is None:
             reset = True
             message = _config_structure["custom_message"]
+        elif len(message) > 1500:
+            return await ctx.send("The message's length cannot be more than 1500 characters.")
         set_reset = "reset" if reset else "set"
 
         await ctx.send(f"The message has been {set_reset}.")
@@ -205,19 +213,27 @@ class AdvancedInvite(commands.Cog):
 
     @invite_settings.command(name="footer")
     async def invite_footer(self, ctx: commands.Context, *, footer: NoneConverter):
-        """Set the footer for the invite command"""
+        """Set the footer for the invite command
+
+        **Arguments**
+            - `footer` The footer for the invite command.
+        """
 
         if not footer:
             await self.config.footer.set(None)
             return await ctx.send("The footer has been reset.")
-        if len(footer) > 500:
-            return await ctx.send("The footer's length cannot be over 500 characters long.")
+        if len(footer) > 100:
+            return await ctx.send("The footer's length cannot be over 100 characters long.")
         await self.config.footer.set(footer)
         await ctx.send("The footer has been set.")
 
     @invite_settings.command(name="public")
     async def invite_send_in_channel(self, ctx: commands.Context, toggle: bool):
-        """Set whether the invite command should send in the channel it was invoked in"""
+        """Set whether the invite command should send in the channel it was invoked in
+
+        **Arguments**
+            - `toggle` Whether or not the invite command should be sent in the channel it was used in.
+        """
         await self.config.send_in_channel.set(toggle)
         now_no_longer = "now" if toggle else "no longer"
         await ctx.send(
@@ -230,10 +246,12 @@ class AdvancedInvite(commands.Cog):
         _data: dict = {}
         settings = await self.config.all()
         for key, value in settings.items():
-            if key in ("mobile_check", "footer"):
+            if key == "mobile_check":
                 continue
             key = key.replace("_", " ").replace("custom ", "")
             key = " ".join(x.capitalize() for x in key.split())
+            if key.lower() == "url":
+                key = "Embed Image Url"
             _data[key] = value
         msg = "**Invite settings**\n\n" "\n".join(
             f"**{key}:** {value}" for key, value in _data.items()
@@ -243,7 +261,7 @@ class AdvancedInvite(commands.Cog):
             embed = discord.Embed(
                 title="Invite settings",
                 colour=await ctx.embed_colour(),
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
             )
             [embed.add_field(name=key, value=value, inline=False) for key, value in _data.items()]
             kwargs = {"embed": embed}
@@ -265,7 +283,7 @@ class AdvancedInvite(commands.Cog):
         return channel.permissions_for(ctx.me).embed_links
 
     async def _invite_url(self) -> str:
-        if version_info >= VersionInfo.from_str("3.4.16"):
+        if not version_info.dev_release and version_info >= VersionInfo.from_str("3.4.16"):
             return await self.bot.get_invite_url()
         app_info = await self.bot.application_info()
         data = await self.bot._config.all()
