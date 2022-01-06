@@ -6,7 +6,7 @@ from redbot.core import commands
 from redbot.core.utils.chat_formatting import pagify
 
 from ..abc import ABMixin  # type:ignore
-from .utils import (NonBotMember, NonBotUser, add_to_blacklist, edit_reason, get_blacklist,
+from .utils import (add_to_blacklist, edit_reason, get_blacklist,
                     in_blacklist, remove_from_blacklist)
 
 __all__ = ["Blacklist"]
@@ -23,7 +23,7 @@ class Blacklist(ABMixin):
 
     @blacklist.command(name="add")
     async def blacklist_add(
-        self, ctx: commands.Context, users: commands.Greedy[NonBotUser], *, reason: str = None
+        self, ctx: commands.Context, users: commands.Greedy[discord.User], *, reason: str = None
     ):
         """Add users to the blacklist.
 
@@ -33,6 +33,11 @@ class Blacklist(ABMixin):
         """
         if not users:
             raise commands.UserInputError
+        for user in users:
+            if user.bot:
+                return await ctx.send("You cannot add bots to the blacklist.")
+            elif await self.bot.is_owner(user):
+                return await ctx.send("You cannot add a bot owner to the blacklist.")
 
         reason = reason or "No reason provided."
         await add_to_blacklist(self.bot, users, reason)
@@ -53,14 +58,18 @@ class Blacklist(ABMixin):
         await ctx.send(f"Done. Removed {that} from the blacklist.")
 
     @blacklist.command(name="reason")
-    async def blacklist_reason(self, ctx: commands.Context, user: NonBotUser, *, reason: str):
+    async def blacklist_reason(self, ctx: commands.Context, user: discord.Member, *, reason: str):
         """Edit the reason for a user in the blacklist.
 
         **Arguments**
             - `user` The user to edit the reason of.
         """
-        if not await get_blacklist(self.bot):
-            return await ctx.send("There are no users in the blacklist.")
+        if user.bot:
+            return await ctx.send("That user is a bot.")
+        elif await self.bot.is_owner(user):
+            return await ctx.send("That user is a bot owner.")
+        elif not await in_blacklist(self.bot, user.id, ctx.guild):
+            return await ctx.send("That user is not in the blacklist.")
         try:
             await edit_reason(self.bot, user, reason, False)
         except KeyError:
@@ -87,7 +96,7 @@ class Blacklist(ABMixin):
 
     @local_blacklist.command(name="add")
     async def local_blacklist_add(
-        self, ctx: commands.Context, users: commands.Greedy[NonBotMember], *, reason: str = None
+        self, ctx: commands.Context, users: commands.Greedy[discord.Member], *, reason: str = None
     ):
         """Add users to the local blacklist
 
@@ -97,6 +106,15 @@ class Blacklist(ABMixin):
         """
         if not users:
             raise commands.UserInputError
+        for user in users:
+            if user.bot:
+                return await ctx.send("You cannot add bots to the local blacklist.")
+            elif await self.bot.is_owner(user):
+                return await ctx.send("You cannot add a bot owner to the local blacklist.")
+            elif user.id == ctx.guild.owner_id:
+                return await ctx.send("You cannot add the guild owner to the local blacklist.")
+            elif ctx.author == user:
+                return await ctx.send("You cannot add yourself to the local blacklist.")
         reason = reason or "No reason provided."
         await add_to_blacklist(self.bot, users, reason, guild=ctx.guild)
         that = "that user" if len(users) == 1 else "those users"
@@ -119,7 +137,7 @@ class Blacklist(ABMixin):
 
     @local_blacklist.command(name="reason")
     async def local_blacklist_reason(
-        self, ctx: commands.Context, user: NonBotMember, *, reason: str
+        self, ctx: commands.Context, user: discord.Member, *, reason: str
     ):
         """Edit the reason for a user in the local blacklist.
 
@@ -127,8 +145,14 @@ class Blacklist(ABMixin):
             - `user` The user to edit the reason of. This cannot be a bot.
             - `reason` The reason for blacklisting the user.
         """
-        if not await get_blacklist(self.bot, ctx.guild):
-            return await ctx.send("There are no users in the local blacklist.")
+        if await self.bot.is_owner(user):
+            return await ctx.send("That user is a bot owner.")
+        elif ctx.guild.owner_id == user.id:
+            return await ctx.send("That user is the guild owner.")
+        elif user.bot:
+            return await ctx.send("That user is a bot.")
+        elif not await in_blacklist(self.bot, user.id, ctx.guild):
+            return await ctx.send("That user is not locally blacklisted.")
         try:
             await edit_reason(self.bot, user, reason, False, guild=ctx.guild)
         except KeyError:

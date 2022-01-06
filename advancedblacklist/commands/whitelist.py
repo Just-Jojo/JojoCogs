@@ -8,7 +8,7 @@ from redbot.core import commands
 from redbot.core.utils.chat_formatting import box, pagify
 
 from ..abc import ABMixin  # type:ignore
-from .utils import (NonBotMember, NonBotUser, add_to_whitelist, clear_whitelist, edit_reason,
+from .utils import (add_to_whitelist, clear_whitelist, edit_reason,
                     get_whitelist, in_whitelist, remove_from_whitelist)
 
 log = logging.getLogger("red.jojocogs.advancedblacklist.whitelist")
@@ -27,7 +27,7 @@ class Whitelist(ABMixin):
     async def whitelist_add(
         self,
         ctx: commands.Context,
-        users: commands.Greedy[NonBotUser[True]],
+        users: commands.Greedy[discord.User],
         *,
         reason: str = None,
     ):
@@ -38,11 +38,13 @@ class Whitelist(ABMixin):
             - `reason` The reason for adding these users to the whitelist. This argument is optional.
         """
         if not users:
-            log.debug("Inputted users are not true or something")
             # This can happen because `commands.Greedy` will try to consume as many arguments as possible
             # However, those can all be invalid args so they will be filtered out... or something
             # Basically: sometimes a `commands.Greedy` argument will give you an empty list
             raise commands.UserInputError
+        for user in users:
+            if user.bot:
+                return await ctx.send("You cannot whitelist a bot.")
         reason = reason or "No reason provided."
         await add_to_whitelist(self.bot, users, reason)
         that = "that user" if len(users) == 1 else "those users"
@@ -64,10 +66,12 @@ class Whitelist(ABMixin):
 
     @whitelist.command(name="reason")
     async def whitelist_reason(
-        self, ctx: commands.Context, user: NonBotUser[True], *, reason: str
-    ):  # type:ignore
+        self, ctx: commands.Context, user: discord.Member, *, reason: str
+    ):
         """Edit the reason for a whitelisted user."""
-        if not await in_whitelist(self.bot, user.id):
+        if user.bot:
+            return await ctx.send("That user is a bot.")
+        elif not await in_whitelist(self.bot, user.id):
             return await ctx.send("That user is not in the whitelist.")
         try:
             await edit_reason(self.bot, user, reason, True)
@@ -97,7 +101,7 @@ class Whitelist(ABMixin):
     async def local_whitelist_add(
         self,
         ctx: commands.Context,
-        users: commands.Greedy[NonBotMember[True]],
+        users: commands.Greedy[discord.Member],
         *,
         reason: str = None,
     ):
@@ -113,6 +117,9 @@ class Whitelist(ABMixin):
         """
         if not users:
             raise commands.UserInputError
+        for user in users:
+            if user.bot:
+                return await ctx.send("You cannot locally whitelist a bot.")
         reason = reason or "No reason provided."
         users = {u.id for u in users}
         if not (ctx.guild.owner_id == ctx.author.id or await self.bot.is_owner(ctx.author)):
@@ -146,10 +153,12 @@ class Whitelist(ABMixin):
 
     @local_whitelist.command(name="reason")
     async def local_whitelist_reason(
-        self, ctx: commands.Context, user: NonBotMember[True], *, reason: str
-    ):  # type:ignore
+        self, ctx: commands.Context, user: discord.Member, *, reason: str
+    ):
         """Edit the reason for a locally whitelisted user"""
-        if not await in_whitelist(self.bot, user.id, ctx.guild):
+        if user.bot:
+            return await ctx.send("That user is a bot.")
+        elif not await in_whitelist(self.bot, user.id, ctx.guild):
             return await ctx.send("That user is not whitelisted.")
         try:
             await edit_reason(self.bot, user, reason, True)
