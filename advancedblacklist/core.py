@@ -57,7 +57,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         plural = "" if len(__authors__) == 1 else "s"
         return (
             f"{super().format_help_for_context(ctx)}\n\n"
-            f"**Author{plural}:** {humanize_list(__authors__.tick_self())}\n"
+            f"**Author{plural}:** {humanize_list([f'`{a}`' for a in __authors__])}\n"
             f"**Version:** {__version__}"
         )
 
@@ -66,7 +66,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         """Get the version of Advanced Blacklist that [botname] is running"""
         await ctx.send(
             f"Advanced Blacklist, version `{__version__}` "
-            f"by {humanize_list(__authors__.tick_self())}"
+            f"by {humanize_list([f'`{a}`' for a in __authors__])}"
         )
 
     @commands.Cog.listener()
