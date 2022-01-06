@@ -98,7 +98,6 @@ class CycleStatus(commands.Cog):
     async def status_set(self, ctx: commands.Context, toggle: bool = None):
         """Change whether the status should have ` | [p]help`
 
-        \u200b
         **Arguments**
             - `toggle` Whether help should be used or not.
         """
@@ -117,6 +116,8 @@ class CycleStatus(commands.Cog):
         **Arguments**
             - `status` The status to add to the cycle.
         """
+        if len(status) > 100:
+            return await ctx.send("Statuses cannot be longer than 100 characters.")
         async with self.config.statuses() as s:
             s.append(status)
         await ctx.tick()
@@ -125,7 +126,6 @@ class CycleStatus(commands.Cog):
     async def status_remove(self, ctx: commands.Context, num: PositiveInt = None):  # type:ignore
         """Remove a status from the list
 
-        \u200b
         **Arguments**
             - `num` The index of the status you want to remove.
         """
@@ -166,7 +166,6 @@ class CycleStatus(commands.Cog):
     async def status_random(self, ctx: commands.Context, value: bool):
         """Have the bot cycle to a random status
 
-        \u200b
         **Arguments**
             - `value` Whether to have random statuses be enabled or not
         """

@@ -133,7 +133,8 @@ class CmdLogger(commands.Cog):
             if cmd not in cmds:
                 return await ctx.send(
                     f"I am already not tracking the command `{cmd}`.\n"
-                    "If this command is being tracked, please make an issue on my github"
+                    "If this command is being tracked, please make an issue on my github\n"
+                    "<https://github.com/Just-Jojo/JojoCogs>"
                 )
             cmds.remove(cmd)
         await ctx.tick()
@@ -144,7 +145,9 @@ class CmdLogger(commands.Cog):
         cmds = await self.config.commands()
         if not cmds:
             return await ctx.send(
-                f"I am not tracking any commands. Use `{ctx.clean_prefix}cmdlog add <command>` to add one"
+                "I am not tracking any commands.\n"
+                "If I am still tracking commands please make an issue on my github\n"
+                "<https://github.com/Just-Jojo/JojoCogs>"
             )
         data = pagify("\n".join(cmds), page_length=200)
         await CmdMenu(CmdPages(data)).start(ctx)  # type:ignore
@@ -180,6 +183,9 @@ class CmdLogger(commands.Cog):
         try:
             await self.log_channel.send(msg)
         except discord.Forbidden:
-            log.warning(f"I could not send a message to channel '{channel.name}'")
+            log.warning(
+                f"I could not send a message to channel '{self.log_channel.name}'"
+                "\nAs such I am disabling channel logging."
+            )
             await self.config.log_channel.clear()
             self.log_channel = None  # maybe this is wise?

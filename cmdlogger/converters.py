@@ -10,7 +10,7 @@ __all__ = ["CommandConverter", "NoneChannelConverter"]
 class CommandConverter(commands.Converter):
     async def convert(self, ctx: commands.Context, arg: str) -> commands.Command:
         ret = ctx.bot.get_command(arg)
-        if arg is None:
+        if ret is None:
             raise commands.BadArgument(f"'{arg}' is not a command")
         return ret
 
