@@ -45,13 +45,14 @@ class AdvancedInvite(commands.Cog):
     """
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "3.0.5"
+    __version__ = "3.0.6"
 
     def __init__(self, bot: Red):
         self.bot = bot
         self._invite_command: Optional[commands.Command] = self.bot.remove_command("invite")
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(**_config_structure)
+        self._supported_images = ("jpg", "jpeg", "png", "gif")
 
     def cog_unload(self):
         if self._invite_command:
@@ -239,6 +240,44 @@ class AdvancedInvite(commands.Cog):
         await ctx.send(
             f"The invite command will {now_no_longer} send the message in the channel it was invoked in"
         )
+
+    @invite_settings.command(name="url")
+    async def invite_custom_url(self, ctx: commands.Context, url: str = None):
+        """Set the url for the invite command's embed
+
+        This setting only applies for embeds
+
+        **Arguments**
+            - `url` The url for embed command. This can also be a file (upload the image when you run the command)
+            Type `none` to reset the url.
+        """
+        if len(ctx.message.attachments) > 0:
+            if not (attach := ctx.message.attachments[0]).filename.endswith(self._supported_images):
+                return await ctx.send("That image is invalid.")
+            url = attach.url
+        elif url is not None:
+            if url.lower == "none":
+                await self.config.custom_url.clear()
+                return await ctx.send("I have reset the image url.")
+            if url.startswith("<") and url.endswith(">"):
+                url = url[1:-1]
+            if not url.endswith(self._supported_images):
+                return await ctx.send(
+                    f"That url does not point to a proper image type, ({', '.join(self._supported_images)})"
+                )
+            async with ctx.typing():
+                async with aiohttp.ClientSession() as sess:
+                    try:
+                        async with sess.get(url) as re:
+                            await re.read()
+                    except aiohttp.InvalidURL:
+                        return await ctx.send("That is not a valid url.")
+                    except aiohttp.ClientError:
+                        return await ctx.send("Something went wrong while trying to get the image.")
+        else:
+            return await ctx.send_help()
+        await self.config.custom_url.set(url)
+        await ctx.send("Done. I have set the image url.")
 
     @invite_settings.command(name="showsettings")
     async def invite_show_settings(self, ctx: commands.Context):
