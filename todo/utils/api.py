@@ -379,7 +379,7 @@ class TodoApi:
 
     async def query_list(self, user: User, *, regex: bool, query: str) -> List[Dict[str, str]]:
         uid = self._get_user(user)
-        async def method(t: Dict[str, Any]):
+        async def method(t: Dict[str, Any]) -> bool:
             task = t["task"]
             if regex:
                 passed, worked = await self._safe_regex(query, task)
@@ -398,7 +398,7 @@ class TodoApi:
         # https://github.com/TrustyJAID/Trusty-cogs/blob/master/LICENSE.txt
         try:
             process = self._pool.apply_async(re.search, (regex, item))
-            task = functools.partial(process.get, timeout=15.0)
+            task = functools.partial(process.get, timeout=2.0)
             new_task = await self._loop.run_in_executor(None, task)
             search = await asyncio.wait_for(new_task, timeout=20.0)
         except mp.TimeoutError:
