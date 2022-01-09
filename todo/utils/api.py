@@ -379,9 +379,7 @@ class TodoApi:
 
     async def query_list(self, user: User, *, regex: bool, query: str) -> List[Dict[str, str]]:
         uid = self._get_user(user)
-        first_time: bool = True # aight, so to prevent multiple regex checks I'll set this and use it later
         async def method(t: Dict[str, Any]):
-            nonlocal first_time
             task = t["task"]
             if regex:
                 passed, worked = await self._safe_regex(query, task)
