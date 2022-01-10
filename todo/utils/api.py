@@ -390,7 +390,7 @@ class TodoApi:
         todos = await self.get_user_item(uid, "todos")
         return [x async for x in async_filter(method, todos)]
 
-    async def _safe_regex(self, regex: str, item: str) -> Tuple[bool, Optional[bool]]:
+    async def _safe_regex(self, regex: str, item: str) -> Tuple[bool, bool]:
         # I got this from TrustyJAID's retrigger cog, which is licensed under MIT
         # here is the source for that method:
         # https://github.com/TrustyJAID/Trusty-cogs/blob/master/retrigger/triggerhandler.py#L507-#L552
@@ -403,13 +403,13 @@ class TodoApi:
             search = await asyncio.wait_for(new_task, timeout=20.0)
         except mp.TimeoutError:
             log.debug("Regex processing took too long.")
-            return False, None
+            return False, False
         except asyncio.TimeoutError:
             log.debug("Regex asycnio took too long.")
-            return False, None
+            return False, False
         except ValueError as e:
             log.debug("Value error?", exc_info=e)
-            return False, None
+            return False, False
         except Exception:
             return True, False # Not gonna return this tbh
         else:
