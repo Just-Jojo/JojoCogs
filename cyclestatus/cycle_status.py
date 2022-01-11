@@ -78,7 +78,7 @@ class CycleStatus(commands.Cog):
             f"Cycle Status, Version `{self.__version__}`. Made with :heart: by Jojo#7791"
         )
 
-    @commands.group()
+    @commands.group(name="cyclestatus", aliases=["cstatus"])
     @commands.is_owner()
     async def status(self, ctx: commands.Context):
         """Commands working with the status"""
