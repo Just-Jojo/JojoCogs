@@ -310,6 +310,8 @@ class ToDo(
             - `from` The index of the todo
             - `to` The new index of the todo
         """
+        if original == new:
+            return await ctx.send("You cannot move a todo from one index... to the same index")
         todos = await self.cache.get_user_item(ctx.author, "todos")
         if not todos:
             return await ctx.send(self._no_todo_message.format(ctx.clean_prefix))
