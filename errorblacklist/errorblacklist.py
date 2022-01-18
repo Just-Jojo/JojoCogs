@@ -56,7 +56,7 @@ class ErrorBlacklist(commands.Cog):
     """
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "1.1.0"
+    __version__ = "1.1.1"
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         plural = "" if len(self.__authors__) == 1 else "s"
@@ -348,9 +348,9 @@ class ErrorBlacklist(commands.Cog):
 
         if ctx.guild:
             log.debug("In a guild")
-            gid, cid = [getattr(ctx, x).id for x in ("guild", "channel")]  # LAZY
+            gid, cid = ctx.guild.id, (chan.id if (chan := ctx.channel) is not None else "No channel found.") # Not sure why
             coro = self.config.ignore
-            if gid in await coro.guilds() or cid in await coro.channels():
+            if gid in await coro.guilds() or (not isinstance(cid, str) and cid in await coro.channels()):
                 log.debug("Ignored tbh")
                 return
 
