@@ -74,10 +74,10 @@ class InviteNoneConverter(NoneConverter):
         self.strict = False
 
     async def convert(self, ctx: commands.Context, arg: str) -> Union[NoneType, discord.Invite]:
-        arg = await super().convert(ctx, arg)
-        if arg is None:
-            return arg
-        return await commands.InviteConverter().convert(ctx, arg)
+        ret = await super().convert(ctx, arg)
+        if ret is None:
+            return ret
+        return await commands.InviteConverter().convert(ctx, ret)
 
 
 class Route(discord.http.Route):

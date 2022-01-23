@@ -13,7 +13,5 @@ _config_structure: Dict[str, Dict[str, Any]] = {
     },
 }
 
-__version__ = "2.0.0"
-
-
 __authors__ = ["Jojo#7791"]
+__version__ = "2.0.0"

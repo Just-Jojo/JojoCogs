@@ -2,12 +2,14 @@
 # Licensed under MIT
 
 import logging
-from typing import Callable, Dict, Set
+from typing import Callable, Dict, Set, Coroutine, Any, TypeVar
 
 import discord
 from redbot.core.bot import Red
 from redbot.core.settings_caches import WhitelistBlacklistManager
 
+
+T = TypeVar("T")
 log = logging.getLogger("red.jojocogs.advancedblacklist.patch")
 __all__ = ["init", "destory"]
 
@@ -19,7 +21,7 @@ _monke_patched_names: Set[str] = {
     "remove_from_whitelist",
     "clear_whitelist",
 }
-_original_funcs: Dict[str, Callable] = {}
+_original_funcs: Dict[str, Callable[..., Coroutine[Any, Any, T]]] = {}
 initialized: bool = False
 
 
@@ -97,5 +99,6 @@ def init(bot: Red):
 def destroy():
     if not initialized:
         return
+    # Don't need to set `initialized` here as this will only be called on cog unload
     for key, value in _original_funcs.items():
         setattr(WhitelistBlacklistManager, key, value)

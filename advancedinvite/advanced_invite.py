@@ -104,7 +104,7 @@ class AdvancedInvite(commands.Cog):
         url = await self._invite_url()
         time = datetime.datetime.now(tz=datetime.timezone.utc)
         timestamp = f"<t:{int(time.timestamp())}>"
-        footer = settings.get("footer") or ""
+        footer = settings.get("footer")
         support = settings.get("support_server")
 
         support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
