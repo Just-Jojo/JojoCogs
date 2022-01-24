@@ -4,6 +4,7 @@
 import logging
 from contextlib import suppress
 from typing import Optional, Set
+from types import ModuleType
 
 import discord  # type:ignore
 from redbot.core import Config, commands
@@ -21,7 +22,7 @@ from .patch import destroy, init
 log = logging.getLogger("red.jojocogs.advancedblacklist")
 
 
-def api_tool(ctx: commands.Context):
+def api_tool(ctx: commands.Context) -> ModuleType:
     from .commands.utils import api
 
     return api
