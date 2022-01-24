@@ -35,6 +35,7 @@ _config_structure = {
     "title": "Invite {bot_name}",
     "support_server": None,
     "footer": None,
+    "extra_link": False,
 }
 
 
@@ -45,7 +46,7 @@ class AdvancedInvite(commands.Cog):
     """
 
     __authors__ = ["Jojo#7791"]
-    __version__ = "3.0.6"
+    __version__ = "3.0.7"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -112,9 +113,10 @@ class AdvancedInvite(commands.Cog):
             "content": f"**{title}**\n{message}\n<{url}>{support_msg}\n\n{footer}\n{timestamp}"
         }
         if await self._embed_requested(ctx, channel):
+            message = f"{message}\n{url}" if await self.config.extra_link() else f"[{message}]({url})"
             embed = discord.Embed(
                 title=title,
-                description=f"{message}\n{url}",
+                description=message,
                 colour=await ctx.embed_colour(),
                 timestamp=time,
             )
@@ -278,6 +280,17 @@ class AdvancedInvite(commands.Cog):
             return await ctx.send_help()
         await self.config.custom_url.set(url)
         await ctx.send("Done. I have set the image url.")
+
+    @invite_settings.command(name="extralink")
+    async def invite_extra_links(self, ctx: commands.Context, toggle: bool):
+        """Toggle whether the invite command's embed should have extra links showing the invite url
+
+        **Arguments**
+            - `toggle` Whether the invite command's embed should have extra links.
+        """
+        await self.config.extra_links.set(toggle)
+        now_no_longer = "now" if toggle else "no longer"
+        await ctx.send(f"Extra links are {now_no_longer} enabled.")
 
     @invite_settings.command(name="showsettings")
     async def invite_show_settings(self, ctx: commands.Context):
