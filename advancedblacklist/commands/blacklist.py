@@ -83,7 +83,7 @@ class Blacklist(ABMixin):
             return await ctx.send("There are no users in the blacklist.")
         msg = "Blacklisted Users:"
         for key, value in bl.items():
-            name = u.name if (u := self.bot.get_user(key)) else "Unknown User"
+            name = u.name if (u := self._get_user(ctx, key)) else "Unknown User"
             msg += f"\n\t- [{key}] {name}: {value}"
         await ctx.send_interactive(pagify(msg, page_length=1800), "yml")
 
@@ -166,6 +166,6 @@ class Blacklist(ABMixin):
             return await ctx.send("There are no members in the local blacklist.")
         msg = "Locally Blacklisted Members:"
         for key, value in bl.items():
-            name = u.name if (u := ctx.guild.get_member(key)) else "Unknown or Deleted Member"
+            name = u.name if (u := ctx.guild.get_member(int(key))) else "Unknown or Deleted Member"
             msg += f"\n\t- [{key}] {name}: {value}"
         await ctx.send_interactive(pagify(msg, page_length=1800), "yml")

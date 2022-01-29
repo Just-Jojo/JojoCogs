@@ -86,7 +86,7 @@ class Whitelist(ABMixin):
             return await ctx.send("There are no whitelisted users.")
         msg = "Whitelisted Users:"
         for uid, reason in wt.items():
-            user = u.name if (u := self.bot.get_user(int(uid))) else "Unknown or Deleted User"
+            user = u.name if (u := self._get_user(ctx, uid)) else "Unknown or Deleted User"
             msg += f"\n\t- [{uid}] {user}: {reason}"
         await ctx.send_interactive(pagify(msg, page_length=1800), "yml")
 

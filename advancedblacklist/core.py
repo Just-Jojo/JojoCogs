@@ -3,7 +3,7 @@
 
 import logging
 from contextlib import suppress
-from typing import Optional, Set
+from typing import Optional, Set, Union
 from types import ModuleType
 
 import discord  # type:ignore
@@ -119,3 +119,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
             {user.id},
             f"Used the command '{command.name}' which errored too many times",
         )
+
+    def _get_user(self, ctx: commands.Context, member_id: str) -> Optional[Union[discord.Member, discord.User]]:
+        mid = int(member_id)
+        return ctx.guild.get_member(mid) or self.bot.get_user(mid)
