@@ -25,7 +25,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import Any, Dict, List, Optional, Tuple, Union, Coroutine, Iterable, AsyncGenerator, TypeVar, Callable
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    Coroutine,
+    Iterable,
+    AsyncGenerator,
+    TypeVar,
+    Callable,
+)
 
 import discord
 from redbot.core import Config, commands
@@ -43,7 +55,7 @@ import logging
 try:
     import regex as re
 except ImportError:
-    import re # type:ignore
+    import re  # type:ignore
 
 User = Union[int, discord.Member, discord.User]
 __all__ = [
@@ -62,6 +74,7 @@ All this is to say that I don't know why I built this cog and I hate myself :D
 log = logging.getLogger("red.jojocogs.todo.api")
 T = TypeVar("T")
 Coro = Callable[..., Coroutine[Any, Any, T]]
+
 
 async def async_filter(async_pred: Coro, iterable: Iterable[Any]) -> AsyncGenerator[Any, None]:
     for item in iterable:
@@ -379,6 +392,7 @@ class TodoApi:
 
     async def query_list(self, user: User, *, regex: bool, query: str) -> List[Dict[str, str]]:
         uid = self._get_user(user)
+
         async def method(t: Dict[str, Any]) -> bool:
             task = t["task"]
             if regex:
@@ -387,6 +401,7 @@ class TodoApi:
                     raise InvalidRegex
                 return worked
             return query in task
+
         todos = await self.get_user_item(uid, "todos")
         return [x async for x in async_filter(method, todos)]
 
@@ -411,6 +426,6 @@ class TodoApi:
             log.debug("Value error?", exc_info=e)
             return False, False
         except Exception:
-            return True, False # Not gonna return this tbh
+            return True, False  # Not gonna return this tbh
         else:
             return True, search

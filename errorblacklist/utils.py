@@ -1,7 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from typing import Union
+from typing import Union, List, Any
 
 import discord
 from discord.utils import copy_doc
@@ -12,7 +12,7 @@ __all__ = ["humanize_list", "PositiveInt", "UserOrCommandCog", "ChannelOrGuild",
 
 
 @copy_doc(hl)
-def humanize_list(items: list, *args) -> str:
+def humanize_list(items: List[Any], *args) -> str:
     return hl([f"`{x}`" for x in items], *args)
 
 
@@ -45,7 +45,9 @@ class UserOrCommandCog(commands.Converter):
 
 
 class ChannelOrGuild(commands.Converter):
-    async def convert(self, ctx: commands.Context, arg: str):
+    async def convert(
+        self, ctx: commands.Context, arg: str
+    ) -> Union[discord.TextChannel, discord.Guild]:
         try:
             ret = await commands.TextChannelConverter().convert(ctx, arg)
         except commands.ChannelNotFound:

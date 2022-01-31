@@ -367,7 +367,9 @@ class ToDo(
         if not todos:
             return await ctx.send("I could not find any todos matching that query")
         user_settings = await self.cache.get_user_item(ctx.author, "user_settings")
-        pinned, todos = await self._get_todos(todos, timestamp=user_settings["use_timestamps"], md=user_settings["use_markdown"])
+        pinned, todos = await self._get_todos(
+            todos, timestamp=user_settings["use_timestamps"], md=user_settings["use_markdown"]
+        )
         todos = await formatting._format_todos(pinned, todos, **user_settings)
         await self.page_logic(ctx, todos, title="Todos matching that query", **user_settings)
 

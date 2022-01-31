@@ -4,7 +4,7 @@
 import asyncio
 import logging
 import datetime
-from typing import Any, Dict, Optional, TypeVar
+from typing import Any, Dict, Optional, TypeVar, Final, List
 
 import aiohttp
 import discord
@@ -45,8 +45,8 @@ class AdvancedInvite(commands.Cog):
     To configure the invite command, check out `[p]invite set`.
     """
 
-    __authors__ = ["Jojo#7791"]
-    __version__ = "3.0.7"
+    __authors__: Final[List[str]] = ["Jojo#7791"]
+    __version__: Final[str] = "3.0.7"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -113,7 +113,9 @@ class AdvancedInvite(commands.Cog):
             "content": f"**{title}**\n{message}\n<{url}>{support_msg}\n\n{footer}\n{timestamp}"
         }
         if await self._embed_requested(ctx, channel):
-            message = f"{message}\n{url}" if await self.config.extra_link() else f"[{message}]({url})"
+            message = (
+                f"{message}\n{url}" if await self.config.extra_link() else f"[{message}]({url})"
+            )
             embed = discord.Embed(
                 title=title,
                 description=message,
@@ -254,7 +256,9 @@ class AdvancedInvite(commands.Cog):
             Type `none` to reset the url.
         """
         if len(ctx.message.attachments) > 0:
-            if not (attach := ctx.message.attachments[0]).filename.endswith(self._supported_images):
+            if not (attach := ctx.message.attachments[0]).filename.endswith(
+                self._supported_images
+            ):
                 return await ctx.send("That image is invalid.")
             url = attach.url
         elif url is not None:
@@ -275,7 +279,9 @@ class AdvancedInvite(commands.Cog):
                     except aiohttp.InvalidURL:
                         return await ctx.send("That is not a valid url.")
                     except aiohttp.ClientError:
-                        return await ctx.send("Something went wrong while trying to get the image.")
+                        return await ctx.send(
+                            "Something went wrong while trying to get the image."
+                        )
         else:
             return await ctx.send_help()
         await self.config.custom_url.set(url)
@@ -337,6 +343,9 @@ class AdvancedInvite(commands.Cog):
     async def _invite_url(self) -> str:
         if not version_info.dev_release and version_info >= VersionInfo.from_str("3.4.16"):
             return await self.bot.get_invite_url()
+        # This is all for backwards compatibility
+        # Even if a method for this gets added it would be redundant considering
+        # `bot.get_invite_url` exists in the latest red versions
         app_info = await self.bot.application_info()
         data = await self.bot._config.all()
         commands_scope = data["invite_commands_scope"]

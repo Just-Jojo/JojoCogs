@@ -4,7 +4,7 @@
 import logging
 from contextlib import suppress
 from functools import wraps
-from typing import Any, Callable, Iterable, List, Optional
+from typing import Any, Callable, Iterable, List, Optional, Final
 
 import discord
 from redbot.core import Config, commands
@@ -17,7 +17,7 @@ from .menus import CmdMenu, CmdPages
 log = logging.getLogger("red.JojoCogs.cmd_logger")
 
 
-def humanize_list_with_ticks(data: Iterable) -> str:
+def humanize_list_with_ticks(data: Iterable[Any]) -> str:
     return humanize_list([inline(x) for x in data])
 
 
@@ -37,8 +37,8 @@ pagify = listify(pagify)
 class CmdLogger(commands.Cog):
     """Log used commands"""
 
-    __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.0"
+    __authors__: Final[List[str]] = ["Jojo#7791"]
+    __version__: Final[str] = "1.0.0"
 
     def __init__(self, bot: Red):
         self.bot = bot

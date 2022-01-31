@@ -7,7 +7,7 @@ import random
 import re
 from datetime import datetime
 from itertools import cycle
-from typing import List, Optional
+from typing import List, Optional, Final, Any
 
 import discord
 from discord.ext import tasks
@@ -29,18 +29,18 @@ _config_structure = {
     },
 }
 
-_bot_guild_var = r"{bot_guild_count}"
-_bot_member_var = r"{bot_member_count}"
-_bot_prefix_var = r"{bot_prefix}"
+_bot_guild_var: Final[str] = r"{bot_guild_count}"
+_bot_member_var: Final[str] = r"{bot_member_count}"
+_bot_prefix_var: Final[str] = r"{bot_prefix}"
 
 
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
-    __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.9"
+    __authors__: Final[List[str]] = ["Jojo#7791"]
     # These people have suggested something for this cog!
-    __suggesters__ = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
+    __suggesters__: Final[List[str]] = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
+    __version__: Final[str] = "1.0.9"
 
     def __init__(self, bot: Red):
         self.bot = bot

@@ -5,6 +5,7 @@ import asyncio
 
 from redbot.core import Config, commands
 from redbot.core.utils.predicates import MessagePredicate
+from typing import Final
 
 from ..abc import TodoMixin
 
@@ -12,7 +13,7 @@ from ..abc import TodoMixin
 class Importer(TodoMixin):
     """Import todos from epic guy's todo cog (maybe)"""
 
-    _epic_guy_config = Config.get_conf(None, 6732102719277, True, cog_name="Todo")
+    _epic_guy_config: Final[Config] = Config.get_conf(None, 6732102719277, True, cog_name="Todo")
 
     @commands.group()
     async def todo(self, *args):

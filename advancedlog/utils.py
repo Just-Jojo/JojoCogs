@@ -1,6 +1,8 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import discord
+
 from redbot.core import commands
 
 __all__ = ["NonBotMember", "PositiveInt"]
@@ -10,7 +12,7 @@ class NonBotMember(commands.Converter):
     def __init__(self, strict: bool = True):
         self.strict = strict
 
-    async def convert(self, ctx: commands.Context, arg: str):
+    async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
         try:
             user = await commands.MemberConverter().convert(ctx, arg)
         except commands.BadArgument:
@@ -24,7 +26,7 @@ class NonBotMember(commands.Converter):
 
 
 class PositiveInt(commands.Converter):
-    async def convert(self, ctx: commands.Context, arg: str):
+    async def convert(self, ctx: commands.Context, arg: str) -> int:
         try:
             ret = int(arg)
         except ValueError:

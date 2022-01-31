@@ -244,8 +244,8 @@ class SharedTodos(TodoMixin):
     async def shared_complete(
         self,
         ctx: commands.Context,
-        user: NonBotMember(False),
-        indexes: PositiveInt,  # type:ignore
+        user: NonBotMember(False),  # type:ignore
+        *indexes: PositiveInt,
     ):
         """Complete todos on a user's list
 

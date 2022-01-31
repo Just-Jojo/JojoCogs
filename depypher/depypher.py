@@ -3,7 +3,7 @@
 
 import functools
 import logging
-from typing import Callable, Literal, Optional
+from typing import Callable, Literal, Optional, Final, List
 
 import discord
 from pycipher import pycipher
@@ -12,8 +12,8 @@ from redbot.core.utils.chat_formatting import humanize_list
 
 log = logging.getLogger("red.JojoCogs.depypher")
 
-_caesar = pycipher.Caesar(key=4)
-_atbash = pycipher.Atbash()
+_caesar: Final[pycipher.Caesar] = pycipher.Caesar(key=4)
+_atbash: Final[pycipher.Atbash] = pycipher.Atbash()
 _vigenere = pycipher.Vigenere
 _porta = pycipher.Porta
 
@@ -39,10 +39,10 @@ class Depypher(commands.Cog):
     (hint, use `[p]devigenere depypher <this docstring>` to find out what it means!)
     """
 
-    __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.0"
+    __authors__: Final[List[str]] = ["Jojo#7791"]
+    __version__: Final[str] = "1.0.0"
 
-    def format_help_for_context(self, ctx: commands.Context):
+    def format_help_for_context(self, ctx: commands.Context) -> str:
         pre = super().format_help_for_context(ctx)
         plural = "s" if len(self.__authors__) > 1 else ""
         return (
@@ -68,7 +68,6 @@ class Depypher(commands.Cog):
     async def decaesar(self, ctx, *, cipher: str):
         """Decrypt a message with Caesar
 
-        \u200b
         **Arguments**
             - `cipher` The ciphered message to decipher.
         """
@@ -91,7 +90,6 @@ class Depypher(commands.Cog):
     async def deatbash(self, ctx, *, cipher: str):
         """Decipher a message encrypted with Atbash
 
-        \u200b
         **Arguments**
             - `cipher` The ciphered message to decipher.
         """
@@ -113,7 +111,6 @@ class Depypher(commands.Cog):
     async def devigenere(self, ctx, keyword: str, *, cipher: str):
         """Decipher a message encrypted in Vigenere with a keyword
 
-        \u200b
         **Arguments**
             - `keyword` The keyword for the decryption.
             - `cipher` The ciphered message to decipher.
@@ -135,7 +132,6 @@ class Depypher(commands.Cog):
     async def deporta(self, ctx, keyword: str, *, cipher: str):
         """Decrypt a message with the Porta cipher!
 
-        \u200b
         **Arguments**
             - `keyword` The keyword for the decryption.
             - `cipher` The ciphered message to decipher.

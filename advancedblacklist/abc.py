@@ -14,7 +14,9 @@ class ABMixin(ABC):
     def __init__(self, *_args):
         self.bot: Red
 
-    def _get_user(self, ctx: commands.Context, member_id: str) -> Optional[Union[discord.Member, discord.User]]:
+    def _get_user(
+        self, ctx: commands.Context, member_id: str
+    ) -> Optional[Union[discord.Member, discord.User]]:
         ...
 
 

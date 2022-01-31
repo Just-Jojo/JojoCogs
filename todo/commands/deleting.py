@@ -23,7 +23,9 @@ class Deleting(TodoMixin):
     async def todo(self, *args):
         pass
 
-    @todo.command(name="delete", aliases=["del", "remove", "clear", "r"], require_var_positional=True)
+    @todo.command(
+        name="delete", aliases=["del", "remove", "clear", "r"], require_var_positional=True
+    )
     async def todo_delete(self, ctx: commands.Context, *indexes: PositiveInt):
         """Delete a todo task
 
@@ -68,8 +70,6 @@ class Deleting(TodoMixin):
     async def todo_delete_all(self, ctx: commands.Context, confirm: bool = False):
         """Remove all of your todos
 
-
-        \u200b
         **Arguments**
             - `confirm` Skips the confirmation check. Defaults to False
         """

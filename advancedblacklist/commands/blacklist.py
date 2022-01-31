@@ -6,8 +6,13 @@ from redbot.core import commands
 from redbot.core.utils.chat_formatting import pagify
 
 from ..abc import ABMixin  # type:ignore
-from .utils import (add_to_blacklist, edit_reason, get_blacklist,
-                    in_blacklist, remove_from_blacklist)
+from .utils import (
+    add_to_blacklist,
+    edit_reason,
+    get_blacklist,
+    in_blacklist,
+    remove_from_blacklist,
+)
 
 __all__ = ["Blacklist"]
 
@@ -96,7 +101,11 @@ class Blacklist(ABMixin):
 
     @local_blacklist.command(name="add")
     async def local_blacklist_add(
-        self, ctx: commands.Context, members: commands.Greedy[discord.Member], *, reason: str = None
+        self,
+        ctx: commands.Context,
+        members: commands.Greedy[discord.Member],
+        *,
+        reason: str = None,
     ):
         """Add users to the local blacklist
 

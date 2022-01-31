@@ -40,7 +40,7 @@ class NoteApi:
         self.config = config
         self.bot = bot
 
-    async def _modlog_enabled(self, guild: discord.Guild):
+    async def _modlog_enabled(self, guild: discord.Guild) -> bool:
         if not await self.config.guild(guild).modlog_enabled():
             return False
         return await modlog_exists(guild)
@@ -71,7 +71,7 @@ class NoteApi:
         user: discord.Member,
         moderator: discord.Member,
         new_note: str,
-    ):
+    ) -> None:
         async with self.config.member(user).notes() as notes:
             data = notes[index]
             if (
@@ -111,7 +111,7 @@ class NoteApi:
         index: int,
         user: discord.Member,
         moderator: discord.Member,
-    ):
+    ) -> None:
         async with self.config.member(user).notes() as notes:
             note = notes[index]
             if (

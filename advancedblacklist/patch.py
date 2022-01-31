@@ -2,7 +2,7 @@
 # Licensed under MIT
 
 import logging
-from typing import Callable, Dict, Set, Coroutine, Any, TypeVar
+from typing import Callable, Dict, Set, Coroutine, Any, TypeVar, Final
 
 import discord
 from redbot.core.bot import Red
@@ -13,7 +13,7 @@ T = TypeVar("T")
 log = logging.getLogger("red.jojocogs.advancedblacklist.patch")
 __all__ = ["init", "destory"]
 
-_monke_patched_names: Set[str] = {
+_monke_patched_names: Final[Set[str]] = {
     "add_to_blacklist",
     "remove_from_blacklist",
     "clear_blacklist",

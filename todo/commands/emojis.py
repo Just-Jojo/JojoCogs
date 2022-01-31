@@ -17,7 +17,7 @@ from ..abc import TodoMixin
 __all__ = ["Emojis"]
 
 
-async def pretty(ctx: commands.Context):
+async def pretty(ctx: commands.Context) -> bool:
     return await ctx.cog.cache.get_user_setting(ctx.author, "pretty_todos")
 
 
@@ -61,9 +61,9 @@ class Emojis(TodoMixin):
         use_md = await self.cache.get_user_setting(ctx.author, "use_markdown")
         if use_md:
             return await ctx.send("You can't use custom emojis while having markdown enabled")
-        emoji = str(emoji)
-        await self.cache.set_user_setting(ctx.author, "todo_category_emoji", emoji)
-        return await ctx.send(f"Your todo category emoji has been set to '{emoji}'.")
+        act_emoji = str(emoji)
+        await self.cache.set_user_setting(ctx.author, "todo_category_emoji", act_emoji)
+        return await ctx.send(f"Your todo category emoji has been set to '{act_emoji}'.")
 
     @category_emoji.command(name="completedemoji", aliases=["cemoji"])
     async def category_completed_emoji(
@@ -87,9 +87,9 @@ class Emojis(TodoMixin):
         use_md = await self.cache.get_user_setting(ctx.author, "use_markdown")
         if use_md:
             return await ctx.send("You can't use custom emojis while having markdown enabled")
-        emoji = str(emoji)
-        await self.cache.set_user_setting(ctx.author, "completed_category_emoji", emoji)
-        return await ctx.send(f"Your completed category emoji has been set to '{emoji}'.")
+        act_emoji = str(emoji)
+        await self.cache.set_user_setting(ctx.author, "completed_category_emoji", act_emoji)
+        return await ctx.send(f"Your completed category emoji has been set to '{act_emoji}'.")
 
     @commands.check(pretty)
     @todo_settings.command(name="todoemoji", aliases=("temoji",))
@@ -115,9 +115,9 @@ class Emojis(TodoMixin):
         use_md = await self.cache.get_user_setting(ctx.author, "use_markdown")
         if use_md:
             return await ctx.send("You can't have custom emojis while markdown is enabled")
-        emoji = str(emoji)
-        await self.cache.set_user_setting(ctx.author, "todo_emoji", emoji)
-        return await ctx.send(f"I have set your todo emoji to '{emoji}'")
+        act_emoji = str(emoji)
+        await self.cache.set_user_setting(ctx.author, "todo_emoji", act_emoji)
+        return await ctx.send(f"I have set your todo emoji to '{act_emoji}'")
 
     @commands.check(pretty)
     @todo_settings.command(name="completeemoji", aliases=("cemoji",))
@@ -141,6 +141,6 @@ class Emojis(TodoMixin):
         use_md = await self.cache.get_user_setting(ctx.author, "use_markdown")
         if use_md:
             return await ctx.send("You can't have custom emojis while markdown is enabled")
-        emoji = str(emoji)
-        await self.cache.set_user_setting(ctx.author, "completed_emoji", emoji)
-        return await ctx.send(f"I have set your completed emoji to '{emoji}'")
+        act_emoji = str(emoji)
+        await self.cache.set_user_setting(ctx.author, "completed_emoji", act_emoji)
+        return await ctx.send(f"I have set your completed emoji to '{act_emoji}'")

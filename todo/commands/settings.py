@@ -14,7 +14,7 @@ from .emojis import Emojis
 from ..utils import timestamp_format
 
 
-async def no_markdown(ctx: commands.Context):
+async def no_markdown(ctx: commands.Context) -> bool:
     md = await ctx.cog.cache.get_user_setting(ctx.author, "use_markdown")
     pretty = await ctx.cog.cache.get_user_setting(ctx.author, "pretty_todos")
     return not md and pretty
@@ -104,7 +104,6 @@ class Settings(Emojis):
     async def todo_number_todos(self, ctx: commands.Context, value: bool):
         """Set your todo list to index todos whilst listing them
 
-        \u200b
         **Arguments**
             - `value` Whether to index todos or not
         """

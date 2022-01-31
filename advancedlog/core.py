@@ -9,12 +9,14 @@ from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import pagify
 
+from typing import Final, List, Dict, Any
+
 from .api import NotAuthor, NoteApi, modlog_exists
 from .menus import Menu, Page
 from .utils import *
 
 log = logging.getLogger("red.JojoCogs.advanced_log")
-_config_structure = {
+_config_structure: Dict[str, Dict[str, Any]] = {
     "guild": {
         "modlog_enabled": False,
         "allow_other_edits": False,
@@ -28,8 +30,8 @@ _config_structure = {
 class AdvancedLog(commands.Cog):
     """An advanced log for moderators to add notes to users"""
 
-    __authors__ = ["Jojo#7791"]
-    __version__ = "1.0.1"
+    __authors__: Final[List[str]] = ["Jojo#7791"]
+    __version__: Final[str] = "1.0.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -39,16 +41,16 @@ class AdvancedLog(commands.Cog):
         self.api = NoteApi(self.config, self.bot)
         self.startup = self.bot.loop.create_task(self._init())
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         self.startup.cancel()
 
-    async def _init(self):
+    async def _init(self) -> None:
         try:
             await modlog.register_casetype("Mod Note", True, "\N{MEMO}", "Mod Note")
         except RuntimeError:
             pass
 
-    async def cog_check(self, ctx: commands.Context):
+    async def cog_check(self, ctx: commands.Context) -> bool:
         return ctx.guild is not None
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
@@ -59,7 +61,7 @@ class AdvancedLog(commands.Cog):
             f"**Version:** `{self.__version__}`"
         )
 
-    async def red_delete_data_for_user(self, requester, user_id: int):
+    async def red_delete_data_for_user(self, requester, user_id: int) -> None:
         if requester != "discord_deleted_user":
             return
         all_members = await self.config.all_members()
@@ -67,7 +69,7 @@ class AdvancedLog(commands.Cog):
             if user_id in guild_data:
                 await self.config.member_from_ids(guild_id, user_id).clear()
 
-    async def red_get_data_for_user(self, *args, **kwargs):
+    async def red_get_data_for_user(self, *args, **kwargs) -> Dict[Any, Any]:
         return {}
 
     @commands.group()
@@ -111,8 +113,8 @@ class AdvancedLog(commands.Cog):
     @commands.group(aliases=("mnote",), invoke_without_command=True)
     @commands.mod_or_permissions(administrator=True)
     async def modnote(
-        self, ctx: commands.Context, user: NonBotMember(False), *, note: str
-    ):  # type:ignore
+        self, ctx: commands.Context, user: NonBotMember(False), *, note: str  # type:ignore
+    ):
         """Create a note for a user. This user cannot be a bot
 
         If enabled this will also log to the modlog

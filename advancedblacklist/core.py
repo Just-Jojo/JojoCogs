@@ -13,9 +13,16 @@ from redbot.core.utils.chat_formatting import humanize_list
 
 from .abc import CompositeMetaclass
 from .commands import Blacklist, Whitelist
-from .commands.utils import (add_to_blacklist, add_to_whitelist, clear_blacklist, clear_whitelist,
-                             in_blacklist, in_whitelist, remove_from_blacklist,
-                             remove_from_whitelist)
+from .commands.utils import (
+    add_to_blacklist,
+    add_to_whitelist,
+    clear_blacklist,
+    clear_whitelist,
+    in_blacklist,
+    in_whitelist,
+    remove_from_blacklist,
+    remove_from_whitelist,
+)
 from .const import __authors__, __version__, _config_structure
 from .patch import destroy, init
 
@@ -120,6 +127,8 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
             f"Used the command '{command.name}' which errored too many times",
         )
 
-    def _get_user(self, ctx: commands.Context, member_id: str) -> Optional[Union[discord.Member, discord.User]]:
+    def _get_user(
+        self, ctx: commands.Context, member_id: str
+    ) -> Optional[Union[discord.Member, discord.User]]:
         mid = int(member_id)
         return ctx.guild.get_member(mid) or self.bot.get_user(mid)

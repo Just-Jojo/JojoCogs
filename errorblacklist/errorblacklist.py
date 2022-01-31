@@ -4,7 +4,7 @@
 # type:ignore[missing-import]
 
 import logging
-from typing import Literal
+from typing import Literal, List, Final, Dict, Any
 
 import discord
 from discord.ext import tasks
@@ -19,7 +19,7 @@ from .utils import *
 log = logging.getLogger("red.JojoCogs.error_blacklist")
 RequestType = Literal["discord_deleted_user", "owner", "user", "user_strict"]
 
-_config_structure = {
+_config_structure: Final[Dict[str, Dict[str, Any]]] = {
     "global": {
         "enabled": False,
         "amount": 5,
@@ -46,7 +46,7 @@ _config_structure = {
 }
 
 
-async def enabled(ctx: commands.Context):
+async def enabled(ctx: commands.Context) -> bool:
     return await ctx.cog.config.message_enabled()
 
 
@@ -55,8 +55,8 @@ class ErrorBlacklist(commands.Cog):
     Blacklist users if they use a command that errors too many times
     """
 
-    __authors__ = ["Jojo#7791"]
-    __version__ = "1.1.1"
+    __authors__: Final[List[str]] = ["Jojo#7791"]
+    __version__: Final[str] = "1.1.1"
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         plural = "" if len(self.__authors__) == 1 else "s"
@@ -74,16 +74,16 @@ class ErrorBlacklist(commands.Cog):
         self._cache: dict = {}
         self.first_run: bool = True
 
-    async def startup(self):
+    async def startup(self) -> None:
         if await self.config.clear_usage():
             self.clear_cache.start()
         self._cache = await self.config.all_users()
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         if self.clear_cache.is_running():
             self.clear_cache.cancel()
 
-    async def red_delete_data_for_user(self, *, requester: RequestType, user_id: int):
+    async def red_delete_data_for_user(self, *, requester: RequestType, user_id: int) -> None:
         """This cog does not store any data"""
         return
 
@@ -348,9 +348,13 @@ class ErrorBlacklist(commands.Cog):
 
         if ctx.guild:
             log.debug("In a guild")
-            gid, cid = ctx.guild.id, (chan.id if (chan := ctx.channel) is not None else "No channel found.") # Not sure why
+            gid, cid = ctx.guild.id, (
+                chan.id if (chan := ctx.channel) is not None else "No channel found."
+            )  # Not sure why
             coro = self.config.ignore
-            if gid in await coro.guilds() or (not isinstance(cid, str) and cid in await coro.channels()):
+            if gid in await coro.guilds() or (
+                not isinstance(cid, str) and cid in await coro.channels()
+            ):
                 log.debug("Ignored tbh")
                 return
 

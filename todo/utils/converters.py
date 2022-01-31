@@ -4,23 +4,29 @@
 import discord
 from redbot.core import commands
 
+from typing import TYPE_CHECKING
+
 __all__ = ["PositiveInt", "NonBotMember"]
 
 
-class PositiveInt(commands.Converter):
-    def __init__(self, strict: bool = True):
-        self.strict = strict
+if TYPE_CHECKING:
+    PositiveInt = int
+else:
 
-    async def convert(self, ctx: commands.Context, arg: str) -> int:
-        try:
-            ret = int(arg)
-        except ValueError:
-            if self.strict:
-                raise commands.BadArgument("That was not an integer.")
-            raise commands.UserInputError
-        if ret <= 0:
-            raise commands.BadArgument(f"'{arg}' is not a positive integer.")
-        return ret
+    class PositiveInt(commands.Converter):
+        def __init__(self, strict: bool = True):
+            self.strict = strict
+
+        async def convert(self, ctx: commands.Context, arg: str) -> int:
+            try:
+                ret = int(arg)
+            except ValueError:
+                if self.strict:
+                    raise commands.BadArgument("That was not an integer.")
+                raise commands.UserInputError
+            if ret <= 0:
+                raise commands.BadArgument(f"'{arg}' is not a positive integer.")
+            return ret
 
 
 class NonBotMember(commands.Converter):
