@@ -8,6 +8,11 @@ from typing import Any, Dict, List, Union
 import discord
 from redbot.core import commands
 
+from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
+import logging
+
+log = logging.getLogger("red.jojocogs.advancedinvite.utils")
+
 __all__ = [
     "create_doc",
     "TimestampFormats",
@@ -17,6 +22,8 @@ __all__ = [
     "send_button",
     "Button",
     "Component",
+    "Emoji",
+    "EmojiConverter"
 ]
 NoneType = type(None)
 
@@ -126,13 +133,52 @@ class Component:
 class Button:
     """Small button container for stuff or something"""
 
-    __slots__ = ("label", "style", "type", "url")
+    __slots__ = ("label", "style", "type", "url", "emoji")
 
-    def __init__(self, label: str, url: str):
+    def __init__(self, label: str, url: str, emoji: Union["Emoji", None]):
         self.label = label
         self.style = 5
         self.type = 2
         self.url = url
+        self.emoji = emoji
 
     def to_dict(self) -> Dict[str, Any]:
-        return {x: getattr(self, x) for x in self.__slots__}
+        return {
+            x: getattr((y := getattr(self, x)), "to_dict", lambda: y)() for x in self.__slots__
+        }
+
+
+class Emoji:
+    def __init__(self, data: Dict[str, Any]):
+        self.name = data["name"]
+        self.id = data.get("id", None)
+        self.animated = data.get("animated", None)
+        self.custom = self.id is not None
+
+    @classmethod
+    def from_data(cls, data: Union[str, Dict[str, Any]]):
+        log.debug(data)
+        if not data:
+            return None
+        if isinstance(data, str):
+            return cls({"name": data})
+        return cls(data)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {"name": self.name, "id": self.id}
+
+    def as_emoji(self) -> str:
+        if not self.custom:
+            return self.name
+        an = "a" if self.animated else ""
+        return f"<{an}:{self.name}:{self.id}>"
+
+
+class EmojiConverter(commands.PartialEmojiConverter):
+    async def convert(self, ctx: commands.Context, arg: str) -> Union[Emoji, NoneType]:
+        if arg.lower() == "none":
+            return None
+        arg = arg.strip()
+        data = arg if arg in UNICODE_EMOJI_ENGLISH.keys() else await super().convert(ctx, arg)
+        data = getattr(data, "to_dict", lambda: data)()
+        return Emoji.from_data(data)

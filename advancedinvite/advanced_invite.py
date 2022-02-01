@@ -36,6 +36,8 @@ _config_structure = {
     "support_server": None,
     "footer": None,
     "extra_link": False,
+    "support_server_emoji": {},
+    "invite_emoji": {},
 }
 
 
@@ -46,7 +48,7 @@ class AdvancedInvite(commands.Cog):
     """
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
-    __version__: Final[str] = "3.0.7"
+    __version__: Final[str] = "3.0.8"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -112,6 +114,9 @@ class AdvancedInvite(commands.Cog):
         kwargs: Dict[str, Any] = {
             "content": f"**{title}**\n{message}\n<{url}>{support_msg}\n\n{footer}\n{timestamp}"
         }
+        support_server_emoji, invite_emoji = [
+            Emoji.from_data(settings.get(x)) for x in ["support_server_emoji", "invite_emoji"]
+        ]
         if await self._embed_requested(ctx, channel):
             message = (
                 f"{message}\n{url}" if await self.config.extra_link() else f"[{message}]({url})"
@@ -131,9 +136,9 @@ class AdvancedInvite(commands.Cog):
             kwargs = {"embed": embed}
         kwargs["channel"] = channel
         kwargs["url"] = url
-        buttons = [Button(f"Invite {ctx.me.name}!", url)]
+        buttons = [Button(f"Invite {ctx.me.name}!", url, invite_emoji)]
         if support is not None:
-            buttons.append(Button("Join the support server!", url=support))
+            buttons.append(Button("Join the support server!", url=support, emoji=support_server_emoji))
         kwargs["components"] = [Component(buttons)]
         try:
             await send_button(ctx, **kwargs)
@@ -244,6 +249,36 @@ class AdvancedInvite(commands.Cog):
         await ctx.send(
             f"The invite command will {now_no_longer} send the message in the channel it was invoked in"
         )
+
+    @invite_settings.command(name="supportserveremoji", aliases=["ssemoji"])
+    async def support_server_emoji(self, ctx: commands.Context, emoji: EmojiConverter):
+        """Set the emoji for the support server invite button.
+
+        Type "None" to remove it.
+
+        **Arguments**
+            - `emoji` The emoji for the support server button. Type "none" to remove it.
+        """
+        if not emoji:
+            await self.config.support_server_emoji.clear()
+            return await ctx.send("I have reset the support server emoji.")
+        await self.config.support_server_emoji.set(emoji.to_dict())
+        await ctx.send(f"Set the support server emoji to {emoji.as_emoji()}")
+
+    @invite_settings.command(name="inviteemoji", aliases=["iemoji"])
+    async def invite_emoji(self, ctx: commands.Context, emoji: EmojiConverter):
+        """Set the emoji for the invite button.
+
+        Type "None" to remove it.
+
+        **Arguments**
+            - `emoji` The emoji for the invite button. Type "none" to remove it.
+        """
+        if not emoji:
+            await self.config.invite_emoji.clear()
+            return await ctx.send("I have reset the invite emoji.")
+        await self.config.invite_emoji.set(emoji.to_dict())
+        await ctx.send(f"Set the invite emoji to {emoji.as_emoji()}")
 
     @invite_settings.command(name="url")
     async def invite_custom_url(self, ctx: commands.Context, url: str = None):
