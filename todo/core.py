@@ -227,7 +227,7 @@ class ToDo(
 
         **Arguments**
             - `todos` The todos you want to add.
-            This is an optional argument and you can upload a file instead
+            This is an optional argument and you can upload, or reply to a message with, a file instead
         """
         if ctx.message.reference and not any([todos is not None, ctx.message.attachments]):
             # Message references get checked first
