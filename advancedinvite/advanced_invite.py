@@ -35,7 +35,7 @@ _config_structure = {
     "title": "Invite {bot_name}",
     "support_server": None,
     "footer": None,
-    "extra_link": False,
+    "extra_links": False,
     "support_server_emoji": {},
     "invite_emoji": {},
 }
