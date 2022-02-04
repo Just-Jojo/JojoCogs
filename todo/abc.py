@@ -1,11 +1,12 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from abc import ABC, abstractmethod, abstractstaticmethod
+from abc import ABC, abstractmethod, abstractstaticmethod, ABCMeta
 from logging import Logger
 from typing import List, Tuple
 
 import discord
+from discord.ext.commands.cog import CogMeta
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
@@ -57,7 +58,7 @@ class TodoMixin(ABC):
         ...
 
 
-class MetaClass(type(commands.Cog), type(ABC)):  # type:ignore
+class MetaClass(CogMeta, ABCMeta):  # type:ignore
     """Meta class for main class"""
 
     pass

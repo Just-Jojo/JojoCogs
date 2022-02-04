@@ -1,8 +1,9 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from abc import ABC
+from abc import ABC, ABCMeta
 import discord
+from discord.ext.commands.cog import CogMeta
 
 from redbot.core import commands
 from redbot.core.bot import Red
@@ -20,5 +21,5 @@ class ABMixin(ABC):
         ...
 
 
-class CompositeMetaclass(type(ABC), type(commands.Cog)):  # type:ignore
+class CompositeMetaclass(CogMeta, ABCMeta):
     ...
