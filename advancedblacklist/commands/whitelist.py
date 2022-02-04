@@ -8,14 +8,8 @@ from redbot.core import commands
 from redbot.core.utils.chat_formatting import box, pagify
 
 from ..abc import ABMixin  # type:ignore
-from .utils import (
-    add_to_whitelist,
-    clear_whitelist,
-    edit_reason,
-    get_whitelist,
-    in_whitelist,
-    remove_from_whitelist,
-)
+from .utils import (add_to_whitelist, clear_whitelist, edit_reason,
+                    get_whitelist, in_whitelist, remove_from_whitelist)
 
 log = logging.getLogger("red.jojocogs.advancedblacklist.whitelist")
 

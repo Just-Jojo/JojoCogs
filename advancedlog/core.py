@@ -2,14 +2,13 @@
 # Licensed under MIT
 
 import logging
+from typing import Any, Dict, Final, List
 
 import discord  # type:ignore
 from redbot.core import Config, commands, modlog
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import pagify
-
-from typing import Final, List, Dict, Any
 
 from .api import NotAuthor, NoteApi, modlog_exists
 from .menus import Menu, Page

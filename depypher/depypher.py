@@ -3,7 +3,7 @@
 
 import functools
 import logging
-from typing import Callable, Literal, Optional, Final, List
+from typing import Callable, Final, List, Literal, Optional
 
 import discord
 from pycipher import pycipher

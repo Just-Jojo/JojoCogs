@@ -1,7 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from typing import Union, List, Any
+from typing import Any, List, Union
 
 import discord
 from discord.utils import copy_doc

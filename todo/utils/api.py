@@ -25,32 +25,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import (
-    Any,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    Union,
-    Coroutine,
-    Iterable,
-    AsyncGenerator,
-    TypeVar,
-    Callable,
-)
+import asyncio
+import functools
+import logging
+import multiprocessing as mp
+from multiprocessing.pool import Pool
+from typing import (Any, AsyncGenerator, Callable, Coroutine, Dict, Iterable,
+                    List, Optional, Tuple, TypeVar, Union)
 
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
-import asyncio
-import functools
-
-import multiprocessing as mp
-from multiprocessing.pool import Pool
-
 from ..consts import config_structure
-import logging
 
 try:
     import regex as re

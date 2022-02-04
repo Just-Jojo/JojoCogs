@@ -2,7 +2,6 @@
 # Licensed under MIT
 
 import discord
-
 from redbot.core import commands
 
 __all__ = ["NonBotMember", "PositiveInt"]

@@ -7,7 +7,7 @@ import random
 import re
 from datetime import datetime
 from itertools import cycle
-from typing import List, Optional, Final, Any
+from typing import Any, Final, List, Optional
 
 import discord
 from discord.ext import tasks

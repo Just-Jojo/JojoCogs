@@ -4,7 +4,7 @@
 import logging
 from contextlib import suppress
 from functools import wraps
-from typing import Any, Callable, Iterable, List, Optional, Final
+from typing import Any, Callable, Final, Iterable, List, Optional
 
 import discord
 from redbot.core import Config, commands

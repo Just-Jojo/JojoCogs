@@ -1,7 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from abc import ABC, abstractmethod, abstractstaticmethod, ABCMeta
+from abc import ABC, ABCMeta, abstractmethod, abstractstaticmethod
 from logging import Logger
 from typing import List, Tuple
 

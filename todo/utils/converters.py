@@ -1,10 +1,10 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+from typing import TYPE_CHECKING
+
 import discord
 from redbot.core import commands
-
-from typing import TYPE_CHECKING
 
 __all__ = ["PositiveInt", "NonBotMember"]
 

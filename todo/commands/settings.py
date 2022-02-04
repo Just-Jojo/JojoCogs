@@ -10,8 +10,8 @@ import discord
 from redbot.core import commands
 from redbot.core.utils.predicates import ReactionPredicate
 
-from .emojis import Emojis
 from ..utils import timestamp_format
+from .emojis import Emojis
 
 
 async def no_markdown(ctx: commands.Context) -> bool:

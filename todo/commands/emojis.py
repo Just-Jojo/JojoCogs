@@ -2,17 +2,14 @@
 # Licensed under MIT
 
 import asyncio
-import discord
+from typing import Optional, Union
 
+import discord
+from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
 from redbot.core import commands
 from redbot.core.utils.predicates import ReactionPredicate
-from typing import Optional
 
-from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
-
-from typing import Union
 from ..abc import TodoMixin
-
 
 __all__ = ["Emojis"]
 

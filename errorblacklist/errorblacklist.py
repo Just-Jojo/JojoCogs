@@ -4,7 +4,7 @@
 # type:ignore[missing-import]
 
 import logging
-from typing import Literal, List, Final, Dict, Any
+from typing import Any, Dict, Final, List, Literal
 
 import discord
 from discord.ext import tasks

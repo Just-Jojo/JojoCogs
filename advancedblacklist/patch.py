@@ -2,12 +2,11 @@
 # Licensed under MIT
 
 import logging
-from typing import Callable, Dict, Set, Coroutine, Any, TypeVar, Final
+from typing import Any, Callable, Coroutine, Dict, Final, Set, TypeVar
 
 import discord
 from redbot.core.bot import Red
 from redbot.core.settings_caches import WhitelistBlacklistManager
-
 
 T = TypeVar("T")
 log = logging.getLogger("red.jojocogs.advancedblacklist.patch")

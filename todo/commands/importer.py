@@ -2,10 +2,10 @@
 # Licensed under MIT
 
 import asyncio
+from typing import Final
 
 from redbot.core import Config, commands
 from redbot.core.utils.predicates import MessagePredicate
-from typing import Final
 
 from ..abc import TodoMixin
 

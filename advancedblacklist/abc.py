@@ -2,13 +2,12 @@
 # Licensed under MIT
 
 from abc import ABC, ABCMeta
+from typing import Optional, Union
+
 import discord
 from discord.ext.commands.cog import CogMeta
-
 from redbot.core import commands
 from redbot.core.bot import Red
-
-from typing import Optional, Union
 
 
 class ABMixin(ABC):

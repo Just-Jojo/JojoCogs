@@ -2,9 +2,9 @@
 # Licensed under MIT
 
 import asyncio
-import logging
 import datetime
-from typing import Any, Dict, Optional, TypeVar, Final, List, Tuple
+import logging
+from typing import Any, Dict, Final, List, Optional, Tuple, TypeVar
 
 import aiohttp
 import discord
