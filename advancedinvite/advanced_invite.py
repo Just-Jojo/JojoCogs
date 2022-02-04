@@ -4,7 +4,7 @@
 import asyncio
 import logging
 import datetime
-from typing import Any, Dict, Optional, TypeVar, Final, List
+from typing import Any, Dict, Optional, TypeVar, Final, List, Tuple
 
 import aiohttp
 import discord
@@ -27,7 +27,7 @@ async def can_invite(ctx: commands.Context) -> bool:
     return await CoreLogic._can_get_invite_url(ctx)
 
 
-_config_structure = {
+_config_structure: Final[Dict[str, Any]] = {
     "custom_url": None,
     "custom_message": "Thanks for choosing {bot_name}!",
     "send_in_channel": False,
@@ -55,12 +55,12 @@ class AdvancedInvite(commands.Cog):
         self._invite_command: Optional[commands.Command] = self.bot.remove_command("invite")
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(**_config_structure)
-        self._supported_images = ("jpg", "jpeg", "png", "gif")
+        self._supported_images: Tuple[str, ...] = ("jpg", "jpeg", "png", "gif")
 
-    def cog_unload(self):
-        if self._invite_command:
-            self.bot.remove_command("invite")
-            self.bot.add_command(self._invite_command)
+    def cog_unload(self) -> None:
+        self.bot.remove_command("invite"), self.bot.add_command(
+            self._invite_command
+        ) if self._invite_command else None
 
     @staticmethod
     def _humanize_list(data: list) -> list:
@@ -138,7 +138,9 @@ class AdvancedInvite(commands.Cog):
         kwargs["url"] = url
         buttons = [Button(f"Invite {ctx.me.name}!", url, invite_emoji)]
         if support is not None:
-            buttons.append(Button("Join the support server!", url=support, emoji=support_server_emoji))
+            buttons.append(
+                Button("Join the support server!", url=support, emoji=support_server_emoji)
+            )
         kwargs["components"] = [Component(buttons)]
         try:
             await send_button(ctx, **kwargs)

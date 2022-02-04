@@ -23,7 +23,7 @@ __all__ = [
     "Button",
     "Component",
     "Emoji",
-    "EmojiConverter"
+    "EmojiConverter",
 ]
 NoneType = type(None)
 
