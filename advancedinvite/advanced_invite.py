@@ -329,7 +329,7 @@ class AdvancedInvite(commands.Cog):
         **Arguments**
             - `toggle` Whether the invite command's embed should have extra links.
         """
-        await self.config.extra_links.set(toggle)
+        await self.config.extra_link.set(toggle)
         now_no_longer = "now" if toggle else "no longer"
         await ctx.send(f"Extra links are {now_no_longer} enabled.")
 
