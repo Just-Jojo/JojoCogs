@@ -63,12 +63,13 @@ class Blacklist(ABMixin):
 
         **Arguments**
             - `user` The user to edit the reason of.
+            - `reason` The new reason for blacklisting this user.
         """
         if user.bot:
             return await ctx.send("That user is a bot.")
         elif await self.bot.is_owner(user):
             return await ctx.send("That user is a bot owner.")
-        elif not await in_blacklist(self.bot, user.id, ctx.guild):
+        elif not await in_blacklist(self.bot, user.id):
             return await ctx.send("That user is not in the blacklist.")
         try:
             await edit_reason(self.bot, user, reason, False)
@@ -147,7 +148,7 @@ class Blacklist(ABMixin):
 
         **Arguments**
             - `member` The member to edit the reason of. This cannot be a bot.
-            - `reason` The reason for blacklisting the member.
+            - `reason` The new reason for blacklisting the member.
         """
         if await self.bot.is_owner(member):
             return await ctx.send("That member is a bot owner.")
