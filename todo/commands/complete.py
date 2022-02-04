@@ -39,6 +39,7 @@ class Complete(TodoMixin):
         if not todos:
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         completed = []
+        indexes.sort(reverse=True)
         for index in indexes:
             try:
                 completed.append((todos.pop(index))["task"])
