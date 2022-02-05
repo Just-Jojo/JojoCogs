@@ -12,7 +12,7 @@ from redbot import VersionInfo, version_info
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.core_commands import CoreLogic
-from redbot.core.utils.chat_formatting import humanize_list
+from redbot.core.utils.chat_formatting import humanize_list, humanize_number
 
 from .utils import *
 
@@ -35,6 +35,7 @@ _config_structure: Final[Dict[str, Any]] = {
     "title": "Invite {bot_name}",
     "support_server": None,
     "footer": None,
+    "stats": False,
     "extra_link": False,
     "support_server_emoji": {},
     "invite_emoji": {},
@@ -48,7 +49,7 @@ class AdvancedInvite(commands.Cog):
     """
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
-    __version__: Final[str] = "3.0.8"
+    __version__: Final[str] = "3.0.9"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -106,8 +107,12 @@ class AdvancedInvite(commands.Cog):
         )
         url = await self._invite_url()
         time = datetime.datetime.now(tz=datetime.timezone.utc)
+        stats = f"I'm on {humanize_number(len(ctx.bot.guilds))} servers serving {humanize_number(len(self.bot.users))} members!"
+        if settings.get("stats") == True:
+            footer = stats
+        else:
+            footer = settings.get("footer")
         timestamp = f"<t:{int(time.timestamp())}>"
-        footer = settings.get("footer")
         support = settings.get("support_server")
 
         support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
@@ -238,6 +243,17 @@ class AdvancedInvite(commands.Cog):
             return await ctx.send("The footer's length cannot be over 100 characters long.")
         await self.config.footer.set(footer)
         await ctx.send("The footer has been set.")
+        
+    @invite_settings.command(name="stats")
+    async def invite_stats(self, ctx: commands.Context, *, toggle: bool):
+        """Set wether to use stats or message for the invite footer
+        **Arguments**
+            - `toggle` Whether the invite footer use stats or set message.
+        """
+
+        toggled = "enabled" if toggle else "disabled"
+        await ctx.send(f"Stats are now {toggled} for the invite footer.")
+        await self.config.stats.set(toggle)
 
     @invite_settings.command(name="public")
     async def invite_send_in_channel(self, ctx: commands.Context, toggle: bool):
