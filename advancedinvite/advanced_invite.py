@@ -35,7 +35,6 @@ _config_structure: Final[Dict[str, Any]] = {
     "title": "Invite {bot_name}",
     "support_server": None,
     "footer": None,
-    "stats": False,
     "extra_link": False,
     "support_server_emoji": {},
     "invite_emoji": {},
@@ -107,11 +106,13 @@ class AdvancedInvite(commands.Cog):
         )
         url = await self._invite_url()
         time = datetime.datetime.now(tz=datetime.timezone.utc)
-        stats = f"I'm on {humanize_number(len(ctx.bot.guilds))} servers serving {humanize_number(len(self.bot.users))} members!"
-        if settings.get("stats") == True:
-            footer = stats
-        else:
-            footer = settings.get("footer")
+        footer = settings.get("footer").replace(
+            "{bot_name}", ctx.me.name
+        ).replace(
+            "{guild_count}", humanize_number(len(ctx.bot.guilds))
+        ).replace(
+            "{user_count}", humanize_number(len(self.bot.users))
+        )
         timestamp = f"<t:{int(time.timestamp())}>"
         support = settings.get("support_server")
 
@@ -231,7 +232,12 @@ class AdvancedInvite(commands.Cog):
     @invite_settings.command(name="footer")
     async def invite_footer(self, ctx: commands.Context, *, footer: NoneConverter):
         """Set the footer for the invite command
-
+        
+        **Variables**
+            - `{bot_name}` Displays [botname] in the footer
+            - `{guild_count}` Displays in how many guilds is the bot in
+            - `{user_count}` Displays how many users in total
+        
         **Arguments**
             - `footer` The footer for the invite command.
         """
@@ -243,17 +249,6 @@ class AdvancedInvite(commands.Cog):
             return await ctx.send("The footer's length cannot be over 100 characters long.")
         await self.config.footer.set(footer)
         await ctx.send("The footer has been set.")
-        
-    @invite_settings.command(name="stats")
-    async def invite_stats(self, ctx: commands.Context, *, toggle: bool):
-        """Set wether to use stats or message for the invite footer
-        **Arguments**
-            - `toggle` Whether the invite footer use stats or set message.
-        """
-
-        toggled = "enabled" if toggle else "disabled"
-        await ctx.send(f"Stats are now {toggled} for the invite footer.")
-        await self.config.stats.set(toggle)
 
     @invite_settings.command(name="public")
     async def invite_send_in_channel(self, ctx: commands.Context, toggle: bool):
