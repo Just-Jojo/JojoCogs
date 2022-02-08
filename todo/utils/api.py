@@ -410,9 +410,10 @@ class TodoApi:
             log.debug("Regex asycnio took too long.")
             return False, False
         except ValueError as e:
-            log.debug("Value error?", exc_info=e)
+            log.error("Value error in `_safe_regex`:", exc_info=e)
             return False, False
-        except Exception:
+        except Exception as e:
+            log.error("General exception in `_safe_regex`:", exc_info=e)
             return True, False  # Not gonna return this tbh
         else:
             return True, search
