@@ -13,7 +13,7 @@ import discord
 from discord.ext import tasks
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import humanize_list, pagify
+from redbot.core.utils.chat_formatting import humanize_list, humanize_number, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from .menus import Menu, Pages, PositiveInt
@@ -40,7 +40,7 @@ class CycleStatus(commands.Cog):
     __authors__: Final[List[str]] = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__: Final[List[str]] = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
-    __version__: Final[str] = "1.0.9"
+    __version__: Final[str] = "1.0.10"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -255,8 +255,8 @@ class CycleStatus(commands.Cog):
         return
 
     async def _status_add(self, status: str, use_help: bool) -> None:
-        status = status.replace(_bot_guild_var, str(len(self.bot.guilds))).replace(
-            _bot_member_var, str(len(self.bot.users))
+        status = status.replace(_bot_guild_var, humanize_number(len(self.bot.guilds))).replace(
+            _bot_member_var, humanize_number(len(self.bot.users))
         )
 
         prefix = (await self.bot.get_valid_prefixes())[0]

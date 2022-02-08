@@ -360,7 +360,7 @@ class TodoApi:
                 todo["pinned"] = False
                 fixer.append((num, todo))
                 continue
-            if ts := todo.get("timestamp") and not isinstance(ts, int):  # type:ignore
+            if (ts := todo.get("timestamp")) and not isinstance(ts, int):  # type:ignore
                 try:
                     ts = int(ts)
                 except ValueError:

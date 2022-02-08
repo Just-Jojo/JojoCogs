@@ -12,7 +12,7 @@ from redbot import VersionInfo, version_info
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.core_commands import CoreLogic
-from redbot.core.utils.chat_formatting import humanize_list
+from redbot.core.utils.chat_formatting import humanize_list, humanize_number
 
 from .utils import *
 
@@ -48,7 +48,7 @@ class AdvancedInvite(commands.Cog):
     """
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
-    __version__: Final[str] = "3.0.8"
+    __version__: Final[str] = "3.0.9"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -106,8 +106,14 @@ class AdvancedInvite(commands.Cog):
         )
         url = await self._invite_url()
         time = datetime.datetime.now(tz=datetime.timezone.utc)
+        footer = settings.get("footer").replace(
+            "{bot_name}", ctx.me.name
+        ).replace(
+            "{guild_count}", humanize_number(len(ctx.bot.guilds))
+        ).replace(
+            "{user_count}", humanize_number(len(self.bot.users))
+        )
         timestamp = f"<t:{int(time.timestamp())}>"
-        footer = settings.get("footer")
         support = settings.get("support_server")
 
         support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
@@ -226,7 +232,12 @@ class AdvancedInvite(commands.Cog):
     @invite_settings.command(name="footer")
     async def invite_footer(self, ctx: commands.Context, *, footer: NoneConverter):
         """Set the footer for the invite command
-
+        
+        **Variables**
+            - `{bot_name}` Displays [botname] in the footer
+            - `{guild_count}` Displays in how many guilds is the bot in
+            - `{user_count}` Displays how many users in total
+        
         **Arguments**
             - `footer` The footer for the invite command.
         """
