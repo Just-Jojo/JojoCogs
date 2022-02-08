@@ -232,12 +232,12 @@ class AdvancedInvite(commands.Cog):
     @invite_settings.command(name="footer")
     async def invite_footer(self, ctx: commands.Context, *, footer: NoneConverter):
         """Set the footer for the invite command
-        
+
         **Variables**
             - `{bot_name}` Displays [botname] in the footer
             - `{guild_count}` Displays in how many guilds is the bot in
             - `{user_count}` Displays how many users in total
-        
+
         **Arguments**
             - `footer` The footer for the invite command.
         """

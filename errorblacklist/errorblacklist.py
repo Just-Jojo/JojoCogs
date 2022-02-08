@@ -69,8 +69,11 @@ class ErrorBlacklist(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
-        for key, value in _config_structure.items():
-            getattr(self.config, f"register_{key}", lambda **x: x)(**value)
+        [
+            getattr(
+                self.config, f"register_{key}", lambda **z: z
+            )(**value) for key, value in _config_structure.items()
+        ]
         self._cache: dict = {}
         self.first_run: bool = True
 
@@ -233,12 +236,11 @@ class ErrorBlacklist(commands.Cog):
         **Arguments**
             - `user_or_command` The user, cog, or command to be removed from the whitelist
         """
+        user = "command"
         if is_user := isinstance(user_or_command, discord.User):
             user = "user"
         elif isinstance(user_or_command, commands.Cog):
             user = "cog"
-        else:
-            user = "command"
         val = getattr(self.config.whitelist, f"{user}s")
         to_add = getattr(user_or_command, "qualified_name", user_or_command.id)
         if to_add not in await val():
@@ -252,25 +254,18 @@ class ErrorBlacklist(commands.Cog):
     @error_blacklist_whitelist.command(name="list")
     async def whitelist_list(self, ctx: commands.Context):
         """List the whitelist showing both users, cogs and commands"""
-        coro = self.config.whitelist
-        coms = await coro.commands()
-        cogs = await coro.cogs()
-        users = await coro.users()
+        whitelist = await self.config.whitelist()
+        coms = whitelist["commands"]
+        cogs = whitelist["cogs"]
+        users = whitelist["users"]
         if not any([coms, cogs, users]):
             return await ctx.send("The whitelist is empty.")
         data: list = []
-        if coms:
-            coms.insert(0, "**Commands**")
-            data.extend(coms)
-        if cogs:
-            cogs.insert(0, "**Cogs**")
-            data.extend(cogs)
-        if users:
-            users.insert(0, "**Users**")
-            data.extend(users)
-        data = [str(x) for x in data]
-
-        data = list(pagify("\n".join(data), page_length=200))
+        for key, value in [["commands", coms], ["cogs", cogs], ["users", users]]:
+            if value:
+                value.insert(0, f"**{key.upper()}**")
+                data.extend(value)
+        data = list(pagify("\n".join(str(x) for x in data), page_length=200))
         await Menu(Page(data)).start(ctx)
 
     @errorblacklist.group(name="message")

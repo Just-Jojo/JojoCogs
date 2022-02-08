@@ -111,7 +111,8 @@ class CycleStatus(commands.Cog):
     async def status_add(self, ctx: commands.Context, *, status: str):
         """Add a status to the list
 
-        Put `{bot_guild_count}` or `{bot_member_count}` in your message to have the user count and guild count of your bot! You can also put `{bot_prefix}` in your message to have the bot's prefix be displayed (eg. `{bot_prefix}ping`)
+        Put `{bot_guild_count}` or `{bot_member_count}` in your message to have the user count and guild count of your bot!
+        You can also put `{bot_prefix}` in your message to have the bot's prefix be displayed (eg. `{bot_prefix}ping`)
 
         **Arguments**
             - `status` The status to add to the cycle.
