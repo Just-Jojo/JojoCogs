@@ -127,6 +127,7 @@ class ToDo(
             await self.config.user_from_id(uid).set(new_data)
 
     @commands.group(invoke_without_command=True)
+    @commands.bot_has_permissions(add_reactions=True)
     async def todo(self, ctx: commands.Context, index: PositiveInt(False)):  # type:ignore
         """Your todo list inside Discord
 
