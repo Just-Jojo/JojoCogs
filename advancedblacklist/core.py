@@ -125,4 +125,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         self, ctx: commands.Context, member_id: str
     ) -> Optional[Union[discord.Member, discord.User]]:
         mid = int(member_id)
-        return ctx.guild.get_member(mid) or self.bot.get_user(mid)
+        ret: Optional[discord.Member] = None
+        if ctx.guild:
+          ret = ctx.guild.get_member(mid)
+        return ret or self.bot.get_user(mid)
