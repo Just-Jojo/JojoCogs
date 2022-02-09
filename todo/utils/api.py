@@ -346,7 +346,9 @@ class TodoApi:
     async def _maybe_fix_todos(self, user_id: int):
         """Scan todos and fix the fucked ones"""
         data = await self.get_user_item(user_id, "todos")
-        if not isinstance(data, list):
+        if not data:
+            return
+        elif not isinstance(data, list):
             # Super fucked todos
             await self.set_user_item(user_id, "todos", [], fix=False)
             return
