@@ -1,6 +1,8 @@
+from typing import Final, Dict, Any
+
 __all__ = ["config_structure"]
 
-config_structure = {
+config_structure: Final[Dict[str, Any]] = {
     "todos": [],  # List[Dict[str, Any]] "task": str, "pinned": False
     "completed": [],  # List[str]
     "managers": [],  # List[int] Discord member id's
