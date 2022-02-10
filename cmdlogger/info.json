@@ -3,7 +3,7 @@
     "short": "Log command usage",
     "description": "Log when certain commands get used. This will always log to the console and can optionally log to a channel.",
     "end_user_data_statement": "This cog does not store end user data.",
-    "install_msg": "Thank you for installing Jojo's cmdlogger!\nIf you find any bugs with this cog, make an issue on my github <https://github.com/Just-Jojo/JojoCogs>\nIf you need additional support, join my support server <https://discord.gg/jG2GXy9wKt>",
+    "install_msg": "Thank you for installing Jojo's cmdlogger!\nIf you find any bugs with this cog, make an issue on my github <https://github.com/Just-Jojo/JojoCogs>",
     "author": [
         "Jojo#7791"
     ],
