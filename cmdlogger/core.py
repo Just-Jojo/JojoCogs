@@ -11,7 +11,7 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, inline, pagify
 
-from .converters import CommandConverter, NoneChannelConverter
+from .converters import CommandOrCogConverter, NoneChannelConverter
 from .menus import CmdMenu, CmdPages
 
 log = logging.getLogger("red.JojoCogs.cmd_logger")
@@ -38,12 +38,12 @@ class CmdLogger(commands.Cog):
     """Log used commands"""
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
-    __version__: Final[str] = "1.0.0"
+    __version__: Final[str] = "1.0.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
-        self.config.register_global(log_channel=None, commands=[])
+        self.config.register_global(log_channel=None, commands=[], cogs=[])
         if 544974305445019651 in self.bot.owner_ids:
             with suppress(RuntimeError):
                 self.bot.add_dev_env_value("cmdlog", lambda x: self)
@@ -100,40 +100,46 @@ class CmdLogger(commands.Cog):
         await self.config.log_channel.set(cid)
         await ctx.tick()
 
-    @cmd_logger.command(name="add")
-    async def cmd_add(self, ctx: commands.Context, command: CommandConverter):
-        """Add a command to the tracker.
+    @cmd_logger.command(name="add", usage="<command or cog>")
+    async def cmd_add(self, ctx: commands.Context, *, cmd_or_cog: CommandOrCogConverter):
+        """Add a command or cog to the tracker.
 
-        Whenever a user uses this command it will be logged
+        If it is a command whenever a user uses this command it will be logged.
+        If it is a cog whenever a user uses a command inside this cog it will be logged.
 
         **Arguments**
-            - `command` A command that is registered in the bot.
+            - `command or cog` A command or cog that is registered in the bot.
         """
-        cmd = command.qualified_name
-        async with self.config.commands() as cmds:
+        cmd = cmd_or_cog.qualified_name
+        is_cog = isinstance(cmd_or_cog, commands.Cog)
+        key = "cog" if is_cog else "command"
+        async with getattr(self.config, f"{key}s")() as cmds:
             if cmd in cmds:
                 return await ctx.send(
-                    f"I am already tracking the command `{cmd}`.\n"
-                    "If this command isn't being tracked, please make an issue on my github"
+                    f"I am already tracking the {key} `{cmd}`.\n"
+                    "If this {key} isn't being tracked, please make an issue on my github"
                 )
             cmds.append(cmd)
         await ctx.tick()
 
-    @cmd_logger.command(name="delete", aliases=["del", "remove"])
-    async def cmd_remove(self, ctx: commands.Context, command: CommandConverter):
-        """Remove a command from being tracked
+    @cmd_logger.command(name="delete", aliases=["del", "remove"], usage="<command or cog>")
+    async def cmd_remove(self, ctx: commands.Context, *, cmd_or_cog: CommandOrCogConverter):
+        """Remove a command or cog from being tracked
 
-        This command will no longer be tracked by the bot
+        If it is a command this command will no longer be tracked by the bot.
+        If it is a cog any commands in this cog will not be tracked by the bot (unless otherwise defined).
 
         **Arguments**
-            - `command` The command to remove from the tracker.
+            - `command or cog` The command or cog to remove from the tracker.
         """
-        cmd = command.qualified_name
-        async with self.config.commands() as cmds:
+        cmd = cmd_or_cog.qualified_name
+        is_cog = isinstance(cmd_or_cog, commands.Cog)
+        key = "cog" if is_cog else "command"
+        async with getattr(self.config, f"{key}s")() as cmds:
             if cmd not in cmds:
                 return await ctx.send(
-                    f"I am already not tracking the command `{cmd}`.\n"
-                    "If this command is being tracked, please make an issue on my github\n"
+                    f"I am already not tracking the {key} `{cmd}`.\n"
+                    "If this {key} is being tracked, please make an issue on my github\n"
                     "<https://github.com/Just-Jojo/JojoCogs>"
                 )
             cmds.remove(cmd)
@@ -141,14 +147,20 @@ class CmdLogger(commands.Cog):
 
     @cmd_logger.command(name="list")
     async def cmd_list(self, ctx: commands.Context):
-        """List the commands tracked by [botname]"""
+        """List the commands and cogs tracked by [botname]"""
         cmds = await self.config.commands()
-        if not cmds:
+        cogs = await self.config.cogs()
+        if not cmds and not cogs:
             return await ctx.send(
-                "I am not tracking any commands.\n"
+                "I am not tracking any commands or cogs.\n"
                 "If I am still tracking commands please make an issue on my github\n"
                 "<https://github.com/Just-Jojo/JojoCogs>"
             )
+        if cmds:
+            cmds.insert(0, "**Commands**")
+        if cogs:
+            cogs.insert(0, "**Cogs**")
+        cmds.extend(cogs)
         data = pagify("\n".join(cmds), page_length=200)
         await CmdMenu(CmdPages(data)).start(ctx)  # type:ignore
 
@@ -156,7 +168,10 @@ class CmdLogger(commands.Cog):
     async def on_command_completion(self, ctx: commands.Context):
         conf = await self.config.all()
         name = ctx.command.qualified_name
-        if ctx.command.qualified_name not in conf["commands"]:
+        if (
+            ctx.command.qualified_name not in conf["commands"]
+            and (ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"])
+        ):
             return  # Large if statements are fucking dumb
         guild_data = "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
         msg = f"Command '{ctx.command.qualified_name}' was used by {ctx.author} ({ctx.author.id}). {guild_data}"

@@ -3,15 +3,20 @@
 
 import discord
 from redbot.core import commands
+from typing import Union
 
-__all__ = ["CommandConverter", "NoneChannelConverter"]
+
+__all__ = ["CommandOrCogConverter", "NoneChannelConverter"]
 
 
-class CommandConverter(commands.Converter):
-    async def convert(self, ctx: commands.Context, arg: str) -> commands.Command:
+class CommandOrCogConverter(commands.Converter):
+    async def convert(self, ctx: commands.Context, arg: str) -> Union[commands.Command, commands.Cog]:
+        ret = ctx.bot.get_cog(arg)
+        if ret:
+            return ret
         ret = ctx.bot.get_command(arg)
         if ret is None:
-            raise commands.BadArgument(f"'{arg}' is not a command")
+            raise commands.BadArgument(f"'{arg}' is not a command or a cog")
         return ret
 
 
