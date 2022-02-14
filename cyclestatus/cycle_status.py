@@ -40,7 +40,7 @@ class CycleStatus(commands.Cog):
     __authors__: Final[List[str]] = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__: Final[List[str]] = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
-    __version__: Final[str] = "1.0.10"
+    __version__: Final[str] = "1.0.11"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -89,7 +89,16 @@ class CycleStatus(commands.Cog):
     async def forcenext(self, ctx: commands.Context):
         """Force the next status to display on the bot"""
         nl = await self.config.next_iter()
-        status = (statuses := await self.config.statuses())[nl]
+        statuses = await self.config.statuses()
+        if not statuses:
+            return await ctx.send("There are no statuses")
+        elif len(statuses) == 1:
+            return await ctx.send("There is only one status so can't really change it.")
+        try:
+            status = statuses[nl]
+        except IndexError:
+            status = statuses[0]
+            nl = 0
         await self.config.next_iter.set(nl + 1 if nl < len(statuses) else 0)
         await self._status_add(status, await self.config.use_help())
         await ctx.tick()

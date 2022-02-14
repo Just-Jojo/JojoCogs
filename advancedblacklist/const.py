@@ -6,6 +6,7 @@ _config_structure: Dict[str, Dict[str, Any]] = {
     "global": {
         "blacklist": {},
         "whitelist": {},
+        "schema_v1": 1,
     },
     "guild": {
         "blacklist": {},
@@ -14,4 +15,4 @@ _config_structure: Dict[str, Dict[str, Any]] = {
 }
 
 __authors__ = ["Jojo#7791"]
-__version__ = "2.0.2"
+__version__ = "2.0.3"

@@ -97,7 +97,7 @@ class SharedTodos(TodoMixin):
         managers = data["managers"]
 
         if not managers or ctx.author.id not in managers:
-            return await ctx.send("You are a manager of that user's list")
+            return await ctx.send("You are not a manager of that user's list")
         elif not todos:
             return await ctx.send(
                 self._no_todo_shared_message.format(user=user, prefix=ctx.clean_prefix)

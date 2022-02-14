@@ -6,6 +6,7 @@ from typing import Dict, Iterable, Optional, Union
 from discord import Guild, Member, Role, User
 from redbot.core import Config
 from redbot.core.bot import Red
+import logging
 
 from ...const import _config_structure  # type:ignore
 
@@ -21,11 +22,51 @@ __all__ = [
     "in_whitelist",
     "remove_from_blacklist",
     "remove_from_whitelist",
+    "startup",
 ]
 
+log = logging.getLogger("red.jojocogs.advancedblacklist.api")
 _config = Config.get_conf(None, 544974305445019651, True, "AdvancedBlacklist")
 [getattr(_config, f"register_{x}", lambda **z: z)(**z) for x, z in _config_structure.items()]
 UserOrRole = Union[Role, Member, User]
+
+async def startup(bot: Red):
+    await _schema_check()
+    for i in ("whitelist", "blacklist"):
+        async with getattr(_config, i)() as bl:
+            blacklist = await getattr(bot._whiteblacklist_cache, f"get_{i}")(None)
+            for uid in blacklist:
+                if str(uid) in bl.keys():
+                    continue
+                bl[str(uid)] = "No reason provided."
+            keys = list(bl.keys())
+            for key in keys:
+                if int(key) not in blacklist:
+                    bl.pop(key)
+    for guild in bot.guilds:
+        for i in ("whitelist", "blacklist"):
+            async with getattr(_config.guild(guild), i)() as bl:
+                blacklist = await getattr(bot._whiteblacklist_cache, f"get_{i}")(guild)
+                for uid in blacklist:
+                    if str(uid) in bl.keys():
+                        continue
+                    bl[str(uid)] = "No reason provided."
+                keys = list(bl.keys())
+                for key in keys:
+                    if int(key) not in blacklist:
+                        bl.pop(key)
+
+
+async def _schema_check():
+    data = await _config.all()
+    if data.get("schema_v1"):
+        return
+    log.debug("Schema no tbh")
+    guild_data = data.pop("localblacklist", None)
+    if guild_data:
+        for gid, gdata in guild_data.items():
+            await _config.guild_from_id(gid).set_raw("blacklist", value=gdata)
+    await _config.schema_v1.set(True)
 
 
 async def add_to_blacklist(
@@ -70,7 +111,7 @@ async def remove_from_blacklist(
 async def in_blacklist(bot: Red, id: int, guild: Optional[Guild] = None) -> bool:
     coro = _config if not guild else _config.guild(guild)
     data = await coro.blacklist()
-    return str(id) in data.keys()
+    return str(id) in data.keys() or id in await bot._whiteblacklist_cache.get_blacklist(guild)
 
 
 async def edit_reason(
@@ -90,7 +131,16 @@ async def edit_reason(
 
 async def get_blacklist(bot: Red, guild: Optional[Guild] = None) -> Dict[str, str]:
     coro = _config if not guild else _config.guild(guild)
-    return await coro.blacklist()
+    ret = await coro.blacklist()
+    if not ret:
+        # So, we don't have a blacklist in the config
+        # Let's check if the bot has a blacklist in the cache
+        blacklist = await bot._whiteblacklist_cache.get_blacklist(guild)
+        if not blacklist:
+            return {}
+        ret = {str(i): "No reason provided." for i in blacklist}
+        await coro.blacklist.set(ret)
+    return ret
 
 
 async def clear_blacklist(
@@ -144,13 +194,21 @@ async def remove_from_whitelist(
 
 async def get_whitelist(bot: Red, guild: Optional[Guild] = None) -> Dict[str, str]:
     coro = _config if not guild else _config.guild(guild)
-    return await coro.whitelist()
+    ret = await coro.whitelist()
+    if not ret:
+        # Like with the `get_blacklist` method let's check the bot's whitelist
+        whitelist = await bot._whiteblacklist_cache.get_whitelist(guild)
+        if not whitelist:
+            return {}
+        ret = {str(i): "No reason provided." for i in whitelist}
+        await coro.whitelist.set(ret)
+    return ret
 
 
 async def in_whitelist(bot: Red, id: int, guild: Optional[Guild] = None) -> bool:
     coro = _config if not guild else _config.guild(guild)
     data = await coro.whitelist()
-    return str(id) in data.keys()
+    return str(id) in data.keys() or id in await bot._whiteblacklist_cache.get_whitelist(guild)
 
 
 async def clear_whitelist(

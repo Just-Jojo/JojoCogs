@@ -201,8 +201,8 @@ class ErrorBlacklist(commands.Cog):
         """
         pass
 
-    @error_blacklist_whitelist.command(name="add", usage="<user_com_or_cog>")
-    async def whitelist_add(self, ctx: commands.Context, user_or_command: UserOrCommandCog):
+    @error_blacklist_whitelist.command(name="add")
+    async def whitelist_add(self, ctx: commands.Context, user_com_or_cog: UserOrCommandCog):
         """Add a user, cog, or command to the whitelist.
 
         If it's a user that user will be ignored by the error checker.
@@ -212,13 +212,13 @@ class ErrorBlacklist(commands.Cog):
         **Arguments**
             - `user_or_command` The user, cog, or command to whitelist.
         """
-        if is_user := isinstance(user_or_command, discord.User):
+        if is_user := isinstance(user_com_or_cog, discord.User):
             user = "user"
-        elif isinstance(user_or_command, commands.Command):
+        elif isinstance(user_com_or_cog, commands.Command):
             user = "command"
         else:
             user = "cog"
-        to_add = getattr(user_or_command, "qualified_name", user_or_command.id)
+        to_add = getattr(user_com_or_cog, "qualified_name", user_com_or_cog.id)
         val = getattr(self.config.whitelist, f"{user}s")
         if to_add in await val():
             return await ctx.send(f"That {user} is already in the whitelist.")
@@ -228,7 +228,7 @@ class ErrorBlacklist(commands.Cog):
             f.append(to_add)
 
     @error_blacklist_whitelist.command(name="remove", aliases=["del", "delete"])
-    async def whitelist_remove(self, ctx: commands.Context, user_or_command: UserOrCommandCog):
+    async def whitelist_remove(self, ctx: commands.Context, user_com_or_cog: UserOrCommandCog):
         """Remove a user, cog, or command from the whitelist.
 
         The object will then no longer be ignored by the error watcher
@@ -237,12 +237,12 @@ class ErrorBlacklist(commands.Cog):
             - `user_or_command` The user, cog, or command to be removed from the whitelist
         """
         user = "command"
-        if is_user := isinstance(user_or_command, discord.User):
+        if is_user := isinstance(user_com_or_cog, discord.User):
             user = "user"
-        elif isinstance(user_or_command, commands.Cog):
+        elif isinstance(user_com_or_cog, commands.Cog):
             user = "cog"
         val = getattr(self.config.whitelist, f"{user}s")
-        to_add = getattr(user_or_command, "qualified_name", user_or_command.id)
+        to_add = getattr(user_com_or_cog, "qualified_name", user_com_or_cog.id)
         if to_add not in await val():
             return await ctx.send(f"That {user} is not in the whitelist.")
         user = f"{user} id" if is_user else user

@@ -16,7 +16,7 @@ from .commands import Blacklist, Whitelist
 from .commands.utils import (add_to_blacklist, add_to_whitelist,
                              clear_blacklist, clear_whitelist, in_blacklist,
                              in_whitelist, remove_from_blacklist,
-                             remove_from_whitelist)
+                             remove_from_whitelist, startup)
 from .const import __authors__, __version__, _config_structure
 from .patch import destroy, init
 
@@ -35,7 +35,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
     def __init__(self, bot: Red):
         self.bot = bot
         self._commands: Set[Optional[commands.Command]] = set()
-        # Fuckery because I'm lazy
+        self._task = self.bot.loop.create_task(startup(self.bot))
         init(self.bot)
         with suppress(RuntimeError):
             self.bot.add_dev_env_value("advbl", lambda x: self)
@@ -45,6 +45,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
     def cog_unload(self):
         for cmd in self._commands:
             self.bot.add_command(cmd)
+        self._task.cancel()
         destroy()
 
     @classmethod
@@ -127,5 +128,5 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         mid = int(member_id)
         ret: Optional[discord.Member] = None
         if ctx.guild:
-          ret = ctx.guild.get_member(mid)
+            ret = ctx.guild.get_member(mid)
         return ret or self.bot.get_user(mid)
