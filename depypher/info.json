@@ -1,7 +1,7 @@
 {
     "name": "depypher",
-    "short": "Decipher and encipher text using encriptions!",
-    "description": "Encript and decript text using ciphers like Caesar and Vigenere!",
+    "short": "Decipher and encipher text using enciphers!",
+    "description": "Decipher and encipher text using ciphers like Caesar and Vigenere!",
     "end_user_data_statement": "This cog does not store user data",
     "install_msg": "Thank you for installing Jojos' depypher cog! LEZI JYR!",
     "author": [
