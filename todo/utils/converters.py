@@ -29,13 +29,13 @@ else:
             return ret
 
 
-class NonBotMember(commands.Converter):
+class NonBotMember(commands.MemberConverter):
     def __init__(self, strict: bool = True):
         self.strict = strict
 
     async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
         try:
-            member = await commands.MemberConverter().convert(ctx, arg)
+            member = await super().convert(ctx, arg)
         except commands.BadArgument as e:
             if self.strict:
                 raise

@@ -21,7 +21,14 @@ class Importer(TodoMixin):
 
     @todo.command(name="import")
     async def todo_import(self, ctx: commands.Context, confirm: bool = False):
-        """Import your todos from epic guy's todo cog"""
+        """Import your todos from epic guy's todo cog.
+        
+        This will only import todos from this bot's config.
+        To import todos from another bot, check out `[p]todo multiadd`
+
+        **Arguments**
+            - `confirm` Skips the confirmation check
+        """
 
         if not confirm:
             await ctx.send("Would you like to import your todos? (y/n)")

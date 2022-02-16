@@ -76,7 +76,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if not await in_blacklist(self.bot, u, guild)}
         if not users:
             return
-        log.debug(f"Adding these users to the blacklist config. {users = }")
+        log.debug(f"Adding these users to the blacklist config. {users = }. {guild = }")
         await add_to_blacklist(self.bot, users, "No reason provided.", guild=guild, override=True)
 
     @commands.Cog.listener()
@@ -84,12 +84,12 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if await in_blacklist(self.bot, u, guild)}
         if not users:
             return
-        log.debug(f"Removing these users from the blacklist config. {users = }")
+        log.debug(f"Removing these users from the blacklist config. {users = }. {guild = }")
         await remove_from_blacklist(self.bot, users, guild=guild, override=True)
 
     @commands.Cog.listener()
     async def on_blacklist_clear(self, guild: discord.Guild):
-        log.debug("Clearing blacklist config.")
+        log.debug(f"Clearing blacklist config. {guild = }")
         await clear_blacklist(self.bot, guild, True)
 
     @commands.Cog.listener()
@@ -97,7 +97,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if not await in_whitelist(self.bot, u, guild)}
         if not users:
             return
-        log.debug(f"Adding these users to the whitelist config. {users = }")
+        log.debug(f"Adding these users to the whitelist config. {users = }. {guild = }")
         await add_to_whitelist(self.bot, users, "No reason provided.", guild=guild, override=True)
 
     @commands.Cog.listener()
@@ -105,12 +105,12 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if await in_whitelist(self.bot, u, guild)}
         if not users:
             return
-        log.debug(f"Removing these users from the whitelist config. {users = }")
+        log.debug(f"Removing these users from the whitelist config. {users = }. {guild = }")
         await remove_from_whitelist(self.bot, users, guild=guild, override=True)
 
     @commands.Cog.listener()
     async def on_whitelist_clear(self, guild: discord.Guild):
-        log.debug("Clearing the whitelist config.")
+        log.debug(f"Clearing the whitelist config. {guild = }")
         await clear_whitelist(self.bot, guild)
 
     @commands.Cog.listener()

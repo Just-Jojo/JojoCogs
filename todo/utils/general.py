@@ -3,7 +3,7 @@
 
 # Some general utilities
 
-from datetime import datetime
+import datetime
 from enum import Enum
 from typing import Union
 
@@ -21,16 +21,17 @@ class TimestampFormats(Enum):
 
 
 def timestamp_format(
-    timestamp: Union[datetime, int] = None, *, ts_format: TimestampFormats = None
+    timestamp: Union[datetime.datetime, int] = None, *, ts_format: TimestampFormats = None
 ) -> str:
     if timestamp is not None and not (
-        isinstance(timestamp, int) or isinstance(timestamp, datetime)
+        isinstance(timestamp, int) or isinstance(timestamp, datetime.datetime)
     ):
         raise TypeError(f"Expected an instance of int or datetime not {timestamp.__class__!r}")
-    if timestamp is None:
-        timestamp = datetime.utcnow()
-    if isinstance(timestamp, datetime):
+    elif timestamp is None:
+        timestamp = datetime.datetime.now(tz=datetime.timezone.utc).timestamp
+    elif isinstance(timestamp, datetime.datetime):
         timestamp = int(timestamp.timestamp())
+
     if ts_format is None or ts_format == TimestampFormats.DEFAULT:
         return f"<t:{timestamp}>"
     return f"<t:{timestamp}:{ts_format.value}>"
