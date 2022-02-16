@@ -7,13 +7,13 @@ from redbot.core import commands
 __all__ = ["NonBotMember", "PositiveInt"]
 
 
-class NonBotMember(commands.Converter):
+class NonBotMember(commands.MemberConverter):
     def __init__(self, strict: bool = True):
         self.strict = strict
 
     async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
         try:
-            user = await commands.MemberConverter().convert(ctx, arg)
+            user = await super().convert(ctx, arg)
         except commands.BadArgument:
             if self.strict:
                 raise

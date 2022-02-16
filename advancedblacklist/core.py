@@ -37,10 +37,9 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         self._commands: Set[Optional[commands.Command]] = set()
         self._task = self.bot.loop.create_task(startup(self.bot))
         init(self.bot)
-        with suppress(RuntimeError):
-            self.bot.add_dev_env_value("advbl", lambda x: self)
-        with suppress(RuntimeError):
-            self.bot.add_dev_env_value("abapi", api_tool)
+        for k, v in {"advbl": (lambda x: self), "abapi": api_tool}.items():
+            with suppress(RuntimeError):
+                self.bot.add_dev_env_value(k, v)
 
     def cog_unload(self):
         for cmd in self._commands:
