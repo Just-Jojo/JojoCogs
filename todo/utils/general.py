@@ -28,7 +28,7 @@ def timestamp_format(
     ):
         raise TypeError(f"Expected an instance of int or datetime not {timestamp.__class__!r}")
     elif timestamp is None:
-        timestamp = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
+        timestamp = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp())
     elif isinstance(timestamp, datetime.datetime):
         timestamp = int(timestamp.timestamp())
 
