@@ -361,7 +361,7 @@ class AdvancedInvite(commands.Cog):
             if key.lower() == "url":
                 key = "Embed Image Url"
             _data[key] = value
-        msg = "**Invite settings**\n\n" "\n".join(
+        msg = "**Invite settings**\n\n" + "\n".join(
             f"**{key}:** {value}" for key, value in _data.items()
         )
         kwargs = {"content": msg}
