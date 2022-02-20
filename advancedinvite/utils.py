@@ -4,7 +4,7 @@
 import logging
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, TYPE_CHECKING
 
 import discord
 from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
@@ -13,33 +13,15 @@ from redbot.core import commands
 log = logging.getLogger("red.jojocogs.advancedinvite.utils")
 
 __all__ = [
-    "create_doc",
     "TimestampFormats",
     "timestamp_format",
     "NoneConverter",
     "InviteNoneConverter",
-    "send_button",
-    "Button",
-    "Component",
     "Emoji",
     "EmojiConverter",
 ]
 NoneType = type(None)
 
-
-def create_doc(default: str = None, *, override: bool = False):
-    """Create a docstring if you don't wanna"""
-
-    def inner(func):
-        doc = default or "No Documentation"
-        if not func.__doc__ or override:
-            func.__doc__ = doc
-        return func
-
-    return inner
-
-
-@create_doc()
 class TimestampFormats(Enum):
     DEFAULT = "f"
     LONG_DATE_TIME = "F"
@@ -50,7 +32,6 @@ class TimestampFormats(Enum):
     RELATIVE_TIME = "R"
 
 
-@create_doc()
 def timestamp_format(dt: datetime = None, *, dt_format: TimestampFormats = None) -> str:
     if not dt:
         dt = datetime.now()
@@ -75,76 +56,18 @@ class NoneConverter(commands.Converter):
         return arg
 
 
-class InviteNoneConverter(NoneConverter):
-    def __init__(self):
-        self.strict = False
+if TYPE_CHECKING:
+    InviteNoneConverter = Union[discord.Invite, None]
+else:
+    class InviteNoneConverter(NoneConverter):
+        def __init__(self):
+            self.strict = False
 
-    async def convert(self, ctx: commands.Context, arg: str) -> Union[NoneType, discord.Invite]:
-        ret = await super().convert(ctx, arg)
-        if ret is None:
-            return ret
-        return await commands.InviteConverter().convert(ctx, ret)
-
-
-class Route(discord.http.Route):
-    BASE = "https://discord.com/api/v8"
-
-
-async def send_button(
-    ctx: commands.Context, components: List["Component"], content: str = None, **kwargs
-) -> discord.Message:
-    """Send with a button!"""
-    payload: Dict[str, Any] = {}
-    state = ctx._state
-    if content:
-        payload["content"] = str(content)
-    emb, embs = kwargs.get("embed"), kwargs.get("embeds")
-    if emb and embs:
-        raise TypeError("You cannot specify both 'embed' and 'embeds'")
-    if emb:
-        payload["embeds"] = [emb.to_dict()]
-    if embs:
-        payload["embeds"] = [e.to_dict() for e in embs]
-    payload["components"] = [c.to_dict() for c in components]
-    if al := kwargs.get("allowed_mentions"):
-        if state.allowed_mentions is not None:
-            payload["allowed_mentions"] = state.allowed_mentions.merge(al).to_dict()
-        else:
-            payload["allowed_mentions"] = al.to_dict()
-    else:
-        payload["allowed_mentions"] = state.allowed_mentions and state.allowed_mentions.to_dict()
-    channel = kwargs.get("channel", ctx.channel)
-    r = Route("POST", "/channels/{channel_id}/messages", channel_id=channel.id)
-    data = await ctx.bot.http.request(r, json=payload)
-    return discord.Message(state=state, channel=channel, data=data)
-
-
-class Component:
-    """Small container for components or something"""
-
-    def __init__(self, buttons: List["Button"]):
-        self.buttons = buttons
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {"type": 1, "components": [b.to_dict() for b in self.buttons]}
-
-
-class Button:
-    """Small button container for stuff or something"""
-
-    __slots__ = ("label", "style", "type", "url", "emoji")
-
-    def __init__(self, label: str, url: str, emoji: Union["Emoji", None]):
-        self.label = label
-        self.style = 5
-        self.type = 2
-        self.url = url
-        self.emoji = emoji
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            x: getattr((y := getattr(self, x)), "to_dict", lambda: y)() for x in self.__slots__
-        }
+        async def convert(self, ctx: commands.Context, arg: str) -> Union[NoneType, discord.Invite]:
+            ret = await super().convert(ctx, arg)
+            if ret is None:
+                return ret
+            return await commands.InviteConverter().convert(ctx, ret)
 
 
 class Emoji:
@@ -156,7 +79,6 @@ class Emoji:
 
     @classmethod
     def from_data(cls, data: Union[str, Dict[str, Any]]):
-        log.debug(data)
         if not data:
             return None
         if isinstance(data, str):

@@ -14,7 +14,14 @@ from redbot.core.bot import Red
 from redbot.core.core_commands import CoreLogic
 from redbot.core.utils.chat_formatting import humanize_list, humanize_number
 
-from .utils import *
+from .utils import (
+    TimestampFormats,
+    timestamp_format,
+    Emoji,
+    EmojiConverter,
+    NoneConverter,
+    InviteNoneConverter,
+)
 
 log = logging.getLogger("red.JojoCogs.advanced_invite")
 
@@ -58,7 +65,7 @@ class AdvancedInvite(commands.Cog):
         self._supported_images: Tuple[str, ...] = ("jpg", "jpeg", "png", "gif")
 
     def cog_unload(self) -> None:
-        self.bot.remove_command("invite"), self.bot.add_command(
+        self.bot.remove_command("invite"), self.bot.add_command( # type:ignore
             self._invite_command
         ) if self._invite_command else None
 
@@ -106,13 +113,15 @@ class AdvancedInvite(commands.Cog):
         )
         url = await self._invite_url()
         time = datetime.datetime.now(tz=datetime.timezone.utc)
-        footer = settings.get("footer").replace(
-            "{bot_name}", ctx.me.name
-        ).replace(
-            "{guild_count}", humanize_number(len(ctx.bot.guilds))
-        ).replace(
-            "{user_count}", humanize_number(len(self.bot.users))
-        )
+        footer = settings.get("footer")
+        if footer:
+            footer.replace(
+                "{bot_name}", ctx.me.name
+            ).replace(
+                "{guild_count}", humanize_number(len(ctx.bot.guilds))
+            ).replace(
+                "{user_count}", humanize_number(len(self.bot.users))
+            )
         timestamp = f"<t:{int(time.timestamp())}>"
         support = settings.get("support_server")
 
@@ -140,18 +149,23 @@ class AdvancedInvite(commands.Cog):
             if footer:
                 embed.set_footer(text=footer)
             kwargs = {"embed": embed}
-        kwargs["channel"] = channel
-        kwargs["url"] = url
-        buttons = [Button(f"Invite {ctx.me.name}!", url, invite_emoji)]
+        view = discord.ui.View()
+        view.add_item(discord.ui.Button(
+            label=f"Invite {ctx.me.name}",
+            emoji=invite_emoji,
+            style=discord.ButtonStyle.url,
+            url=url,
+        ))
         if support is not None:
-            buttons.append(
-                Button("Join the support server!", url=support, emoji=support_server_emoji)
+            view.add_item(
+                discord.ui.Button(
+                    label="Join the Support Server",
+                    emoji=support_server_emoji,
+                    style=discord.ButtonStyle.url,
+                    url=support,
+                )
             )
-        kwargs["components"] = [Component(buttons)]
-        try:
-            await send_button(ctx, **kwargs)
-        except discord.HTTPException:
-            await ctx.send("I could not dm you!")
+        await channel.send(**kwargs, view=view)
 
     @invite.group(name="settings", aliases=("set",))
     @commands.is_owner()
@@ -400,4 +414,4 @@ class AdvancedInvite(commands.Cog):
         scopes = ("bot", "applications.commands") if commands_scope else None
         perms_int = data["invite_perm"]
         permissions = discord.Permissions(perms_int)
-        return discord.utils.oauth_url(app_info.id, permissions, scopes=scopes)
+        return discord.utils.oauth_url(app_info.id, permissions=permissions, scopes=scopes)
