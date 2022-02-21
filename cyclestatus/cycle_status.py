@@ -5,7 +5,7 @@ import asyncio
 import logging
 import random
 import re
-from datetime import datetime
+import datetime
 from itertools import cycle
 from typing import Any, Final, List, Optional
 
@@ -16,7 +16,7 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, humanize_number, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
-from .menus import Menu, Pages, PositiveInt
+from .utils import Menu, Pages, PositiveInt
 
 log = logging.getLogger("red.JojoCogs.cyclestatus")
 _config_structure = {
@@ -133,7 +133,7 @@ class CycleStatus(commands.Cog):
         await ctx.tick()
 
     @status.command(name="remove", aliases=["del", "rm", "delete"])
-    async def status_remove(self, ctx: commands.Context, num: PositiveInt = None):  # type:ignore
+    async def status_remove(self, ctx: commands.Context, num: PositiveInt = None):
         """Remove a status from the list
 
         **Arguments**
@@ -141,7 +141,7 @@ class CycleStatus(commands.Cog):
         """
         if num is None:
             return await ctx.invoke(self.status_list)
-        num -= 1  # type:ignore
+        num -= 1
         async with self.config.statuses() as sts:
             if num >= len(sts):
                 return await ctx.send("You don't have that many statuses, silly")
@@ -219,7 +219,9 @@ class CycleStatus(commands.Cog):
         }
         if await ctx.embed_requested():
             embed = discord.Embed(
-                title=title, colour=await ctx.embed_colour(), timestamp=datetime.utcnow()
+                title=title, colour=await ctx.embed_colour(), timestamp=datetime.datetime.now(
+                    datetime.timezone.utc,
+                ),
             )
             [embed.add_field(name=k, value=v, inline=False) for k, v in settings.items()]
             kwargs = {"embed": embed}
@@ -258,7 +260,7 @@ class CycleStatus(commands.Cog):
             list(pagify("\n".join(await self._num_lists(statuses)), page_length=400)),
             title="Statuses",
         )
-        await Menu(source=source).start(ctx, channel=ctx.channel)
+        await Menu(source, ctx).show_page(0)
 
     async def red_delete_data_for_user(self, *, requester: str, user_id: int) -> None:
         """Nothing to delete"""
