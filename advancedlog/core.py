@@ -190,4 +190,4 @@ class AdvancedLog(commands.Cog):
             )
         msg = "# Moderator\tNote\n"
         msg += "\n".join(f"{num}. {mod}\t\t{note}" for num, (mod, note) in enumerate(act, 1))
-        await Menu(Page(list(pagify(msg)), f"{user.name}'s notes"), ctx).show_page(0)
+        await Menu(Page(list(pagify(msg, page_length=300)), f"{user.name}'s notes"), ctx).show_page(0)
