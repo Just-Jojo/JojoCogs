@@ -161,8 +161,8 @@ class CmdLogger(commands.Cog):
         if cogs:
             cogs.insert(0, "**Cogs**")
         cmds.extend(cogs)
-        data = pagify("\n".join(cmds), page_length=200)
-        await CmdMenu(CmdPages(data)).start(ctx)  # type:ignore
+        data = list(pagify("\n".join(cmds), page_length=200))
+        await CmdMenu(CmdPages(data), ctx).show_page(0)
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):
