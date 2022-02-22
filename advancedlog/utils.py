@@ -10,6 +10,7 @@ __all__ = ["NonBotMember", "PositiveInt"]
 class NonBotMember(commands.MemberConverter):
     def __init__(self, strict: bool = True):
         self.strict = strict
+        super().__init__()
 
     async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
         try:
