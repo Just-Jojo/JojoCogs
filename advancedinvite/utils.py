@@ -4,7 +4,7 @@
 import logging
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, TYPE_CHECKING
 
 import discord
 from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
@@ -75,15 +75,19 @@ class NoneConverter(commands.Converter):
         return arg
 
 
-class InviteNoneConverter(NoneConverter):
-    def __init__(self):
-        self.strict = False
+if TYPE_CHECKING:
+    InviteNoneConverter = Union[NoneType, discord.Invite]
+else:
 
-    async def convert(self, ctx: commands.Context, arg: str) -> Union[NoneType, discord.Invite]:
-        ret = await super().convert(ctx, arg)
-        if ret is None:
-            return ret
-        return await commands.InviteConverter().convert(ctx, ret)
+    class InviteNoneConverter(NoneConverter):
+        def __init__(self):
+            self.strict = False
+
+        async def convert(self, ctx: commands.Context, arg: str) -> Union[NoneType, discord.Invite]:
+            ret = await super().convert(ctx, arg)
+            if ret is None:
+                return ret
+            return await commands.InviteConverter().convert(ctx, ret)
 
 
 class Route(discord.http.Route):

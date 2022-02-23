@@ -58,13 +58,13 @@ class AdvancedInvite(commands.Cog):
         self._supported_images: Tuple[str, ...] = ("jpg", "jpeg", "png", "gif")
 
     def cog_unload(self) -> None:
-        self.bot.remove_command("invite"), self.bot.add_command(
+        self.bot.remove_command("invite"), self.bot.add_command( # type:ignore
             self._invite_command
         ) if self._invite_command else None
 
     @staticmethod
-    def _humanize_list(data: list) -> list:
-        return humanize_list([f"`{i}`" for i in data])  # type:ignore
+    def _humanize_list(data: List[str]) -> str:
+        return humanize_list([f"`{i}`" for i in data])
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         plural = "" if len(self.__authors__) == 1 else "s"
