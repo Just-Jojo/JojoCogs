@@ -28,7 +28,7 @@ __all__ = [
 log = logging.getLogger("red.jojocogs.advancedblacklist.api")
 _config = Config.get_conf(None, 544974305445019651, True, "AdvancedBlacklist")
 [getattr(_config, f"register_{x}", lambda **z: z)(**z) for x, z in _config_structure.items()]
-UserOrRole = Union[Role, Member, User]
+UserOrRole = Union[int, Role, Member, User]
 
 
 async def startup(bot: Red):
