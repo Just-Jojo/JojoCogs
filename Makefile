@@ -19,8 +19,8 @@ endef
 export HELP_BODY
 
 reformat:
-	$(PYTHON) -m black -l 99 $(ROOT_DIR)
-	$(PYTHON) -m isort -l 99 $(ROOT_DIR)
+	$(VENV_PYTHON) -m black -l 99 $(ROOT_DIR)
+	$(VENV_PYTHON) -m isort -l 99 $(ROOT_DIR)
 
 newenv:
 	$(PYTHON) -m venv --clear .venv

@@ -1,7 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from typing import List, Union
+from typing import TYPE_CHECKING, List, Union
 
 import discord
 from redbot.core import commands
@@ -9,7 +9,7 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box
 from redbot.vendored.discord.ext import menus  # type:ignore
 
-__all__ = ["Pages"]
+__all__ = ["Pages", "Menu", "PositiveInt"]
 
 
 class Pages(menus.ListPageSource):
@@ -120,12 +120,16 @@ class Menu(menus.MenuPages, inherit_buttons=False):  # type:ignore
             await self.message.delete()
 
 
-class PositiveInt(commands.Converter):
-    async def convert(self, ctx: commands.Context, arg: str) -> int:
-        try:
-            ret = int(arg)
-        except ValueError:
-            raise commands.BadArgument("That was not an integer")
-        if ret <= 0:
-            raise commands.BadArgument(f"'{arg}' is not a positive integer")
-        return ret
+if TYPE_CHECKING:
+    PositiveInt = int
+else:
+
+    class PositiveInt(commands.Converter):
+        async def convert(self, ctx: commands.Context, arg: str) -> int:
+            try:
+                ret = int(arg)
+            except ValueError:
+                raise commands.BadArgument("That was not an integer")
+            if ret <= 0:
+                raise commands.BadArgument(f"'{arg}' is not a positive integer")
+            return ret

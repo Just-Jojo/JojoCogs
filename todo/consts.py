@@ -1,4 +1,4 @@
-from typing import Final, Dict, Any
+from typing import Any, Dict, Final
 
 __all__ = ["config_structure"]
 

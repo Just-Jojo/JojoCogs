@@ -94,7 +94,7 @@ class CmdLogger(commands.Cog):
         cid = getattr(channel, "id", channel)
         if cid is None and conf is None:
             return await ctx.send("The log channel is already None")
-        elif cid is not None and cid == conf:
+        elif channel is not None and cid == conf:
             return await ctx.send(f"The log channel is already {channel.name}")
         self.log_channel = channel
         await self.config.log_channel.set(cid)
@@ -168,9 +168,8 @@ class CmdLogger(commands.Cog):
     async def on_command_completion(self, ctx: commands.Context):
         conf = await self.config.all()
         name = ctx.command.qualified_name
-        if (
-            ctx.command.qualified_name not in conf["commands"]
-            and (ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"])
+        if ctx.command.qualified_name not in conf["commands"] and (
+            ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"]
         ):
             return  # Large if statements are fucking dumb
         guild_data = "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
@@ -189,7 +188,7 @@ class CmdLogger(commands.Cog):
 
             try:
                 self.log_channel = await get_or_fetch_channel(self.bot, channel)
-            except Exception as e:
+            except discord.HTTPException as e:
                 # I'd rather just catch exception rather than any discord related exception
                 # as it's possible I could miss some
                 log.warning("I could not find the log channel")

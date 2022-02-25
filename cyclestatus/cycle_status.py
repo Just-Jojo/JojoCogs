@@ -133,7 +133,7 @@ class CycleStatus(commands.Cog):
         await ctx.tick()
 
     @status.command(name="remove", aliases=["del", "rm", "delete"])
-    async def status_remove(self, ctx: commands.Context, num: PositiveInt = None):  # type:ignore
+    async def status_remove(self, ctx: commands.Context, num: PositiveInt = None):
         """Remove a status from the list
 
         **Arguments**
@@ -141,7 +141,7 @@ class CycleStatus(commands.Cog):
         """
         if num is None:
             return await ctx.invoke(self.status_list)
-        num -= 1  # type:ignore
+        num -= 1
         async with self.config.statuses() as sts:
             if num >= len(sts):
                 return await ctx.send("You don't have that many statuses, silly")

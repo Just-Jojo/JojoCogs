@@ -4,7 +4,7 @@
 import logging
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 import discord
 from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
@@ -83,7 +83,9 @@ else:
         def __init__(self):
             self.strict = False
 
-        async def convert(self, ctx: commands.Context, arg: str) -> Union[NoneType, discord.Invite]:
+        async def convert(
+            self, ctx: commands.Context, arg: str
+        ) -> Union[NoneType, discord.Invite]:
             ret = await super().convert(ctx, arg)
             if ret is None:
                 return ret
@@ -177,11 +179,15 @@ class Emoji:
         return f"<{an}:{self.name}:{self.id}>"
 
 
-class EmojiConverter(commands.PartialEmojiConverter):
-    async def convert(self, ctx: commands.Context, arg: str) -> Union[Emoji, NoneType]:
-        if arg.lower() == "none":
-            return None
-        arg = arg.strip()
-        data = arg if arg in UNICODE_EMOJI_ENGLISH.keys() else await super().convert(ctx, arg)
-        data = getattr(data, "to_dict", lambda: data)()
-        return Emoji.from_data(data)
+if TYPE_CHECKING:
+    EmojiConverter = Union[Emoji, NoneType]
+else:
+
+    class EmojiConverter(commands.PartialEmojiConverter):
+        async def convert(self, ctx: commands.Context, arg: str) -> Union[Emoji, NoneType]:
+            if arg.lower() == "none":
+                return None
+            arg = arg.strip()
+            data = arg if arg in UNICODE_EMOJI_ENGLISH.keys() else await super().convert(ctx, arg)
+            data = getattr(data, "to_dict", lambda: data)()
+            return Emoji.from_data(data)

@@ -29,18 +29,22 @@ else:
             return ret
 
 
-class NonBotMember(commands.MemberConverter):
-    def __init__(self, strict: bool = True):
-        self.strict = strict
-        super().__init__()
+if TYPE_CHECKING:
+    NonBotMember = discord.Member
+else:
 
-    async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
-        try:
-            member = await super().convert(ctx, arg)
-        except commands.BadArgument as e:
-            if self.strict:
-                raise
-            raise commands.UserInputError
-        if member.bot:
-            raise commands.BadArgument("That member is a bot")
-        return member
+    class NonBotMember(commands.MemberConverter):
+        def __init__(self, strict: bool = True):
+            self.strict = strict
+            super().__init__()
+
+        async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
+            try:
+                member = await super().convert(ctx, arg)
+            except commands.BadArgument as e:
+                if self.strict:
+                    raise
+                raise commands.UserInputError
+            if member.bot:
+                raise commands.BadArgument("That member is a bot")
+            return member

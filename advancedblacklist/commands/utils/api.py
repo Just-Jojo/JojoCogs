@@ -1,12 +1,12 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import logging
 from typing import Dict, Iterable, Optional, Union
 
 from discord import Guild, Member, Role, User
 from redbot.core import Config
 from redbot.core.bot import Red
-import logging
 
 from ...const import _config_structure  # type:ignore
 
@@ -29,6 +29,7 @@ log = logging.getLogger("red.jojocogs.advancedblacklist.api")
 _config = Config.get_conf(None, 544974305445019651, True, "AdvancedBlacklist")
 [getattr(_config, f"register_{x}", lambda **z: z)(**z) for x, z in _config_structure.items()]
 UserOrRole = Union[Role, Member, User]
+
 
 async def startup(bot: Red):
     await _schema_check()

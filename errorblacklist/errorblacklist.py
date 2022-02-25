@@ -70,9 +70,8 @@ class ErrorBlacklist(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
         [
-            getattr(
-                self.config, f"register_{key}", lambda **z: z
-            )(**value) for key, value in _config_structure.items()
+            getattr(self.config, f"register_{key}", lambda **z: z)(**value)
+            for key, value in _config_structure.items()
         ]
         self._cache: dict = {}
         self.first_run: bool = True

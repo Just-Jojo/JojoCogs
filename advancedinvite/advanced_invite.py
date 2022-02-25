@@ -58,7 +58,7 @@ class AdvancedInvite(commands.Cog):
         self._supported_images: Tuple[str, ...] = ("jpg", "jpeg", "png", "gif")
 
     def cog_unload(self) -> None:
-        self.bot.remove_command("invite"), self.bot.add_command( # type:ignore
+        self.bot.remove_command("invite"), self.bot.add_command(  # type:ignore
             self._invite_command
         ) if self._invite_command else None
 
@@ -108,13 +108,9 @@ class AdvancedInvite(commands.Cog):
         time = datetime.datetime.now(tz=datetime.timezone.utc)
         footer = settings.get("footer")
         if footer:
-            footer.replace(
-                "{bot_name}", ctx.me.name
-            ).replace(
+            footer.replace("{bot_name}", ctx.me.name).replace(
                 "{guild_count}", humanize_number(len(ctx.bot.guilds))
-            ).replace(
-                "{user_count}", humanize_number(len(self.bot.users))
-            )
+            ).replace("{user_count}", humanize_number(len(self.bot.users)))
         timestamp = f"<t:{int(time.timestamp())}>"
         support = settings.get("support_server")
 
