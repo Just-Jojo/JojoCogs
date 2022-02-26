@@ -222,22 +222,23 @@ class ToDo(
             - `todos` The todos you want to add.
             This is an optional argument and you can upload, or reply to a message with, a file instead
         """
+        data: bytes
         if ctx.message.reference and not any([todos is not None, ctx.message.attachments]):
             # Message references get checked first
             msg = ctx.message.reference.resolved
             if not msg.attachments:
                 return await ctx.send("That message does not have files!")
-            maybe_file = msg.attachments[0]
+            maybe_file: discord.Attachment = msg.attachments[0]
             if not maybe_file.filename.endswith(".txt"):
                 return await ctx.send("File format must be `.txt`")
-            todos = await maybe_file.read()
-            todos = todos.decode()  # type:ignore
+            data = await maybe_file.read()
+            todos = data.decode()
         elif ctx.message.attachments:
             maybe_file = ctx.message.attachments[0]
             if not maybe_file.filename.endswith(".txt"):
                 return await ctx.send("File format must be `.txt`")
-            todos = await maybe_file.read()
-            todos = todos.decode()  # type:ignore
+            data = await maybe_file.read()
+            todos = data.decode()
         elif todos is None:  # No files or anything
             raise commands.UserInputError
         todos = [
