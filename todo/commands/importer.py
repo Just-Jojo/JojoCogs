@@ -5,6 +5,7 @@ import asyncio
 from typing import Final
 
 from redbot.core import Config, commands
+from redbot.core.utils import AsyncIter
 from redbot.core.utils.predicates import MessagePredicate
 
 from ..abc import TodoMixin
@@ -13,11 +14,46 @@ from ..abc import TodoMixin
 class Importer(TodoMixin):
     """Import todos from epic guy's todo cog (maybe)"""
 
-    _epic_guy_config: Final[Config] = Config.get_conf(None, 6732102719277, True, cog_name="Todo")
+    _epic_guy_config: Config = Config.get_conf(None, 6732102719277, True, cog_name="Todo")
 
     @commands.group()
     async def todo(self, *args):
         ...
+
+    @todo.command(name="importall")
+    @commands.is_owner() # First owner only command in todo :ducksweat:
+    async def todo_import_all(self, ctx: commands.Context, confirm: bool = False):
+        """Import every user's todos from epic guy's todo cog
+
+        This will only import todos from this bot's config.
+
+        **Arguments**
+            - `confirm` Skips the confirmation check.
+        """
+        if not confirm:
+            await ctx.send("Would you like to import all the todos? (y/n)")
+            pred = MessagePredicate.yes_or_no(ctx)
+            try:
+                await self.bot.wait_for("message", check=pred, timeout=10.0)
+            except asyncio.TimeoutError:
+                pass
+            if not pred.result:
+                return await ctx.send("Okay, I won't import all the todos.")
+        users = await self._epic_guy_config.all_users()
+        if not users:
+            return await ctx.send("There is no user data for me to import.")
+        await ctx.send("Importting todos. This may take a while.")
+        async with ctx.typing():
+            async for uid, todos in AsyncIter(users.items(), steps=100):
+                data = todos["todos"]
+                todos = []
+                for todo in data:
+                    task = todo[1] if isinstance(todo, list) else todo
+                    todos.append({"task": task, "pinned": False, "timestamp": None})
+                u_todos = await self.cache.get_user_item(uid, "todos")
+                u_todos.extend(todos)
+                await self.cache.set_user_item(uid, "todos", u_todos)
+        await ctx.send("I have importted all todos from epic's todo cog.")
 
     @todo.command(name="import")
     async def todo_import(self, ctx: commands.Context, confirm: bool = False):
@@ -27,14 +63,14 @@ class Importer(TodoMixin):
         To import todos from another bot, check out `[p]todo multiadd`
 
         **Arguments**
-            - `confirm` Skips the confirmation check
+            - `confirm` Skips the confirmation check.
         """
 
         if not confirm:
             await ctx.send("Would you like to import your todos? (y/n)")
-            pred = MessagePredicate.yes_or_no()
+            pred = MessagePredicate.yes_or_no(ctx)
             try:
-                await self.bot.wait_for("message", check=pred)
+                await self.bot.wait_for("message", check=pred, timeout=10.0)
             except asyncio.TimeoutError:
                 pass
             finally:
