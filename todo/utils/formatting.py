@@ -1,7 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from typing import List
+from typing import List, TYPE_CHECKING
 
 __all__ = ["_format_todos", "_format_completed", "_build_underline"]
 
@@ -64,9 +64,9 @@ async def _format_todos(pinned: List[str], other: List[str], **settings) -> List
 
 
 async def _format_completed(completed: List[str], combined: bool = False, **settings) -> List[str]:
-    pretty = settings.get("pretty_todos")
-    number = settings.get("number_todos")
-    use_md = settings.get("use_markdown")
+    pretty = settings.get("pretty_todos", False)
+    number = settings.get("number_todos", False)
+    use_md = settings.get("use_markdown", False)
     fallback = "\N{WHITE HEAVY CHECK MARK}"
     emoji = settings.get("completed_emoji", fallback)
     if not emoji or emoji.startswith("<") and use_md:
@@ -88,6 +88,6 @@ async def _format_completed(completed: List[str], combined: bool = False, **sett
         ret.insert(
             0,
             f"\n{cat_emoji} \N{VARIATION SELECTOR-16} {fmt}Completed todos{fmt}"
-            + _build_underline(data, use_md, True),  # type:ignore
+            + _build_underline(data, use_md, True),
         )
     return ret

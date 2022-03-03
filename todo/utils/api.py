@@ -179,9 +179,7 @@ class TodoApi:
         """
         user = self._get_user(user)
         data = await self.get_user_data(user)
-        key = "todos"
-        if completed:
-            key = "completed"
+        key = "todos" if not completed else "completed"
         if not data.get(key):
             return None
         return data.get(key)[index]  # type:ignore
@@ -200,7 +198,8 @@ class TodoApi:
         Raises
         ------
         TypeError
-            The user was not an integer"""
+            The user was not an integer
+        """
         if user is not None and not isinstance(user, int):
             raise TypeError(f"User must be int not {user.__class__!r}")
         if not user:
