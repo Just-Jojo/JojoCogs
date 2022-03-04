@@ -24,7 +24,7 @@ reformat:
 
 newenv:
 	$(PYTHON) -m venv --clear .venv
-	.venv/bin/python -m pip install -U pip setuptools wheel red-discordbot
+	.venv/bin/python -m pip install -U pip setuptools wheel red-discordbot mypy
 
 help:
 	@echo "$$HELP_BODY"
