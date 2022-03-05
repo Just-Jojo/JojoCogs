@@ -38,7 +38,9 @@ class Blacklist(ABMixin):
         if not users:
             raise commands.UserInputError
         for user in users:
-            if user.bot:
+            if user == ctx.me:
+                return await ctx.send("Bruh")
+            elif user.bot:
                 return await ctx.send("You cannot add bots to the blacklist.")
             elif await self.bot.is_owner(user):
                 return await ctx.send("You cannot add a bot owner to the blacklist.")
