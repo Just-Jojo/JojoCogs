@@ -2,6 +2,7 @@
 # Licensed under MIT
 
 from redbot.core import commands
+import discord
 
 from ..abc import TodoMixin
 from ..utils import NonBotMember
@@ -35,7 +36,7 @@ class Managers(TodoMixin):
         await ctx.send(f"Added {user.name} to your todo list's managers")
 
     @todo_mangers.command(name="remove", aliases=["del", "delete"])
-    async def manager_remove(self, ctx: commands.Context, user: NonBotMember):
+    async def manager_remove(self, ctx: commands.Context, user: discord.User):
         """Remove a user from your list's managers
 
         This user cannot be a bot

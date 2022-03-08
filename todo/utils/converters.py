@@ -47,4 +47,6 @@ else:
                 raise commands.UserInputError
             if member.bot:
                 raise commands.BadArgument("That member is a bot")
+            elif member == ctx.author:
+                raise commands.BadArgument("The member cannot be yourself")
             return member

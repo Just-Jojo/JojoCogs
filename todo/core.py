@@ -50,7 +50,7 @@ class ToDo(
         "Jojo#7791",
     ]
     __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666", "kato#0666", "MAX#1000"]
-    __version__ = "3.0.22"
+    __version__ = "3.0.23"
     _no_todo_message = "You do not have any todos. You can add one with `{prefix}todo add <task>`"
 
     def __init__(self, bot: Red):
@@ -160,6 +160,8 @@ class ToDo(
             - `todo` The todo task
         """
         data = await self.cache.get_user_data(ctx.author.id)
+        if not data["todos"]:
+            return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         pinned = bool(pinned)
         payload = {"task": todo, "pinned": pinned, "timestamp": self._gen_timestamp()}
         data["todos"].append(payload)
@@ -251,6 +253,8 @@ class ToDo(
             if t
         ]
         current = await self.cache.get_user_item(ctx.author, "todos")
+        if not current:
+            current = []
         current.extend(todos)
         await self.cache.set_user_item(ctx.author, "todos", current)
         await ctx.send("Done. Added those as todos")
