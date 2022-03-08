@@ -56,12 +56,10 @@ class SharedTodos(TodoMixin):
         """
         pinned = bool(pinned)
         data = await self.cache.get_user_data(user.id)
-        todos: list = data["todos"]
+        todos: list = data["todos"] or []
         managers = data["managers"]
         if not managers or ctx.author.id not in managers:
             return await ctx.send("You are not a manager of that user's todo list")
-        elif not todos:
-            return await ctx.send(self._no_todo_shared_message.format(user=user, prefix=ctx.clean_prefix))
 
         todos.append({"task": todo, "pinned": pinned, "timestamp": self._gen_timestamp()})
         await self.cache.set_user_item(user, "todos", todos)
