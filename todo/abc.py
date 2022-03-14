@@ -27,9 +27,6 @@ class TodoMixin(ABC):
         self.log: Logger
         self._no_todo_message: str
         self._no_completed_message: str
-        self.__authors__: list
-        self.__suggestors__: list
-        self.__version__: str
 
     # The best thing about this is it that I don't have to reimpliment this every time
     # I create a new subclass, just in the main class which will be a subclass of every other class

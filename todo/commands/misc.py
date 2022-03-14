@@ -8,6 +8,7 @@ from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_list
 
 from ..abc import TodoMixin
+from ..consts import __suggestors__, __version__
 
 
 class Miscellaneous(TodoMixin):
@@ -20,7 +21,7 @@ class Miscellaneous(TodoMixin):
     @todo.command(name="version")
     async def todo_version(self, ctx: commands.Context):
         """Get todo's version"""
-        msg = f"ToDo, created with ❤ by Jojo#7791. Version `{self.__version__}`\n" f"Have fun :)"
+        msg = f"ToDo, created with ❤ by Jojo#7791. Version `{__version__}`\n" f"Have fun :)"
         await self.maybe_send_embed(ctx, msg)
 
     @todo.command(name="suggestions", aliases=["suggest"])
@@ -42,7 +43,7 @@ class Miscellaneous(TodoMixin):
         """A thank you command for everyone who has either contributed, requested a feature, or reported a bug"""
         msg = (
             f"A big thank you to everyone who's suggested something for todo!"
-            f"\n\nSuggestors: {humanize_list([f'`{s}`' for s in self.__suggestors__])}\n"
+            f"\n\nSuggestors: {humanize_list([f'`{s}`' for s in __suggestors__])}\n"
             "Also a big thank you to Kreusada who's helped me design things and keep myself sane whilst developing this cog"
         )
         await self.maybe_send_embed(ctx, msg, title="Todo Suggestors")

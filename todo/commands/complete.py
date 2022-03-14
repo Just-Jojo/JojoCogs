@@ -33,14 +33,14 @@ class Complete(TodoMixin):
         **Arguments**
             - `indexes` Optional indexes to complete. If left at none the help command will be shown
         """
-        indexes = [i - 1 for i in indexes]  # type:ignore
+        indxs = [i - 1 for i in indexes]
         data = await self.cache.get_user_data(ctx.author.id)
         todos = data["todos"]
         if not todos:
             return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         completed = []
-        indexes.sort(reverse=True)
-        for index in indexes:
+        indxs.sort(reverse=True)
+        for index in indxs:
             try:
                 completed.append((todos.pop(index))["task"])
             except IndexError:

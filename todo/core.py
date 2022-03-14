@@ -16,7 +16,7 @@ from redbot.core.utils.predicates import MessagePredicate
 
 from .abc import MetaClass
 from .commands import *
-from .consts import config_structure
+from .consts import __authors__, __suggestors__, __version__, config_structure
 from .utils import (PositiveInt, TimestampFormats, TodoApi, TodoMenu, TodoPage, ViewTodo,
                     formatting, timestamp_format)
 
@@ -46,11 +46,6 @@ class ToDo(
     I hope you have as much fun with it as I had designing it ❤
     - Jojo#7791"""
 
-    __authors__ = [
-        "Jojo#7791",
-    ]
-    __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666", "kato#0666", "MAX#1000"]
-    __version__ = "3.0.24"
     _no_todo_message = "You do not have any todos. You can add one with `{prefix}todo add <task>`"
 
     def __init__(self, bot: Red):
@@ -68,12 +63,12 @@ class ToDo(
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         pre = super().format_help_for_context(ctx)
-        plural = "s" if len(self.__authors__) > 1 else ""
+        plural = "s" if len(__authors__) > 1 else ""
         return (
             f"{pre}\n\n"
-            f"**Author{plural}:** {humanize_list([f'`{a}`' for a in self.__authors__])}\n"
+            f"**Author{plural}:** {humanize_list([f'`{a}`' for a in __authors__])}\n"
             "**Suggestors:** Use `[p]todo suggestors`!\n"
-            f"**Version:** `{self.__version__}`"
+            f"**Version:** `{__version__}`"
         )
 
     async def red_delete_data_for_user(
