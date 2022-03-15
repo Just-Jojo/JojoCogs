@@ -42,7 +42,7 @@ class Importer(TodoMixin):
         users = await self._epic_guy_config.all_users()
         if not users:
             return await ctx.send("There is no user data for me to import.")
-        await ctx.send("Importting todos. This may take a while.")
+        await ctx.send("Importing todos. This may take a while.")
         async with ctx.typing():
             async for uid, todos in AsyncIter(users.items(), steps=100):
                 data = todos["todos"]
@@ -53,7 +53,7 @@ class Importer(TodoMixin):
                 u_todos = await self.cache.get_user_item(uid, "todos")
                 u_todos.extend(todos)
                 await self.cache.set_user_item(uid, "todos", u_todos)
-        await ctx.send("I have importted all todos from epic's todo cog.")
+        await ctx.send("I have imported all todos from epic's todo cog.")
 
     @todo.command(name="import")
     async def todo_import(self, ctx: commands.Context, confirm: bool = False):
