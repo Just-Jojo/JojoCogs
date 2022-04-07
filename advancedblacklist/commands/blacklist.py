@@ -25,6 +25,30 @@ class Blacklist(ABMixin):
         """Manage [botname]'s blacklist"""
         pass
 
+    @blacklist.group(name="log")
+    async def blacklist_log(self, ctx: commands.Context):
+        """Manage the log settings for AdvancedBlacklist."""
+        pass
+
+    @blacklist_log.command(name="set")
+    async def blacklist_log_set(self, ctx: commands.Context, *, channel: discord.TextChannel):
+        """Set the channel for logging black/whitelistings"""
+        if not channel.permissions_for(ctx.me).send_messages:
+            return await ctx.send("I cannot send messages to that channel.")
+        await self.config.log_channel.set(channel.id)
+        await ctx.send(f"Set the log channel to {channel.name} ({channel.id}).")
+        self._log_channel = channel
+
+    @blacklist_log.command(name="remove")
+    async def blacklist_log_remove(self, ctx: commands.Context):
+        """Remove the channel for logging black/whitelistings"""
+        coro = self.config.log_channel
+        if not await coro():
+            return await ctx.send("The logging channel has not been set yet.")
+        await coro.clear()
+        await ctx.send("Removed the black/whitelisting log channel.")
+        self._log_channel = None
+
     @blacklist.command(name="add")
     async def blacklist_add(
         self, ctx: commands.Context, users: commands.Greedy[discord.User], *, reason: str = None

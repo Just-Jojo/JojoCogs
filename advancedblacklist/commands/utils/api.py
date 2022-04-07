@@ -86,7 +86,7 @@ async def add_to_blacklist(
     if override:
         return
     await bot._whiteblacklist_cache.add_to_blacklist(  # type:ignore
-        guild, {getattr(u, "id", u) for u in users_or_roles}, dispatch=False
+        guild, {getattr(u, "id", u) for u in users_or_roles}
     )
 
 
@@ -105,7 +105,7 @@ async def remove_from_blacklist(
     if override:
         return
     await bot._whiteblacklist_cache.remove_from_blacklist(  # type:ignore
-        guild, {getattr(u, "id", u) for u in users_or_roles}, dispatch=False
+        guild, {getattr(u, "id", u) for u in users_or_roles}
     )
 
 
@@ -151,7 +151,7 @@ async def clear_blacklist(
     await coro.blacklist.clear()
     if override:
         return
-    await bot._whiteblacklist_cache.clear_blacklist(guild, dispatch=False)  # type:ignore
+    await bot._whiteblacklist_cache.clear_blacklist(guild)  # type:ignore
 
 
 async def add_to_whitelist(
@@ -170,7 +170,7 @@ async def add_to_whitelist(
     if override:
         return
     await bot._whiteblacklist_cache.add_to_whitelist(  # type:ignore
-        guild, {getattr(u, "id", u) for u in users_or_roles}, dispatch=False
+        guild, {getattr(u, "id", u) for u in users_or_roles},
     )
 
 
@@ -189,7 +189,7 @@ async def remove_from_whitelist(
     if override:
         return
     await bot._whiteblacklist_cache.remove_from_whitelist(  # type:ignore
-        guild, {getattr(u, "id", u) for u in users_or_roles}, dispatch=False
+        guild, {getattr(u, "id", u) for u in users_or_roles},
     )
 
 
@@ -219,4 +219,4 @@ async def clear_whitelist(
     await coro.whitelist.clear()
     if override:
         return
-    await bot._whiteblacklist_cache.clear_whitelist(guild, dispatch=False)  # type:ignore
+    await bot._whiteblacklist_cache.clear_whitelist(guild)  # type:ignore
