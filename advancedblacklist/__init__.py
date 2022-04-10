@@ -14,4 +14,4 @@ with open(Path(__file__).parent / "info.json") as fp:
 
 async def setup(bot: Red) -> None:
     c = await AdvancedBlacklist.init(bot)
-    bot.add_cog(c)
+    await bot.add_cog(c)

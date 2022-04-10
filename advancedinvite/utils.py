@@ -18,9 +18,6 @@ __all__ = [
     "timestamp_format",
     "NoneConverter",
     "InviteNoneConverter",
-    "send_button",
-    "Button",
-    "Component",
     "Emoji",
     "EmojiConverter",
 ]
@@ -90,67 +87,6 @@ else:
             if ret is None:
                 return ret
             return await commands.InviteConverter().convert(ctx, ret)
-
-
-class Route(discord.http.Route):
-    BASE = "https://discord.com/api/v8"
-
-
-async def send_button(
-    ctx: commands.Context, components: List["Component"], content: str = None, **kwargs
-) -> discord.Message:
-    """Send with a button!"""
-    payload: Dict[str, Any] = {}
-    state = ctx._state
-    if content:
-        payload["content"] = str(content)
-    emb, embs = kwargs.get("embed"), kwargs.get("embeds")
-    if emb and embs:
-        raise TypeError("You cannot specify both 'embed' and 'embeds'")
-    if emb:
-        payload["embeds"] = [emb.to_dict()]
-    if embs:
-        payload["embeds"] = [e.to_dict() for e in embs]
-    payload["components"] = [c.to_dict() for c in components]
-    if al := kwargs.get("allowed_mentions"):
-        if state.allowed_mentions is not None:
-            payload["allowed_mentions"] = state.allowed_mentions.merge(al).to_dict()
-        else:
-            payload["allowed_mentions"] = al.to_dict()
-    else:
-        payload["allowed_mentions"] = state.allowed_mentions and state.allowed_mentions.to_dict()
-    channel = kwargs.get("channel", ctx.channel)
-    r = Route("POST", "/channels/{channel_id}/messages", channel_id=channel.id)
-    data = await ctx.bot.http.request(r, json=payload)
-    return discord.Message(state=state, channel=channel, data=data)
-
-
-class Component:
-    """Small container for components or something"""
-
-    def __init__(self, buttons: List["Button"]):
-        self.buttons = buttons
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {"type": 1, "components": [b.to_dict() for b in self.buttons]}
-
-
-class Button:
-    """Small button container for stuff or something"""
-
-    __slots__ = ("label", "style", "type", "url", "emoji")
-
-    def __init__(self, label: str, url: str, emoji: Union["Emoji", None]):
-        self.label = label
-        self.style = 5
-        self.type = 2
-        self.url = url
-        self.emoji = emoji
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            x: getattr((y := getattr(self, x)), "to_dict", lambda: y)() for x in self.__slots__
-        }
 
 
 class Emoji:

@@ -16,6 +16,8 @@ from .api import *
 from .menus import Menu, Page
 from .utils import *
 
+__all__ = ["ErrorBlacklist"]
+
 log = logging.getLogger("red.JojoCogs.error_blacklist")
 RequestType = Literal["discord_deleted_user", "owner", "user", "user_strict"]
 

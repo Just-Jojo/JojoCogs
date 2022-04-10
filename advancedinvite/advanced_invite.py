@@ -48,7 +48,7 @@ class AdvancedInvite(commands.Cog):
     """
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
-    __version__: Final[str] = "3.0.9"
+    __version__: Final[str] = "4.0.0"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -138,18 +138,26 @@ class AdvancedInvite(commands.Cog):
             if footer:
                 embed.set_footer(text=footer)
             kwargs = {"embed": embed}
-        kwargs["channel"] = channel
-        kwargs["url"] = url
-        buttons = [Button(f"Invite {ctx.me.name}!", url, invite_emoji)]
+        buttons = [
+            discord.ui.Button(
+                style=discord.ButtonStyle.url,
+                label=f"Invite {ctx.me.name}",
+                emoji=invite_emoji,
+                url=url
+            )
+        ]
         if support is not None:
             buttons.append(
-                Button("Join the support server!", url=support, emoji=support_server_emoji)
+                discord.ui.Button(
+                    style=discord.ButtonStyle.url,
+                    label="Join the support server",
+                    emoji=support_server_emoji,
+                    url=support,
+                )
             )
-        kwargs["components"] = [Component(buttons)]
-        try:
-            await send_button(ctx, **kwargs)
-        except discord.HTTPException:
-            await ctx.send("I could not dm you!")
+        view = discord.ui.View()
+        [view.add_item(x) for x in buttons]
+        await ctx.send(**kwargs, view=view)
 
     @invite.group(name="settings", aliases=("set",))
     @commands.is_owner()
@@ -398,4 +406,4 @@ class AdvancedInvite(commands.Cog):
         scopes = ("bot", "applications.commands") if commands_scope else None
         perms_int = data["invite_perm"]
         permissions = discord.Permissions(perms_int)
-        return discord.utils.oauth_url(app_info.id, permissions, scopes=scopes)
+        return discord.utils.oauth_url(app_info.id, permissions=permissions, scopes=scopes)

@@ -38,12 +38,8 @@ class AdvancedLog(commands.Cog):
         self.config.register_guild(**_config_structure["guild"])
         self.config.register_member(**_config_structure["member"])
         self.api = NoteApi(self.config, self.bot)
-        self.startup = self.bot.loop.create_task(self._init())
 
-    def cog_unload(self) -> None:
-        self.startup.cancel()
-
-    async def _init(self) -> None:
+    async def cog_load(self) -> None:
         try:
             await modlog.register_casetype("Mod Note", True, "\N{MEMO}", "Mod Note")
         except RuntimeError:
@@ -190,4 +186,4 @@ class AdvancedLog(commands.Cog):
             )
         msg = "# Moderator\tNote\n"
         msg += "\n".join(f"{num}. {mod}\t\t{note}" for num, (mod, note) in enumerate(act, 1))
-        await Menu(Page(list(pagify(msg)), f"{user.name}'s notes")).start(ctx)
+        await Menu(ctx, Page(list(pagify(msg)), f"Notes on {user.name} ({user.id})")).start()

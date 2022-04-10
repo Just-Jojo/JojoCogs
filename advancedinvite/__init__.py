@@ -10,4 +10,4 @@ with open(pathlib.Path(__file__).parent / "info.json") as fp:
 
 
 async def setup(bot: Red):
-    bot.add_cog(AdvancedInvite(bot))
+    await bot.add_cog(AdvancedInvite(bot))
