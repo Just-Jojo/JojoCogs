@@ -8,10 +8,8 @@ from typing import Any, Dict, Final, List, Optional, Tuple, TypeVar
 
 import aiohttp
 import discord
-from redbot import VersionInfo, version_info
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.core_commands import CoreLogic
 from redbot.core.utils.chat_formatting import humanize_list, humanize_number
 
 from .utils import *
@@ -24,7 +22,7 @@ class NoneStrict(NoneConverter):
 
 
 async def can_invite(ctx: commands.Context) -> bool:
-    return await CoreLogic._can_get_invite_url(ctx)
+    return await ctx.bot.is_owner(ctx.author) or await ctx.bot.is_invite_url_public()
 
 
 _config_structure: Final[Dict[str, Any]] = {
@@ -95,69 +93,70 @@ class AdvancedInvite(commands.Cog):
     async def invite(self, ctx: commands.Context, send_in_channel: Optional[bool] = False):
         """Invite [botname] to your server!"""
 
-        check = send_in_channel and await self.bot.is_owner(ctx.author)
-        channel = await self._get_channel(ctx) if not check else ctx.channel
+        channel = (
+            await self._get_channel(ctx)
+            if not send_in_channel and await self.bot.is_owner(ctx.author)
+            else ctx.channel
+        )
         settings = await self.config.all()
-        title = settings.get("title", _config_structure["title"]).replace(
-            "{bot_name}", ctx.me.name
-        )
-        message = settings.get("custom_message", _config_structure["custom_message"]).replace(
-            "{bot_name}", ctx.me.name
-        )
-        url = await self._invite_url()
+        title, message = self._get_items(settings, ["title", "custom_message"], ctx)
+        url = await self.bot.get_invite_url()
         time = datetime.datetime.now(tz=datetime.timezone.utc)
+        support_msg = (
+            f"Join the support server <{support}>\n"
+            if (support := settings.get("support_server")) else ""
+        )
+        invite_emoji, support_emoji = (
+            Emoji.from_data(settings.get(x)) for x in ("invite_emoji", "support_emoji")
+        )
         footer = settings.get("footer")
         if footer:
             footer.replace("{bot_name}", ctx.me.name).replace(
                 "{guild_count}", humanize_number(len(ctx.bot.guilds))
-            ).replace("{user_count}", humanize_number(len(self.bot.users)))
-        timestamp = f"<t:{int(time.timestamp())}>"
-        support = settings.get("support_server")
-
-        support_msg = f"\nJoin the support server! <{support}>\n" if support is not None else ""
-        kwargs: Dict[str, Any] = {
-            "content": f"**{title}**\n{message}\n<{url}>{support_msg}\n\n{footer}\n{timestamp}"
-        }
-        support_server_emoji, invite_emoji = [
-            Emoji.from_data(settings.get(x)) for x in ["support_server_emoji", "invite_emoji"]
-        ]
-        if await self._embed_requested(ctx, channel):
-            message = (
-                f"{message}\n{url}" if await self.config.extra_link() else f"[{message}]({url})"
+            ).replace(
+                "{user_count}",
+                humanize_number(len(self.bot.users))
             )
+        kwargs = {
+            "content": (
+                f"**{title}**\n\n{message}\n<{url}>\n{support_msg}\n\n{footer}"
+            ),
+        }
+        if await self._embed_requested(ctx, channel):
+            message = f"{message}\n{url}" if settings.get("extra_link") else f"[{message}]({url})"
             embed = discord.Embed(
                 title=title,
                 description=message,
                 colour=await ctx.embed_colour(),
                 timestamp=time,
             )
-            if support is not None:
+            if support:
                 embed.add_field(name="Join the support server", value=support)
             if curl := settings.get("custom_url"):
                 embed.set_thumbnail(url=curl)
             if footer:
-                embed.set_footer(text=footer)
+                embed.set_footer(footer)
             kwargs = {"embed": embed}
-        buttons = [
-            discord.ui.Button(
-                style=discord.ButtonStyle.url,
-                label=f"Invite {ctx.me.name}",
-                emoji=invite_emoji,
-                url=url
-            )
-        ]
-        if support is not None:
-            buttons.append(
-                discord.ui.Button(
-                    style=discord.ButtonStyle.url,
-                    label="Join the support server",
-                    emoji=support_server_emoji,
-                    url=support,
-                )
-            )
         view = discord.ui.View()
-        [view.add_item(x) for x in buttons]
-        await ctx.send(**kwargs, view=view)
+        view.add_item(self._make_button(url, f"Invite {ctx.me.name}", invite_emoji))
+        if support:
+            view.add_item(self._make_button(support, "Join the support server", support_emoji))
+        try:
+            await channel.send(**kwargs, view=view)
+        except discord.Forbidden: # Couldn't dm
+            await ctx.send("I could not dm you!")
+
+    @staticmethod
+    def _make_button(url: str, label: str, emoji: Optional[Emoji]) -> discord.ui.Button:
+        return discord.ui.Button(style=discord.ButtonStyle.url, label=label, url=url, emoji=emoji)
+
+    @staticmethod
+    def _get_items(settings: dict, keys: List[str], ctx: commands.Context) -> str:
+        return [
+            settings.get(key, _config_structure[key]).replace(
+                "{bot_name}", ctx.me.name,
+            ) for key in keys
+        ]
 
     @invite.group(name="settings", aliases=("set",))
     @commands.is_owner()
@@ -393,17 +392,3 @@ class AdvancedInvite(commands.Cog):
         if isinstance(channel, discord.DMChannel):
             return True
         return channel.permissions_for(ctx.me).embed_links
-
-    async def _invite_url(self) -> str:
-        if not version_info.dev_release and version_info >= VersionInfo.from_str("3.4.16"):
-            return await self.bot.get_invite_url()
-        # This is all for backwards compatibility
-        # Even if a method for this gets added it would be redundant considering
-        # `bot.get_invite_url` exists in the latest red versions
-        app_info = await self.bot.application_info()
-        data = await self.bot._config.all()
-        commands_scope = data["invite_commands_scope"]
-        scopes = ("bot", "applications.commands") if commands_scope else None
-        perms_int = data["invite_perm"]
-        permissions = discord.Permissions(perms_int)
-        return discord.utils.oauth_url(app_info.id, permissions=permissions, scopes=scopes)
