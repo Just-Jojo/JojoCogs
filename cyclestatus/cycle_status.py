@@ -251,6 +251,7 @@ class CycleStatus(commands.Cog):
             "Randomized statuses?": "Enabled" if self.random else "Disabled",
             "Toggled?": "Yes" if self.toggled else "No",
             "Statuses?": f"See `{ctx.clean_prefix}status list`",
+            "Status Type": ActivityType(await self.config.status_type()).name,
         }
         title = "Your Cycle Status settings"
         kwargs = {
