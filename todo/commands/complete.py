@@ -188,4 +188,4 @@ class Complete(TodoMixin):
             todo = completed[actual_index]
         except IndexError:
             return await ctx.send("That index was invalid")
-        await ViewTodo(index, self.cache, todo, completed=True, **settings).start(ctx)
+        await ViewTodo(ctx, todo, index, completed=True, **settings).start()

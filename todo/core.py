@@ -17,8 +17,8 @@ from redbot.core.utils.predicates import MessagePredicate
 from .abc import MetaClass
 from .commands import *
 from .consts import __authors__, __suggestors__, __version__, config_structure
-from .utils import (PositiveInt, TimestampFormats, TodoApi, TodoMenu, TodoPage, ViewTodo,
-                    formatting, timestamp_format)
+from .utils import (PositiveInt, TimestampFormats, TodoApi, TodoMenu, TodoPages, ViewTodo,
+                    TodoPrivateMenu, PrivateMenuStarter, formatting, timestamp_format)
 
 
 def attach_or_in_dm(ctx: commands.Context) -> bool:
@@ -138,11 +138,11 @@ class ToDo(
             if todo is None:
                 return await ctx.send(self._no_todo_message.format(prefix=ctx.clean_prefix))
         await ViewTodo(
-            index,
-            self.cache,
+            ctx,
             todo,
+            index,
             **await self.cache.get_user_item(ctx.author, "user_settings"),
-        ).start(ctx)
+        ).start()
 
     @todo.command(name="add")
     async def todo_add(self, ctx: commands.Context, pinned: Optional[bool], *, todo: str):
@@ -396,9 +396,12 @@ class ToDo(
 
     async def page_logic(self, ctx: commands.Context, data: list, title: str, **settings) -> None:
         joined = "\n".join(data)
-        pagified = list(pagify(joined, page_length=1000))
-        pages = TodoPage(pagified, title, **settings)
-        await TodoMenu(pages).start(ctx)
+        pagified = list(pagify(joined, page_length=300))
+        pages = TodoPages(pagified, title, settings)
+        if settings["private"]:
+            await PrivateMenuStarter(ctx, pages).start()
+            return
+        await TodoMenu(pages, self.bot, ctx).start()
 
     async def _embed_requested(self, ctx: commands.Context, user: discord.User) -> bool:
         """An slightly rewritten method for checking if a command should embed or not"""
