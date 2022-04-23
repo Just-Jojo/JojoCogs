@@ -299,7 +299,7 @@ class PinButton(discord.ui.Button):
         data = self.view.todo
         data["pinned"] = status = not data["pinned"]
         yes_no = "Unpinned" if not status else "Pinned"
-        await interaction.response.send_message(f"{yes_no} that todo", ephemeral=Truej)
+        await interaction.response.send_message(f"{yes_no} that todo", ephemeral=True)
         await self.view.update_todo(data)
 
 
