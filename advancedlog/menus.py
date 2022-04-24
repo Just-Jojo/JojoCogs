@@ -119,6 +119,15 @@ class Menu(discord.ui.View):
         self.add_item(NextPageButton(single_disabled))
         self.add_item(LastPageButton(multiple_disabled))
 
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message(
+                "You are not authorized to use this menu",
+                ephemeral=True,
+            )
+            return False
+        return True
+
     async def show_checked_page(self, page_number: int):
         max_pages = self.source.max_pages
         try:
