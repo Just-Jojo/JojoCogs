@@ -2,12 +2,13 @@
 # Licensed under MIT
 
 import asyncio
+import enum
 import logging
 import random
 import re
 from datetime import datetime
 from itertools import cycle
-from typing import Any, Final, List, Optional
+from typing import Any, Final, List, Dict, Optional, TYPE_CHECKING
 
 import discord
 from discord.ext import tasks
@@ -26,6 +27,7 @@ _config_structure = {
         "next_iter": 0,
         "toggled": True,  # Toggle if the status should be cycled or not
         "random": False,
+        "status_type": 0, # int, the value corresponds with a `discord.ActivityType` value
     },
 }
 
@@ -34,13 +36,38 @@ _bot_member_var: Final[str] = r"{bot_member_count}"
 _bot_prefix_var: Final[str] = r"{bot_prefix}"
 
 
+class ActivityType(enum.Enum):
+    """Copy of `discord.ActivityType` minus `unknown`"""
+
+    playing = 0
+    listening = 2
+    watching = 3
+    competing = 5
+
+    def __int__(self):
+        return self.value
+
+
+if TYPE_CHECKING:
+    ActivityConverter = ActivityType
+else:
+    class ActivityConverter(commands.Converter):
+        async def convert(self, ctx: commands.Context, arg: str) -> ActivityType:
+            arg = arg.lower()
+            ret = getattr(ActivityType, arg, None)
+            if not ret:
+                vals = humanize_list(list(map(lambda c: f"`{c.name}`", ActivityType)))
+                raise commands.BadArgument(f"The argument must be one of the following: {vals}")
+            return ret
+
+
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__: Final[List[str]] = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
-    __version__: Final[str] = "1.0.11"
+    __version__: Final[str] = "1.0.12"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -84,6 +111,17 @@ class CycleStatus(commands.Cog):
         """Commands working with the status"""
         pass
 
+    @status.command(name="type")
+    async def status_type(self, ctx: commands.Context, status: ActivityConverter):
+        """Change the type of [botname]'s status
+
+        **Arguments**
+            - `status` The status type. Valid types are
+            `playing, listening, watching, and competing`
+        """
+        await self.config.status_type.set(status.value)
+        await ctx.send(f"Done, set the status type to `{status.name}`.")
+
     @status.command()
     @commands.check(lambda ctx: ctx.cog.random is False)
     async def forcenext(self, ctx: commands.Context):
@@ -92,8 +130,9 @@ class CycleStatus(commands.Cog):
         statuses = await self.config.statuses()
         if not statuses:
             return await ctx.send("There are no statuses")
-        elif len(statuses) == 1:
-            return await ctx.send("There is only one status so can't really change it.")
+        if len(statuses) == 1:
+            await ctx.tick()
+            return await self._status_add(statuses[0], await self.config.use_help())
         try:
             status = statuses[nl]
         except IndexError:
@@ -212,9 +251,10 @@ class CycleStatus(commands.Cog):
             "Randomized statuses?": "Enabled" if self.random else "Disabled",
             "Toggled?": "Yes" if self.toggled else "No",
             "Statuses?": f"See `{ctx.clean_prefix}status list`",
+            "Status Type?": ActivityType(await self.config.status_type()).name,
         }
         title = "Your Cycle Status settings"
-        kwargs = {
+        kwargs: Dict[str, Any] = {
             "content": f"**{title}**\n\n" + "\n".join(f"**{k}** {v}" for k, v in settings.items())
         }
         if await ctx.embed_requested():
@@ -276,5 +316,5 @@ class CycleStatus(commands.Cog):
 
         if use_help:
             status += f" | {prefix}help"
-        game = discord.Game(name=status)
+        game = discord.Activity(type=await self.config.status_type(), name=status)
         await self.bot.change_presence(activity=game)
