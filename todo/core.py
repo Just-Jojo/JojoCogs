@@ -53,7 +53,6 @@ class ToDo(
         self.config = Config.get_conf(self, 19924714019, True)
         self.config.register_user(**config_structure)
         self.cache = TodoApi(self.bot, self.config)
-        self._startup_task = self.bot.loop.create_task(self._initialize())
         self.log = logging.getLogger("red.JojoCogs.todo")
 
     def cog_unload(self) -> None:
@@ -79,7 +78,7 @@ class ToDo(
     ) -> None:
         await self.cache.delete_data(user_id)
 
-    async def _initialize(self) -> None:
+    async def cog_load(self) -> None:
         """This is based off of Obi-Wan3's migration method in their github cog
         https://github.com/Obi-Wan3/OB13-Cogs/blob/main/github/github.py#L88"""
 
