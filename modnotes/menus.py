@@ -82,19 +82,21 @@ class LastPageButton(discord.ui.Button, ButtonABC):
 
 
 class Page:
-    def __init__(self, data: list, title: str):
+    def __init__(self, data: list, title: str, *, use_md: bool = True):
         self.data = data
         self.max_pages = len(data)
         self.title = title
+        self.use_md = use_md
 
     async def format_page(self, menu: Menu, page: str) -> Union[discord.Embed, str]:
         ctx: commands.Context = menu.ctx
         footer = f"Page {menu.current_page + 1}/{self.max_pages}"
-        ret = f"**{self.title}**\n{box(page, 'md')}\n{footer}"
+        page = box(page, "md") if self.use_md else page
+        ret = f"**{self.title}**\n{page}\n{footer}"
         if await ctx.embed_requested():
             ret = discord.Embed(
                 title=self.title,
-                description=box(page, "md"),
+                description=page,
                 colour=await ctx.embed_colour(),
             ).set_footer(text=footer)
         return ret

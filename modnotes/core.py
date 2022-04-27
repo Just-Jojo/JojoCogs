@@ -26,17 +26,18 @@ _config_structure: Dict[str, Dict[str, Any]] = {
 }
 
 
-class AdvancedLog(commands.Cog):
-    """An advanced log for moderators to add notes to users"""
+class ModNotes(commands.Cog):
+    """A mod note cog for moderators to add notes to users"""
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
     __version__: Final[str] = "1.0.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
-        self.config = Config.get_conf(self, 544974305445019651, True)
+        self.config = Config.get_conf(None, 544974305445019651, True, cog_name="AdvancedLog")
         self.config.register_guild(**_config_structure["guild"])
         self.config.register_member(**_config_structure["member"])
+        self.config.register_global(updated=False)
         self.api = NoteApi(self.config, self.bot)
 
     async def cog_load(self) -> None:
@@ -106,6 +107,7 @@ class AdvancedLog(commands.Cog):
         await ctx.send(f"Moderators can {now_no_longer} edit notes not authored by them.")
 
     @commands.group(aliases=("mnote",), invoke_without_command=True)
+    @commands.guild_only()
     @commands.mod_or_permissions(administrator=True)
     async def modnote(
         self, ctx: commands.Context, user: NonBotMember(False), *, note: str  # type:ignore
@@ -120,6 +122,26 @@ class AdvancedLog(commands.Cog):
         """
         await ctx.send(f"Done. I have added that as a note for {user.name}")
         await self.api.create_note(ctx.guild, user, ctx.author, note)
+
+    @modnote.command(name="listall")
+    async def modnote_list_all(self, ctx: commands.Context):
+        """List all the members with notes in this guild"""
+        data = await self.config.all_members(ctx.guild)
+        if not data:
+            return await ctx.send("There are no notes in this guild")
+        # data = {user.id: {"notes": [{author=id, note=str, case_number=int or None}]}}
+        msg = ""
+        for user_id, user_data in data.items():
+            user = str(ctx.guild.get_member(user_id) or user_id)
+            user_data = user_data["notes"]
+            for note_data in user_data:
+                author = str(ctx.guild.get_member((a := note_data["author"])) or a)
+                note = note_data["note"]
+                if cn := note_data["case_number"]:
+                    note += f" {cn}"
+                msg += f"**{user}:** (by {author}) {note}"
+        title = f"Notes in {ctx.guild} ({ctx.guild.id})."
+        await Menu(ctx, Page(list(pagify(msg, page_length=200)), title, use_md=False)).start()
 
     @modnote.command()
     async def remove(self, ctx: commands.Context, user: NonBotMember, index: PositiveInt):
@@ -165,7 +187,7 @@ class AdvancedLog(commands.Cog):
             )  # TODO(Jojo) Maybe send the new + old note?
 
     @modnote.command(name="list")
-    async def list_notes(self, ctx: commands.Context, user: NonBotMember):
+    async def modnote_list(self, ctx: commands.Context, user: NonBotMember):
         """List the notes on a certain user
 
         This user cannot be a bot
@@ -180,10 +202,10 @@ class AdvancedLog(commands.Cog):
         for note in data:
             act.append(
                 [
-                    getattr(ctx.guild.get_member(note["author"]), "name", note["author"]),
+                    str(ctx.guild.get_member(note["author"]) or note["author"]),
                     note["note"],
                 ]
             )
         msg = "# Moderator\tNote\n"
         msg += "\n".join(f"{num}. {mod}\t\t{note}" for num, (mod, note) in enumerate(act, 1))
-        await Menu(ctx, Page(list(pagify(msg)), f"Notes on {user.name} ({user.id})")).start()
+        await Menu(ctx, Page(list(pagify(msg)), f"Notes on {str(user)} ({user.id})")).start()
