@@ -73,19 +73,16 @@ class CycleStatus(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 115849, True)
         self.config.register_global(**_config_structure["global"])
-        self.task: asyncio.Task = self.bot.loop.create_task(self.init())
         self.toggled: Optional[bool] = None
         self.random: Optional[bool] = None
         self.last_random: Optional[int] = None
-
-    async def init(self) -> None:
-        await self.bot.wait_until_red_ready()
         self.main_task.start()
+
+    async def cog_load(self) -> None:
         self.toggled = await self.config.toggled()
         self.random = await self.config.random()
 
     def cog_unload(self) -> None:
-        self.task.cancel()
         self.main_task.cancel()
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
@@ -285,6 +282,10 @@ class CycleStatus(commands.Cog):
         if not self.random:
             nl = 0 if len(statuses) - 1 == nl else nl + 1
             await self.config.next_iter.set(nl)
+
+    @main_task.before_loop
+    async def main_task(self) -> None:
+        await self.bot.wait_until_red_ready()
 
     async def _num_lists(self, data: List[str]) -> List[str]:
         """|coro|
