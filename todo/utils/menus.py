@@ -159,6 +159,11 @@ class _MenuMixin(discord.ui.View, ABC):
         self.add_item(NextPageButton(single_disabled))
         self.add_item(LastPageButton(multi_disabled))
 
+    def add_item(self, item: discord.ui.Item) -> _MenuMixin:
+        if getattr(item, "disabled", False):
+            return self
+        return super().add_item(item)
+
 
 class TodoMenu(_MenuMixin):
     def __init__(self, source: TodoPages, bot: Red, ctx: commands.Context):

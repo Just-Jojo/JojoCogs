@@ -13,6 +13,10 @@ from redbot.core.utils.chat_formatting import box
 from redbot.vendored.discord.ext import menus  # type:ignore
 
 
+if TYPE_CHECKING:
+    from typing_extensions import Self
+
+
 class ButtonABC(abc.ABC):
     def __init__(self, *_args):
         self.view: Menu
@@ -120,6 +124,11 @@ class Menu(discord.ui.View):
         self.add_item(StopButton())
         self.add_item(NextPageButton(single_disabled))
         self.add_item(LastPageButton(multiple_disabled))
+
+    def add_item(self, item: discord.ui.Item) -> Self:
+        if getattr(item, "disabled", False):
+            return self
+        return super().add_item(item)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.ctx.author.id:
