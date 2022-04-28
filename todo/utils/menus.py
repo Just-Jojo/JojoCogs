@@ -249,7 +249,10 @@ class TodoPrivateMenu(_MenuMixin):
         await interaction.response.edit_message(**kwargs)
 
     async def on_timeout(self):
-        await self.interaction.response.edit_message(view=None)
+        try:
+            await self.interaction.response.edit_message(view=None)
+        except Exception as e:
+            pass
 
 
 class PrivateMenuStarter(discord.ui.View):
