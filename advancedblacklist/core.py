@@ -73,6 +73,8 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         self._log_channel = channel
 
     async def _log_message(self, msg: str) -> None:
+        log.info(msg)
+        msg += f"\n{self._get_timestamp()}"
         try:
             if len(msg) <= 2000:
                 await self._log_channel.send(content=msg)
@@ -117,7 +119,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
             await add_to_blacklist(self.bot, users, "No reason provided.", guild=guild, override=True)
         if not self._log_channel:
             return
-        msg = f"Added these users/roles to {self._guild_global(guild)} blacklist.\n\n{u}\n\n{self._get_timestamp()}"
+        msg = f"Added these users/roles to {self._guild_global(guild)} blacklist.\n\n{u}"
         await self._log_message(msg)
 
     @commands.Cog.listener()
@@ -129,7 +131,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
             await remove_from_blacklist(self.bot, users, guild=guild, override=True)
         if not self._log_channel:
             return
-        msg = f"Removed these users/roles from {self._guild_global(guild)} blacklist.\n\n{u}\n\n{self._get_timestamp()}"
+        msg = f"Removed these users/roles from {self._guild_global(guild)} blacklist.\n\n{u}"
         await self._log_message(msg)
 
     @commands.Cog.listener()
@@ -138,7 +140,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         await clear_blacklist(self.bot, guild, True)
         if not self._log_channel:
             return
-        msg = f"Cleared {self._guild_global(guild)} blacklist. {self._get_timestamp()}"
+        msg = f"Cleared {self._guild_global(guild)} blacklist."
         await self._log_message(msg)
 
     @commands.Cog.listener()
@@ -150,7 +152,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
             await add_to_whitelist(self.bot, users, "No reason provided.", guild=guild, override=True)
         if not self._log_channel:
             return
-        msg = f"Added these users/roles to {self._guild_global(guild)} whitelist.\n\n{u}\n\n{self._get_timestamp()}"
+        msg = f"Added these users/roles to {self._guild_global(guild)} whitelist.\n\n{u}"
         await self._log_message(msg)
 
     @commands.Cog.listener()
@@ -174,7 +176,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         await clear_whitelist(self.bot, guild, override=True)
         if not self._log_channel:
             return
-        msg = f"Cleared {self._guild_global(guild)} whitelist. {self._get_timestamp()}"
+        msg = f"Cleared {self._guild_global(guild)} whitelist."
         await self._log_message(msg)
 
     @commands.Cog.listener()
