@@ -76,31 +76,35 @@ class ModNotes(commands.Cog):
 
     @modnoteset.command()
     async def usemodlog(self, ctx: commands.Context, toggle: bool):
-        """Toggle whether to use the modlog or not
+        """Toggle whether to use the modlog or not.
 
-        If toggled, whenever a note is created on a user it will create a case in the modlog
+        If toggled, whenever a note is created on a user it will create a case in the modlog.
 
         **Arguments**
-            - `toggle` Whether to enable or disable the modlog logging
+            - `toggle` Whether to enable or disable the modlog logging.
         """
         if toggle and not await modlog_exists(ctx.guild):
             return await ctx.send(
-                "I could not find the modlog channel. Please set one up in order to use this feature"
+                "I could not find the modlog channel. Please set one up in order to use this feature."
             )
         current = await self.config.guild(ctx.guild).modlog_enabled()
         disabled = "enabled" if toggle else "disabled"
         if current == toggle:
-            return await ctx.send(f"The modlog logging is already {disabled}")
-        await ctx.send(f"Modlog logging is now {disabled}")
+            return await ctx.send(f"The modlog logging is already {disabled}.")
+        await ctx.send(f"Modlog logging is now {disabled}.")
         await self.config.guild(ctx.guild).modlog_enabled.set(toggle)
 
     @modnoteset.command(name="nonauthoredits", aliases=("nae",))
     async def non_author_edits(self, ctx: commands.Context, toggle: bool):
-        """Allow any moderator to edit notes, regardless of who authored it"""
+        """Allow any moderator to edit notes, regardless of who authored it
+        
+        **Arguments**
+            - `toggle` Whether moderators other than the author can edit notes.
+        """
         if toggle == await self.config.guild(ctx.guild).allow_other_edits():
             enabled = "" if toggle else "'t"
             return await ctx.send(
-                f"Moderators already can{enabled} edit notes that weren't authored by them"
+                f"Moderators already can{enabled} edit notes that weren't authored by them."
             )
         await self.config.guild(ctx.guild).allow_other_edits.set(toggle)
         now_no_longer = "now" if toggle else "no longer"
@@ -112,15 +116,15 @@ class ModNotes(commands.Cog):
     async def modnote(
         self, ctx: commands.Context, user: NonBotMember(False), *, note: str  # type:ignore
     ):
-        """Create a note for a user. This user cannot be a bot
+        """Create a note for a user. This user cannot be a bot.
 
-        If enabled this will also log to the modlog
+        If enabled this will also log to the modlog.
 
         **Arguments**
             - `user` A non-bot user to log for.
             - `note` The note to add to them.
         """
-        await ctx.send(f"Done. I have added that as a note for {user.name}")
+        await ctx.send(f"Done. I have added that as a note for {user.name}.")
         await self.api.create_note(ctx.guild, user, ctx.author, note)
 
     @modnote.command(name="listall")
@@ -128,7 +132,7 @@ class ModNotes(commands.Cog):
         """List all the members with notes in this guild"""
         data = await self.config.all_members(ctx.guild)
         if not data:
-            return await ctx.send("There are no notes in this guild")
+            return await ctx.send("There are no notes in this guild.")
         # data = {user.id: {"notes": [{author=id, note=str, case_number=int or None}]}}
         msg = ""
         for user_id, user_data in data.items():
@@ -145,13 +149,11 @@ class ModNotes(commands.Cog):
 
     @modnote.command()
     async def remove(self, ctx: commands.Context, user: NonBotMember, index: PositiveInt):
-        """Remove a note from a user.
-
-        Note that you must be the author of the note to remove it
+        """Remove a note from a user. This user cannot be a bot.
 
         **Arguments**
-            - `user` The user to remove a note from
-            - `index` The index of the note to remove
+            - `user` The user to remove a note from.
+            - `index` The index of the note to remove.
         """
         try:
             await self.api.remove_note(ctx.guild, index - 1, user, ctx.author)
@@ -160,20 +162,18 @@ class ModNotes(commands.Cog):
         except IndexError:
             await ctx.send(f"I could not find a note at index {index}.")
         else:
-            await ctx.send(f"Removed a note from that user at index {index}")
+            await ctx.send(f"Removed a note from that user at index {index}.")
 
     @modnote.command()
     async def edit(
         self, ctx: commands.Context, user: NonBotMember, index: PositiveInt, *, note: str
     ):
-        """Edit a note on a user
-
-        Note that you can only edit notes that you have created
+        """Edit a note on a user. This user cannot be a bot.
 
         **Arguments**
-            - `user` The user to edit a note on
-            - `index` The index of the reason to edit
-            - `note` The new note
+            - `user` The user to edit a note on. This user cannot be a bot.
+            - `index` The index of the reason to edit.
+            - `note` The new note.
         """
         try:
             await self.api.edit_note(ctx.guild, index - 1, user, ctx.author, note)
@@ -188,16 +188,16 @@ class ModNotes(commands.Cog):
 
     @modnote.command(name="list")
     async def modnote_list(self, ctx: commands.Context, user: NonBotMember):
-        """List the notes on a certain user
+        """List the notes on a certain user.
 
-        This user cannot be a bot
+        This user cannot be a bot.
 
         **Arguments**
-            - `user` The user to view notes of
+            - `user` The user to view notes of.
         """
         data = await self.config.member(user).notes()
         if not data:
-            return await ctx.send("That user does not have any notes")
+            return await ctx.send("That user does not have any notes.")
         act = []
         for note in data:
             act.append(
