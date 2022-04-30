@@ -10,7 +10,7 @@
     "required_cogs": {},
     "requirements": [],
     "tags": ["utility", "blacklist"],
-    "min_bot_version": "3.4.10",
+    "min_bot_version": "3.5.0.dev0",
     "hidden": false,
     "disabled": false,
     "type": "COG"

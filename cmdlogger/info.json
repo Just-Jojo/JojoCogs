@@ -12,7 +12,7 @@
     "tags": [
         "utility", "log", "command"
     ],
-    "min_bot_version": "3.4.6",
+    "min_bot_version": "3.5.0.dev0",
     "hidden": false,
     "disabled": false,
     "type": "COG"
