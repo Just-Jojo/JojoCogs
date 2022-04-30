@@ -1,6 +1,8 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+from __future__ import annotations
+
 import logging
 from contextlib import suppress
 from types import ModuleType
@@ -52,8 +54,8 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         destroy()
 
     @classmethod
-    async def init(cls, bot: Red) -> "AdvancedBlacklist":
-        self = cls(bot)
+    async def init(cls, bot: Red) -> AdvancedBlacklist:
+        self: AdvancedBlacklist = cls(bot)
         for c in ["blocklist", "allowlist"]:
             self._commands |= {self.bot.remove_command(y) for y in (c, f"local{c}")}
             # I am lazy :)

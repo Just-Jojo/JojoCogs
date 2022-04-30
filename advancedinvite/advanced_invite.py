@@ -308,6 +308,9 @@ class AdvancedInvite(commands.Cog):
             - `url` The url for embed command. This can also be a file (upload the image when you run the command)
             Type `none` to reset the url.
         """
+        if len(ctx.message.attachments) == 0 and url is None:
+            return await ctx.send_help()
+
         if len(ctx.message.attachments) > 0:
             if not (attach := ctx.message.attachments[0]).filename.endswith(
                 self._supported_images
@@ -335,8 +338,6 @@ class AdvancedInvite(commands.Cog):
                         return await ctx.send(
                             "Something went wrong while trying to get the image."
                         )
-        else:
-            return await ctx.send_help()
         await self.config.custom_url.set(url)
         await ctx.send("Done. I have set the image url.")
 
