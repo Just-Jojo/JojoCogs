@@ -29,6 +29,7 @@ async def can_invite(ctx: commands.Context) -> bool:
 
 _config_structure: Final[Dict[str, Any]] = {
     "custom_url": None,
+    "image_url": None,
     "custom_message": "Thanks for choosing {bot_name}!",
     "send_in_channel": False,
     "embeds": True,
@@ -48,7 +49,7 @@ class AdvancedInvite(commands.Cog):
     """
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
-    __version__: Final[str] = "3.0.9"
+    __version__: Final[str] = "3.0.10"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -135,6 +136,8 @@ class AdvancedInvite(commands.Cog):
                 embed.add_field(name="Join the support server", value=support)
             if curl := settings.get("custom_url"):
                 embed.set_thumbnail(url=curl)
+            if iurl := settings.get("image_url"):
+                embed.set_image(url=iurl)
             if footer:
                 embed.set_footer(text=footer)
             kwargs = {"embed": embed}
@@ -291,14 +294,14 @@ class AdvancedInvite(commands.Cog):
         await self.config.invite_emoji.set(emoji.to_dict())
         await ctx.send(f"Set the invite emoji to {emoji.as_emoji()}")
 
-    @invite_settings.command(name="imageurl", aliases=["url"])
+    @invite_settings.command(name="thumbnailurl")
     async def invite_custom_url(self, ctx: commands.Context, url: str = None):
-        """Set the image url for the invite command's embed
+        """Set the thumbnail url for the invite command's embed.
 
-        This setting only applies for embeds
+        This setting only applies for embeds.
 
         **Arguments**
-            - `url` The image url for embed command. This can also be a file (upload the image when you run the command)
+            - `url` The thumbnail url for embed command. This can also be a file (upload the image when you run the command)
             Type `none` to reset the url.
         """
         if len(ctx.message.attachments) > 0:
@@ -318,19 +321,53 @@ class AdvancedInvite(commands.Cog):
                     f"That url does not point to a proper image type, ({', '.join(self._supported_images)})"
                 )
             async with ctx.typing():
-                async with aiohttp.ClientSession() as sess:
-                    try:
-                        async with sess.get(url) as re:
-                            await re.read()
-                    except aiohttp.InvalidURL:
-                        return await ctx.send("That is not a valid url.")
-                    except aiohttp.ClientError:
-                        return await ctx.send(
-                            "Something went wrong while trying to get the image."
-                        )
+                try:
+                    async with aiohttp.request("GET", url) as re:
+                        await re.read()
+                except aiohttp.InvalidURL:
+                    return await ctx.send("That is not a valid url.")
+                except aiohttp.ClientError:
+                    return await ctx.send(
+                        "Something went wrong while trying to get the image."
+                    )
         else:
             return await ctx.send_help()
         await self.config.custom_url.set(url)
+        await ctx.send("Done. I have set the thumbnail url.")
+
+    @invite_settings.command(name="imageurl", usage="<url or image>")
+    async def invite_image_url(self, ctx: commands.Context, url: str = None):
+        """Set the image url for the invite command.
+
+        This setting only applies for embeds.
+
+        **Arguments**
+            - `url` The url for the embed's image. Type `none` to clear it.
+            You can also upload an image instead of providing this argument
+        """
+        if len(ctx.message.attachments) > 0:
+            # Attachments take priority
+            if not (attach := ctx.message.attachments[0]).filename.endswith(
+                self._supported_images
+            ):
+                return await ctx.send("That image is invalid.")
+            url = attach.url
+        elif url is not None:
+            if url == "none":
+                await self.config.image_url.clear()
+                return await ctx.send("Reset the image url.")
+            async with ctx.typing():
+                try:
+                    async with aiohttp.request("GET", url) as re:
+                        await re.read()
+                except aiohttp.InvalidURL:
+                    return await ctx.send("That url is invalid.")
+                except aiohttp.ClientError:
+                    return await ctx.send("Something went wrong when trying to validate that url.")
+        else:
+            # as much as I hate else blocks this is hard to bypass
+            return await ctx.send_help()
+        await self.config.image_url.set(url)
         await ctx.send("Done. I have set the image url.")
 
     @invite_settings.command(name="extralink")
