@@ -108,7 +108,7 @@ class AdvancedInvite(commands.Cog):
         time = datetime.datetime.now(tz=datetime.timezone.utc)
         footer = settings.get("footer")
         if footer:
-            footer.replace("{bot_name}", ctx.me.name).replace(
+            footer = footer.replace("{bot_name}", ctx.me.name).replace(
                 "{guild_count}", humanize_number(len(ctx.bot.guilds))
             ).replace("{user_count}", humanize_number(len(self.bot.users)))
         timestamp = f"<t:{int(time.timestamp())}>"
