@@ -291,14 +291,14 @@ class AdvancedInvite(commands.Cog):
         await self.config.invite_emoji.set(emoji.to_dict())
         await ctx.send(f"Set the invite emoji to {emoji.as_emoji()}")
 
-    @invite_settings.command(name="url")
+    @invite_settings.command(name="imageurl", aliases=["url"])
     async def invite_custom_url(self, ctx: commands.Context, url: str = None):
-        """Set the url for the invite command's embed
+        """Set the image url for the invite command's embed
 
         This setting only applies for embeds
 
         **Arguments**
-            - `url` The url for embed command. This can also be a file (upload the image when you run the command)
+            - `url` The image url for embed command. This can also be a file (upload the image when you run the command)
             Type `none` to reset the url.
         """
         if len(ctx.message.attachments) > 0:
