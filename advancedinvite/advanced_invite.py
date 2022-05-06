@@ -392,7 +392,7 @@ class AdvancedInvite(commands.Cog):
             key = key.replace("_", " ").replace("custom ", "")
             key = " ".join(x.capitalize() for x in key.split())
             if key.lower() == "url":
-                key = "Embed Image Url"
+                key = "Embed Thumbnail Url"
             _data[key] = value
         msg = "**Invite settings**\n\n" + "\n".join(
             f"**{key}:** {value}" for key, value in _data.items()
