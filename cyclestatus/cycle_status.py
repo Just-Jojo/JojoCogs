@@ -250,7 +250,7 @@ class CycleStatus(commands.Cog):
         settings = {
             "Randomized statuses?": "Enabled" if self.random else "Disabled",
             "Toggled?": "Yes" if self.toggled else "No",
-            "Statuses?": f"See `{ctx.clean_prefix}status list`",
+            "Statuses?": f"See `{ctx.clean_prefix}cyclestatus list`",
             "Status Type?": ActivityType(await self.config.status_type()).name,
         }
         title = "Your Cycle Status settings"
