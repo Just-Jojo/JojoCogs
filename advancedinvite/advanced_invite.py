@@ -397,7 +397,7 @@ class AdvancedInvite(commands.Cog):
         msg = "**Invite settings**\n\n" + "\n".join(
             f"**{key}:** {value}" for key, value in _data.items()
         )
-        kwargs = {"content": msg}
+        kwargs: Dict[str, Union[str, discord.Embed]] = {"content": msg}
         if await ctx.embed_requested():
             embed = discord.Embed(
                 title="Invite settings",
