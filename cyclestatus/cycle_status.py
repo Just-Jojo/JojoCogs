@@ -67,7 +67,7 @@ class CycleStatus(commands.Cog):
     __authors__: Final[List[str]] = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__: Final[List[str]] = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
-    __version__: Final[str] = "1.0.12"
+    __version__: Final[str] = "1.0.13"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -123,23 +123,30 @@ class CycleStatus(commands.Cog):
         await ctx.send(f"Done, set the status type to `{status.name}`.")
 
     @status.command()
-    @commands.check(lambda ctx: ctx.cog.random is False)
     async def forcenext(self, ctx: commands.Context):
         """Force the next status to display on the bot"""
         nl = await self.config.next_iter()
         statuses = await self.config.statuses()
         if not statuses:
             return await ctx.send("There are no statuses")
+        use_help = await self.config.use_help()
         if len(statuses) == 1:
             await ctx.tick()
-            return await self._status_add(statuses[0], await self.config.use_help())
+            return await self._status_add(statuses[0], use_help)
+        if self.random:
+            if self.last_random is not None:
+                statuses.pop(self.last_random)
+            msg = random.choice(statuses)
+            self.last_random = statuses.index(msg)
+            await ctx.tick()
+            return await self._status_add(msg, use_help)
         try:
             status = statuses[nl]
         except IndexError:
             status = statuses[0]
             nl = 0
         await self.config.next_iter.set(nl + 1 if nl < len(statuses) else 0)
-        await self._status_add(status, await self.config.use_help())
+        await self._status_add(status, use_help)
         await ctx.tick()
 
     @status.command(name="usehelp")
@@ -273,6 +280,7 @@ class CycleStatus(commands.Cog):
             if self.last_random is not None and len(statuses) > 1:
                 statuses.pop(self.last_random)  # Remove that last picked one
             msg = random.choice(statuses)
+            self.last_random = statuses.index(msg)
         else:
             try:
                 # So, sometimes this gets larger than the list of the statuses
