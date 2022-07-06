@@ -109,9 +109,11 @@ class AdvancedInvite(commands.Cog):
         time = datetime.datetime.now(tz=datetime.timezone.utc)
         footer = settings.get("footer")
         if footer:
-            footer = footer.replace("{bot_name}", ctx.me.name).replace(
-                "{guild_count}", humanize_number(len(ctx.bot.guilds))
-            ).replace("{user_count}", humanize_number(len(self.bot.users)))
+            footer = (
+                footer.replace("{bot_name}", ctx.me.name)
+                .replace("{guild_count}", humanize_number(len(ctx.bot.guilds)))
+                .replace("{user_count}", humanize_number(len(self.bot.users)))
+            )
         timestamp = f"<t:{int(time.timestamp())}>"
         support = settings.get("support_server")
 
@@ -327,9 +329,7 @@ class AdvancedInvite(commands.Cog):
                 except aiohttp.InvalidURL:
                     return await ctx.send("That is not a valid url.")
                 except aiohttp.ClientError:
-                    return await ctx.send(
-                        "Something went wrong while trying to get the image."
-                    )
+                    return await ctx.send("Something went wrong while trying to get the image.")
         else:
             return await ctx.send_help()
         await self.config.custom_url.set(url)

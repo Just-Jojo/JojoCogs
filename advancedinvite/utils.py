@@ -60,19 +60,23 @@ def timestamp_format(dt: datetime = None, *, dt_format: TimestampFormats = None)
         return f"<t:{int(dt.timestamp())}:{dt_format.value}>"
 
 
-class NoneConverter(commands.Converter):
-    """A simple converter for NoneType args for commands"""
+if TYPE_CHECKING:
+    NoneConverter = Union[NoneType, str]
+else:
 
-    def __init__(self, *, strict: bool = False):
-        self.strict = strict
+    class NoneConverter(commands.Converter):
+        """A simple converter for NoneType args for commands"""
 
-    async def convert(self, ctx: commands.Context, arg: str) -> Union[NoneType, str]:
-        args = ["none"]
-        if not self.strict:
-            args.extend(["no", "nothing"])
-        if arg.lower() in args:
-            return None
-        return arg
+        def __init__(self, *, strict: bool = False):
+            self.strict = strict
+
+        async def convert(self, ctx: commands.Context, arg: str) -> Union[NoneType, str]:
+            args = ["none"]
+            if not self.strict:
+                args.extend(["no", "nothing"])
+            if arg.lower() in args:
+                return None
+            return arg
 
 
 if TYPE_CHECKING:

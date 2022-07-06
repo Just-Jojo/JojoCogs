@@ -8,7 +8,7 @@ import random
 import re
 from datetime import datetime
 from itertools import cycle
-from typing import Any, Final, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Final, List, Optional
 
 import discord
 from discord.ext import tasks
@@ -27,7 +27,7 @@ _config_structure = {
         "next_iter": 0,
         "toggled": True,  # Toggle if the status should be cycled or not
         "random": False,
-        "status_type": 0, # int, the value corresponds with a `discord.ActivityType` value
+        "status_type": 0,  # int, the value corresponds with a `discord.ActivityType` value
     },
 }
 
@@ -51,6 +51,7 @@ class ActivityType(enum.Enum):
 if TYPE_CHECKING:
     ActivityConverter = ActivityType
 else:
+
     class ActivityConverter(commands.Converter):
         async def convert(self, ctx: commands.Context, arg: str) -> ActivityType:
             arg = arg.lower()

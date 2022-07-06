@@ -1,15 +1,14 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import logging
 import asyncio
+import logging
+from typing import Union
 
 import discord
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
-
-from typing import Union
 
 from ..abc import ABMixin  # type:ignore
 from .utils import (add_to_whitelist, clear_whitelist, edit_reason, get_whitelist, in_whitelist,
@@ -156,7 +155,9 @@ class Whitelist(ABMixin):
         await ctx.send(f"Done. Added {that} to the local whitelist.")
 
     @local_whitelist.command(name="remove", aliases=["del", "delete"], require_var_positional=True)
-    async def local_whitelist_remove(self, ctx: commands.Context, *member_or_roles: Union[discord.Member, discord.Role]):
+    async def local_whitelist_remove(
+        self, ctx: commands.Context, *member_or_roles: Union[discord.Member, discord.Role]
+    ):
         """Remove members/roles from the local whitelist
 
         **Arguments**
@@ -170,10 +171,14 @@ class Whitelist(ABMixin):
 
     @local_whitelist.command(name="reason")
     async def local_whitelist_reason(
-        self, ctx: commands.Context, member_or_role: Union[discord.Member, discord.Role], *, reason: str
+        self,
+        ctx: commands.Context,
+        member_or_role: Union[discord.Member, discord.Role],
+        *,
+        reason: str,
     ):
         """Edit the reason for a locally whitelisted member/role
-        
+
         **Arguments**
             - `member_or_role` The member/role to edit the reason of. Members cannot be a bot.
             - `reason` The new reason for locally whitelisting the member/role.
@@ -210,7 +215,12 @@ class Whitelist(ABMixin):
             return await ctx.send("There are no locally allowed members or roles.")
         msg = "Locally Allowed Members/Roles:"
         for uid, reason in wl.items():
-            name = u.name if (u := ctx.guild.get_member(int(uid)))\
-                else r.name if (r := ctx.guild.get_role(int(uid))) else "Unknown or Deleted Member/Role"
+            name = (
+                u.name
+                if (u := ctx.guild.get_member(int(uid)))
+                else r.name
+                if (r := ctx.guild.get_role(int(uid)))
+                else "Unknown or Deleted Member/Role"
+            )
             msg += f"\n\t- [{uid}] {name}: {reason}"
         await ctx.send_interactive(pagify(msg, page_length=1800), "yml")

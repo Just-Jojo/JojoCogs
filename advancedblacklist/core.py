@@ -1,13 +1,13 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import datetime
 import logging
 from contextlib import suppress
 from types import ModuleType
 from typing import Optional, Set, Union
 
 import discord  # type:ignore
-import datetime
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, pagify
@@ -35,7 +35,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
     def __init__(self, bot: Red):
         self.bot = bot
         self._commands: Set[Optional[commands.Command]] = set()
-        self.config = Config.get_conf(self, 544974305445019651, True) # Log channel stuff
+        self.config = Config.get_conf(self, 544974305445019651, True)  # Log channel stuff
         self._log_channel: Optional[discord.TextChannel] = None
         self._task = self.bot.loop.create_task(startup(self.bot))
         self._log_task = self.bot.loop.create_task(self._get_log_channel())
@@ -114,7 +114,9 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if not await in_blacklist(self.bot, u, guild)}
         if users:
             log.debug(f"Adding these users to the blacklist config. {users = }. {guild = }")
-            await add_to_blacklist(self.bot, users, "No reason provided.", guild=guild, override=True)
+            await add_to_blacklist(
+                self.bot, users, "No reason provided.", guild=guild, override=True
+            )
         if not self._log_channel:
             return
         msg = f"Added these users/roles to {self._guild_global(guild)} blacklist.\n\n{u}\n\n{self._get_timestamp()}"
@@ -147,7 +149,9 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if not await in_whitelist(self.bot, u, guild)}
         if users:
             log.debug(f"Adding these users to the whitelist config. {users = }. {guild = }")
-            await add_to_whitelist(self.bot, users, "No reason provided.", guild=guild, override=True)
+            await add_to_whitelist(
+                self.bot, users, "No reason provided.", guild=guild, override=True
+            )
         if not self._log_channel:
             return
         msg = f"Added these users/roles to {self._guild_global(guild)} whitelist.\n\n{u}\n\n{self._get_timestamp()}"
@@ -155,10 +159,12 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
 
     @commands.Cog.listener()
     async def on_whitelist_remove(self, guild: discord.Guild, users: Set[int]):
-        u = str(users)[1:-1] # :kappa:
+        u = str(users)[1:-1]  # :kappa:
         users = {u for u in users if await in_whitelist(self.bot, u, guild)}
         if users:
-            log.debug(f"Removing these users/roles from the whitelist config. {users = }. {guild = }")
+            log.debug(
+                f"Removing these users/roles from the whitelist config. {users = }. {guild = }"
+            )
             await remove_from_whitelist(self.bot, users, guild=guild, override=True)
         if not self._log_channel:
             return
