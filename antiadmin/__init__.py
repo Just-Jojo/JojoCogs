@@ -15,7 +15,7 @@ class AntiAdmin(commands.Cog):
     """Prevent people from using Admin permissions on your bot."""
 
     __authors__ = "Jojo#7791"
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -84,12 +84,17 @@ class AntiAdmin(commands.Cog):
     def _get_guild_name(self, guild_id: int) -> str:
         return getattr(self.bot.get_guild(guild_id), "name", "Unknown Guild.")
 
-    @antiadminset.command(name="ignore")
-    async def anti_admin_ignore(self, ctx: commands.Context, toggle: bool):
+    @antiadminset.command(name="ignore", aliases=["toggle"])
+    async def anti_admin_toggle(self, ctx: commands.Context, toggle: bool):
         """Set whether the cog should ignore if it has administrator permissions"""
         await self.config.ignore_messages.set(toggle)
         now_no_longer = "now" if toggle else "no longer"
         await ctx.send(f"Guilds that I have adminstrator permissions in will {now_no_longer} be ignored.")
+
+    @antiadminset.command(name="enabled")
+    async def anti_admin_enabled(self, ctx: commands.Context):
+        """Check if anti admin is enabled"""
+        await ctx.send(f"Anti Admin is current {'enabled' if not await self.config.ignore_messages() else 'disabled'}")
 
     @commands.is_owner()
     @commands.command(name="antiadminview", aliases=["aav"])
