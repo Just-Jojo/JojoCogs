@@ -119,7 +119,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         if users:
             log.debug(f"Adding these users to the blacklist config. {users = }. {guild = }")
             await add_to_blacklist(self.bot, users, "No reason provided.", guild=guild, override=True)
-        if not self._log_channel:
+        if guild or not self._log_channel:
             return
         msg = f"Added these users/roles to {self._guild_global(guild)} blacklist.\n\n{u}"
         await self._log_message(msg)
@@ -131,7 +131,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         if users:
             log.debug(f"Removing these users from the blacklist config. {users = }. {guild = }")
             await remove_from_blacklist(self.bot, users, guild=guild, override=True)
-        if not self._log_channel:
+        if guild or not self._log_channel:
             return
         msg = f"Removed these users/roles from {self._guild_global(guild)} blacklist.\n\n{u}"
         await self._log_message(msg)
@@ -140,7 +140,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
     async def on_blacklist_clear(self, guild: discord.Guild):
         log.debug(f"Clearing blacklist config. {guild = }")
         await clear_blacklist(self.bot, guild, True)
-        if not self._log_channel:
+        if guild or not self._log_channel:
             return
         msg = f"Cleared {self._guild_global(guild)} blacklist."
         await self._log_message(msg)
@@ -152,7 +152,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         if users:
             log.debug(f"Adding these users to the whitelist config. {users = }. {guild = }")
             await add_to_whitelist(self.bot, users, "No reason provided.", guild=guild, override=True)
-        if not self._log_channel:
+        if guild or not self._log_channel:
             return
         msg = f"Added these users/roles to {self._guild_global(guild)} whitelist.\n\n{u}"
         await self._log_message(msg)
@@ -164,7 +164,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         if users:
             log.debug(f"Removing these users/roles from the whitelist config. {users = }. {guild = }")
             await remove_from_whitelist(self.bot, users, guild=guild, override=True)
-        if not self._log_channel:
+        if guild or not self._log_channel:
             return
         msg = (
             f"Removed these users from {self._guild_global(guild)} "
@@ -176,7 +176,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
     async def on_whitelist_clear(self, guild: discord.Guild):
         log.debug(f"Clearing the whitelist config. {guild = }")
         await clear_whitelist(self.bot, guild, override=True)
-        if not self._log_channel:
+        if guild or not self._log_channel:
             return
         msg = f"Cleared {self._guild_global(guild)} whitelist."
         await self._log_message(msg)
