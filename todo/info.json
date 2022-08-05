@@ -8,7 +8,7 @@
         "Jojo#7791"
     ],
     "required_cogs": {},
-    "requirements": ["tabulate", "emoji~=1.2"],
+    "requirements": ["tabulate", "emoji~=1.7"],
     "tags": [
         "todo", "utility"
     ],
