@@ -207,11 +207,11 @@ class TodoMenu(_MenuMixin):
         max_pages = self.source.max_pages
         try:
             if max_pages > page_number >= 0:
-                await self.show_page(page_number)
+                await self.show_page(page_number, interaction)
             elif max_pages <= page_number:
-                await self.show_page(0)
+                await self.show_page(0, interaction)
             else:
-                await self.show_page(max_pages - 1)
+                await self.show_page(max_pages - 1, interaction)
         except IndexError:
             pass
 
