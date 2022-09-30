@@ -96,11 +96,6 @@ class CmdLogger(commands.Cog):
             - `confirm` Skips the confirmation check
         """
         if not confirm and value:
-            if ctx.guild and not ctx.channel.permissions_for(ctx.me).add_reactions:
-                return await ctx.send(
-                    f"Please confirm that you want to log all using `{ctx.clean_prefix}{ctx.invoked_with} True True`"
-                )
-
             msg = await ctx.send("Are you sure you would like to log every command? (y/n)")
             pred = MessagePredicate.yes_or_no(ctx)
             try:
