@@ -10,6 +10,7 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, inline, pagify
+from redbot.core.utils.predicates import MessagePredicate
 
 from .converters import CommandOrCogConverter, NoneChannelConverter
 from .menus import CmdMenu, CmdPages
@@ -38,12 +39,14 @@ class CmdLogger(commands.Cog):
     """Log used commands"""
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
-    __version__: Final[str] = "1.0.1"
+    __version__: Final[str] = "1.0.2"
 
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
-        self.config.register_global(log_channel=None, commands=[], cogs=[])
+        self.config.register_global(
+            log_channel=None, commands=[], cogs=[], log_all=False, ignore_owner=False
+        )
         if 544974305445019651 in self.bot.owner_ids:
             with suppress(RuntimeError):
                 self.bot.add_dev_env_value("cmdlog", lambda x: self)
@@ -80,6 +83,43 @@ class CmdLogger(commands.Cog):
     async def cmd_settings(self, ctx: commands.Context):
         """Manage the settings for cmd logger"""
         pass
+
+    @cmd_settings.command(name="logall", hidden=True)
+    async def cmd_log_all(
+        self, ctx: commands.Context, value: bool, confirm: Optional[bool] = False
+    ):
+        """Log every command used
+
+        This is not recommended if your bot is semi-large (or large) and you have a log channel set.
+
+        **Arguments**
+            - `confirm` Skips the confirmation check
+        """
+        if not confirm and value:
+            if ctx.guild and not ctx.channel.permissions_for(ctx.me).add_reactions:
+                return await ctx.send(
+                    f"Please confirm that you want to log all using `{ctx.clean_prefix}{ctx.invoked_with} True True`"
+                )
+
+            msg = await ctx.send("Are you sure you would like to log every command? (y/n)")
+            pred = MessagePredicate.yes_or_no(ctx)
+            try:
+                umsg = await ctx.bot.wait_for("message", check=pred)
+            except asyncio.TimeoutError:
+                pass
+            with suppress(discord.Forbidden, discord.NotFound):
+                await msg.delete()
+                await umsg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+            if not pred.result:
+                await ctx.send("Okay, I won't log every command.")
+        await self.config.log_all.set(value)
+        await ctx.tick()
+
+    @cmd_settings.command(name="ignoreowner")
+    async def cmd_ignore_owner(self, ctx: commands.Context, value: bool):
+        """Ignore owner used commands"""
+        await self.config.ignore_owner.set(value)
+        await ctx.tick()
 
     @cmd_settings.command(name="channel", usage="<channel or None>")
     async def cmd_channel(self, ctx: commands.Context, channel: NoneChannelConverter):
@@ -168,10 +208,13 @@ class CmdLogger(commands.Cog):
     async def on_command_completion(self, ctx: commands.Context):
         conf = await self.config.all()
         name = ctx.command.qualified_name
-        if ctx.command.qualified_name not in conf["commands"] and (
-            ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"]
+        if (
+            not conf["log_all"]
+            and (conf["ignore_owners"] and await ctx.bot.is_owner(ctx.author))
+            and ctx.command.qualified_name not in conf["commands"]
+            and (ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"])
         ):
-            return  # Large if statements are fucking dumb
+            return  # Large chains of if statements are fucking dumb
         guild_data = "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
         msg = f"Command '{ctx.command.qualified_name}' was used by {ctx.author} ({ctx.author.id}). {guild_data}"
         log.info(msg)
