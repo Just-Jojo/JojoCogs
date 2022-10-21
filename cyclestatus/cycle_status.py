@@ -1,6 +1,8 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+from __future__ import annotations
+
 import asyncio
 import enum
 import logging
@@ -28,6 +30,7 @@ _config_structure = {
         "toggled": True,  # Toggle if the status should be cycled or not
         "random": False,
         "status_type": 0,  # int, the value corresponds with a `discord.ActivityType` value
+        "status_mode": "online", # str, the value corresponds with a `discord.Status` value
     },
 }
 
@@ -55,11 +58,36 @@ else:
     class ActivityConverter(commands.Converter):
         async def convert(self, ctx: commands.Context, arg: str) -> ActivityType:
             arg = arg.lower()
-            ret = getattr(ActivityType, arg, None)
-            if not ret:
+            try:
+                return getattr(ActivityType, arg)
+            except AttributeError:
                 vals = humanize_list(list(map(lambda c: f"`{c.name}`", ActivityType)))
                 raise commands.BadArgument(f"The argument must be one of the following: {vals}")
-            return ret
+
+
+class Status(enum.Enum):
+    online = 'online'
+    idle = 'idle'
+    dnd = 'dnd'
+    do_not_disturb = 'dnd'
+
+    def __str__(self):
+        return self.value
+
+
+if TYPE_CHECKING:
+    StatusConverter = Status
+else:
+
+    class StatusConverter(commands.Converter):
+        async def convert(self, ctx: commands.Context, arg: str) -> Status:
+            arg = arg.lower().replace(" ", "_")
+            try:
+                return Status(arg)
+            except ValueError:
+                vals = humanize_list(list(map(lambda c: f"`{c.name.replace('_', ' ')}`", discord.Status)))
+                raise commands.BadArgument(f"The argument must be one of the following: {vals}")
+
 
 
 class CycleStatus(commands.Cog):
@@ -68,7 +96,7 @@ class CycleStatus(commands.Cog):
     __authors__: Final[List[str]] = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__: Final[List[str]] = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
-    __version__: Final[str] = "1.0.13"
+    __version__: Final[str] = "1.0.14"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -122,6 +150,17 @@ class CycleStatus(commands.Cog):
         """
         await self.config.status_type.set(status.value)
         await ctx.send(f"Done, set the status type to `{status.name}`.")
+
+    @status.command(name="mode")
+    async def status_mode(self, ctx: commands.Context, *, mode: StatusConverter):
+        """Change the [botname]'s status mode
+
+        **Arguments**
+            - `mode` The mode type. Valid types are
+            `online idle, and dnd and do not disturb`
+        """
+        await self.config.status_mode.set(mode.value)
+        await ctx.send(f"Done, set the status mode to `{mode.value}`.")
 
     @status.command()
     async def forcenext(self, ctx: commands.Context):
@@ -192,7 +231,7 @@ class CycleStatus(commands.Cog):
         async with self.config.statuses() as sts:
             if num >= len(sts):
                 return await ctx.send("You don't have that many statuses, silly")
-            sts.pop(num)
+            del sts[index]
         await ctx.tick()
 
     @status.command(name="list")
@@ -326,4 +365,5 @@ class CycleStatus(commands.Cog):
         if use_help:
             status += f" | {prefix}help"
         game = discord.Activity(type=await self.config.status_type(), name=status)
-        await self.bot.change_presence(activity=game)
+        log.debug("Hello")
+        await self.bot.change_presence(activity=game, status=await self.config.status_mode())
