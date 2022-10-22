@@ -10,8 +10,14 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from ..abc import ABMixin  # type:ignore
-from .utils import (add_to_blacklist, clear_blacklist, edit_reason, get_blacklist, in_blacklist,
-                    remove_from_blacklist)
+from .utils import (
+    add_to_blacklist,
+    clear_blacklist,
+    edit_reason,
+    get_blacklist,
+    in_blacklist,
+    remove_from_blacklist,
+)
 
 __all__ = ["Blacklist"]
 

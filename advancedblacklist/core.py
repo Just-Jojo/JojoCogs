@@ -14,9 +14,17 @@ from redbot.core.utils.chat_formatting import humanize_list, pagify
 
 from .abc import CompositeMetaclass
 from .commands import Blacklist, Whitelist
-from .commands.utils import (add_to_blacklist, add_to_whitelist, clear_blacklist, clear_whitelist,
-                             in_blacklist, in_whitelist, remove_from_blacklist,
-                             remove_from_whitelist, startup)
+from .commands.utils import (
+    add_to_blacklist,
+    add_to_whitelist,
+    clear_blacklist,
+    clear_whitelist,
+    in_blacklist,
+    in_whitelist,
+    remove_from_blacklist,
+    remove_from_whitelist,
+    startup,
+)
 from .const import __authors__, __version__, _config_structure
 from .patch import destroy, init
 

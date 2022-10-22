@@ -184,9 +184,7 @@ class CmdLogger(commands.Cog):
     async def cmd_list(self, ctx: commands.Context):
         """List the commands and cogs tracked by [botname]"""
         if await self.config.log_all():
-            return await ctx.send(
-                "I am currently logging every command used."
-            )
+            return await ctx.send("I am currently logging every command used.")
         cmds = await self.config.commands()
         cogs = await self.config.cogs()
         if not cmds and not cogs:

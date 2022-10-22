@@ -32,8 +32,19 @@ import functools
 import logging
 import multiprocessing as mp
 from multiprocessing.pool import Pool
-from typing import (Any, AsyncGenerator, Callable, Coroutine, Dict, Iterable, List, Optional,
-                    Tuple, TypeVar, Union)
+from typing import (
+    Any,
+    AsyncGenerator,
+    Callable,
+    Coroutine,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import discord
 from redbot.core import Config, commands

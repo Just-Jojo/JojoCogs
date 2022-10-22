@@ -34,7 +34,9 @@ class AntiAdmin(commands.Cog):
 
     @commands.command()
     async def antiadminversion(self, ctx: commands.Context):
-        await ctx.maybe_send_embed(f"AntiAdmin, version {self.__version__}. Written by {self.__authors__}")
+        await ctx.maybe_send_embed(
+            f"AntiAdmin, version {self.__version__}. Written by {self.__authors__}"
+        )
 
     @commands.group()
     @commands.is_owner()
@@ -94,7 +96,9 @@ class AntiAdmin(commands.Cog):
     @antiadminset.command(name="enabled")
     async def anti_admin_enabled(self, ctx: commands.Context):
         """Check if anti admin is enabled"""
-        await ctx.send(f"Anti Admin is current {'enabled' if not await self.config.ignore_messages() else 'disabled'}")
+        await ctx.send(
+            f"Anti Admin is current {'enabled' if not await self.config.ignore_messages() else 'disabled'}"
+        )
 
     @commands.is_owner()
     @commands.command(name="antiadminview", aliases=["aav"])
@@ -123,7 +127,7 @@ class AntiAdmin(commands.Cog):
             try:
                 chan = [c for c in guild.channels if c.permissions_for(guild.me).send_messages][0]
             except IndexError:
-                ... # Fuck your guild then
+                ...  # Fuck your guild then
             else:
                 message = f"{guild.owner.mention}, p{message[1:]}"
                 await chan.send(message)

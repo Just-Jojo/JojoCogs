@@ -30,7 +30,7 @@ _config_structure = {
         "toggled": True,  # Toggle if the status should be cycled or not
         "random": False,
         "status_type": 0,  # int, the value corresponds with a `discord.ActivityType` value
-        "status_mode": "online", # str, the value corresponds with a `discord.Status` value
+        "status_mode": "online",  # str, the value corresponds with a `discord.Status` value
     },
 }
 
@@ -66,10 +66,10 @@ else:
 
 
 class Status(enum.Enum):
-    online = 'online'
-    idle = 'idle'
-    dnd = 'dnd'
-    do_not_disturb = 'dnd'
+    online = "online"
+    idle = "idle"
+    dnd = "dnd"
+    do_not_disturb = "dnd"
 
     def __str__(self):
         return self.value
@@ -85,9 +85,10 @@ else:
             try:
                 return Status(arg)
             except ValueError:
-                vals = humanize_list(list(map(lambda c: f"`{c.name.replace('_', ' ')}`", discord.Status)))
+                vals = humanize_list(
+                    list(map(lambda c: f"`{c.name.replace('_', ' ')}`", discord.Status))
+                )
                 raise commands.BadArgument(f"The argument must be one of the following: {vals}")
-
 
 
 class CycleStatus(commands.Cog):

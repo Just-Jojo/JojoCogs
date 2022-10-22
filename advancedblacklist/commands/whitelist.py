@@ -11,8 +11,14 @@ from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from ..abc import ABMixin  # type:ignore
-from .utils import (add_to_whitelist, clear_whitelist, edit_reason, get_whitelist, in_whitelist,
-                    remove_from_whitelist)
+from .utils import (
+    add_to_whitelist,
+    clear_whitelist,
+    edit_reason,
+    get_whitelist,
+    in_whitelist,
+    remove_from_whitelist,
+)
 
 log = logging.getLogger("red.jojocogs.advancedblacklist.whitelist")
 
