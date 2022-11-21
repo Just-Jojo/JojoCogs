@@ -232,7 +232,7 @@ class CycleStatus(commands.Cog):
         async with self.config.statuses() as sts:
             if num >= len(sts):
                 return await ctx.send("You don't have that many statuses, silly")
-            del sts[index]
+            del sts[num]
         await ctx.tick()
 
     @status.command(name="list")
