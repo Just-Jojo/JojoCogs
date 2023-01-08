@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 from contextlib import suppress
 from types import ModuleType
-from typing import Optional, Set, Union
+from typing import Optional, Set, Union, TYPE_CHECKING
 
 import discord  # type:ignore
 import datetime
@@ -38,7 +38,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         self.bot = bot
         self._commands: Set[Optional[commands.Command]] = set()
         self.config = Config.get_conf(self, 544974305445019651, True) # Log channel stuff
-        self._log_channel: Optional[discord.TextChannel] = None
+        self._log_channel: Optional[discord.TextChannel] = None # type:ignore # Dunno why mypy is complaining
         self._task = self.bot.loop.create_task(startup(self.bot))
         self._log_task = self.bot.loop.create_task(self._get_log_channel())
         init(self.bot)
@@ -72,9 +72,13 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
                 channel = await self.bot.fetch_channel(cid)
             except discord.HTTPException:
                 return
+        if TYPE_CHECKING:
+            assert isinstance(channel, discord.TextChannel), "mypy"
         self._log_channel = channel
 
     async def _log_message(self, msg: str) -> None:
+        if TYPE_CHECKING:
+            assert isinstance(self._log_channel, discord.TextChannel), "mypy momen"
         log.info(msg)
         msg += f"\n{self._get_timestamp()}"
         try:
@@ -197,7 +201,5 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         self, ctx: commands.Context, member_id: str
     ) -> Optional[Union[discord.Member, discord.User]]:
         mid = int(member_id)
-        ret: Optional[discord.Member] = None
-        if ctx.guild:
-            ret = ctx.guild.get_member(mid)
+        ret: Optional[discord.Member] = ctx.guild.get_member(mid) if ctx.guild else None
         return ret or self.bot.get_user(mid)

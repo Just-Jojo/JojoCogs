@@ -17,7 +17,7 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, humanize_number, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
-from .menus import Menu, Pages, PositiveInt
+from .menus import Menu, Page, PositiveInt
 
 log = logging.getLogger("red.JojoCogs.cyclestatus")
 _config_structure = {
@@ -82,7 +82,7 @@ class CycleStatus(commands.Cog):
         self.toggled = await self.config.toggled()
         self.random = await self.config.random()
 
-    def cog_unload(self) -> None:
+    async def cog_unload(self) -> None:
         self.main_task.cancel()
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
@@ -120,7 +120,7 @@ class CycleStatus(commands.Cog):
         await ctx.send(f"Done, set the status type to `{status.name}`.")
 
     @status.command()
-    @commands.check(lambda ctx: ctx.cog.random is False)
+    @commands.check(lambda ctx: ctx.cog.random is False) # type:ignore
     async def forcenext(self, ctx: commands.Context):
         """Force the next status to display on the bot"""
         nl = await self.config.next_iter()
@@ -140,7 +140,7 @@ class CycleStatus(commands.Cog):
         await ctx.tick()
 
     @status.command(name="usehelp")
-    async def status_set(self, ctx: commands.Context, toggle: bool = None):
+    async def status_set(self, ctx: commands.Context, toggle: Optional[bool] = None):
         """Change whether the status should have ` | [p]help`
 
         **Arguments**
@@ -169,7 +169,7 @@ class CycleStatus(commands.Cog):
         await ctx.tick()
 
     @status.command(name="remove", aliases=["del", "rm", "delete"])
-    async def status_remove(self, ctx: commands.Context, num: PositiveInt = None):
+    async def status_remove(self, ctx: commands.Context, num: Optional[PositiveInt] = None):
         """Remove a status from the list
 
         **Arguments**
@@ -284,7 +284,7 @@ class CycleStatus(commands.Cog):
             await self.config.next_iter.set(nl)
 
     @main_task.before_loop
-    async def main_task(self) -> None:
+    async def main_tas_before_loop(self) -> None:
         await self.bot.wait_until_red_ready()
 
     async def _num_lists(self, data: List[str]) -> List[str]:
@@ -295,11 +295,11 @@ class CycleStatus(commands.Cog):
         return [f"{num}. {d}" for num, d in enumerate(data, 1)]
 
     async def _show_statuses(self, ctx: commands.Context, statuses: List[str]) -> None:
-        source = Pages(
+        source = Page(
             list(pagify("\n".join(await self._num_lists(statuses)), page_length=400)),
             title="Statuses",
         )
-        await Menu(source=source).start(ctx, channel=ctx.channel)
+        await Menu(source=source, bot=self.bot, ctx=ctx).start()
 
     async def red_delete_data_for_user(self, *, requester: str, user_id: int) -> None:
         """Nothing to delete"""
@@ -311,7 +311,7 @@ class CycleStatus(commands.Cog):
         )
 
         prefix = (await self.bot.get_valid_prefixes())[0]
-        prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
+        prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix) # type:ignore
 
         status = status.replace(_bot_prefix_var, prefix)
 

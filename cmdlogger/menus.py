@@ -1,105 +1,137 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from contextlib import suppress
-from typing import Union
+from __future__ import annotations
 
+from contextlib import suppress
+from typing import Union, TYPE_CHECKING
+
+import datetime
 import discord
 from redbot.core import commands
-from redbot.vendored.discord.ext.menus import First, Last, ListPageSource, MenuPages, button
+from redbot.core.bot import Red
 
-__all__ = ["CmdMenu", "CmdPages"]
+__all__ = ["Menu", "Page"]
+
+button_emojis = {
+    (False, True): "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE}",
+    (False, False): "\N{BLACK LEFT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}",
+    (True, False): "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}",
+    (True, True): "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE}",
+}
 
 
-class CmdPages(ListPageSource):
-    def __init__(self, data: list):
-        super().__init__(data, per_page=1)
+class MenuButton(discord.ui.Button):
+    def __init__(self, forward: bool, skip: bool, disabled: bool):
+        super().__init__(emoji=button_emojis[(forward, skip)], style=discord.ButtonStyle.grey, disabled=disabled)
+        self.forward = forward
+        self.skip = skip
+        if TYPE_CHECKING:
+            self.view: Menu
 
-    async def format_page(self, menu: "CmdMenu", page: str) -> Union[discord.Embed, str]:
-        ctx: commands.Context = menu.ctx
-        footer = f"Page {menu.current_page + 1}/{self.get_max_pages()}"
+    async def callback(self, interaction: discord.Interaction) -> None:
+        if self.skip:
+            return await self.view.show_checked_page(-1 if self.forward else 0)
+        await self.view.show_checked_page(self.view.current_page + (1 if self.forward else -1))
 
+
+class StopButton(discord.ui.Button):
+    if TYPE_CHECKING:
+        view: Menu
+
+    def __init__(self):
+        super().__init__(
+            style=discord.ButtonStyle.red,
+            emoji="\N{HEAVY MULTIPLICATION X}\N{VARIATION SELECTOR-16}",
+            disabled=False,
+        )
+
+    async def callback(self, interaction: discord.Interaction) -> None:
+        self.view.stop()
+        with suppress(discord.Forbidden):
+            if self.view.msg:
+                await self.view.msg.delete()
+
+
+class Page:
+    def __init__(self, entries: list):
+        self.entries = entries
+        self.max_pages = len(entries)
+
+    async def format_page(self, page: str, view: Menu) -> Union[str, discord.Embed]:
+        ctx = view.ctx
+        footer = f"Page {view.current_page + 1}/{self.max_pages}"
         if await ctx.embed_requested():
-            embed = discord.Embed(
-                title="Cmd logging", description=page, colour=await ctx.embed_colour()
+            return discord.Embed(
+                title="Command Logging",
+                description=page,
+                colour=await ctx.embed_colour(),
+                timestamp=datetime.datetime.now(tz=datetime.timezone.utc)
             ).set_footer(text=footer)
-            return embed
-        return f"**Cmd logging**\n{page}\n{footer}"
+        return f"**Command Logging**\n\n{page}\n\n{footer}"
 
 
-class CmdMenu(MenuPages):
-    ctx: commands.Context
+class Menu(discord.ui.View):
+    def __init__(self, source: Page, ctx: commands.Context):
+        super().__init__()
+        self.source: Page = source
+        self.ctx: commands.Context = ctx
 
-    @property
-    def source(self) -> CmdPages:
-        return self._source
+        self.current_page: int = 0
+        self.msg: discord.Message = None # type:ignore
+        self.add_buttons()
 
-    def __init__(self, source: CmdPages):
-        super().__init__(source, clear_reactions_after=True)
+    def add_item(self, item: discord.ui.Item):
+        if getattr(item, "disabled", False):
+            return self
+        return super().add_item(item)
 
-    def _skip_double_triangle_buttons(self) -> bool:
-        max_pages = self._source.get_max_pages()
-        if max_pages is None:
-            return True
-        return max_pages <= 4
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message(
+                content="You are not authorized to use this menu.",
+                ephemeral=True,
+            )
+            return False
+        return True
 
-    async def send_initial_message(self, ctx, channel) -> discord.Message:
-        page = await self.source.get_page(0)
-        kwargs = await self._get_kwargs_from_page(page)
-        return await channel.send(**kwargs)
+    def add_buttons(self) -> None:
+        single_disabled = self.source.max_pages <= 1
+        multi_disabled = self.source.max_pages <= 5
+        [self.add_item(i) for i in [
+                MenuButton(False, True, multi_disabled),
+                MenuButton(False, False, single_disabled),
+                StopButton(),
+                MenuButton(True, False, single_disabled),
+                MenuButton(True, True, multi_disabled),
+            ]
+        ]
 
-    def _skip_single_triangle_buttons(self) -> bool:
-        max_pages = self._source.get_max_pages()
-        if max_pages is None:
-            return True
-        return max_pages == 1
+    async def _get_kwargs_from_page(self, page: str) -> dict:
+        data = await self.source.format_page(page, self)
+        if isinstance(data, discord.Embed):
+            return {"embed": data}
+        return {"content": str(data)}
 
     async def show_checked_page(self, page_number: int) -> None:
-        max_pages = self.source.get_max_pages()
+        max_pages = self.source.max_pages
         try:
-            if max_pages is None or max_pages > page_number >= 0:
+            if max_pages > page_number >= 0:
                 await self.show_page(page_number)
             elif max_pages <= page_number:
                 await self.show_page(0)
-            elif page_number < 0:
+            else:
                 await self.show_page(max_pages - 1)
         except IndexError:
             pass
 
-    @button(
-        "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE}\N{VARIATION SELECTOR-16}",
-        skip_if=_skip_double_triangle_buttons,
-        position=First(0),
-    )
-    async def go_to_first_page(self, payload):
-        await self.show_page(0)
+    async def show_page(self, page_number: int) -> None:
+        page = self.source.entries[page_number]
+        self.current_page = page_number
+        kwargs = await self._get_kwargs_from_page(page)
+        await self.msg.edit(**kwargs)
 
-    @button(
-        "\N{LEFTWARDS BLACK ARROW}\N{VARIATION SELECTOR-16}",
-        skip_if=_skip_single_triangle_buttons,
-        position=First(1),
-    )
-    async def go_to_previous_page(self, payload):
-        await self.show_checked_page(self.current_page - 1)
-
-    @button(
-        "\N{BLACK RIGHTWARDS ARROW}\N{VARIATION SELECTOR-16}",
-        skip_if=_skip_single_triangle_buttons,
-        position=Last(0),
-    )
-    async def go_to_next_page(self, payload):
-        await self.show_checked_page(self.current_page + 1)
-
-    @button(
-        "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE}\N{VARIATION SELECTOR-16}",
-        skip_if=_skip_double_triangle_buttons,
-        position=Last(1),
-    )
-    async def go_to_last_page(self, payload):
-        await self.show_checked_page(self.source.get_max_pages() - 1)
-
-    @button("\N{CROSS MARK}")
-    async def stop_pages(self, payload):
-        self.stop()
-        with suppress(discord.Forbidden, discord.NotFound):
-            await self.message.delete()
+    async def start(self) -> None:
+        page = self.source.entries[0]
+        kwargs = await self._get_kwargs_from_page(page)
+        self.msg = await self.ctx.send(view=self, **kwargs)

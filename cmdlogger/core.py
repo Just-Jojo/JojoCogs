@@ -4,7 +4,7 @@
 import logging
 from contextlib import suppress
 from functools import wraps
-from typing import Any, Callable, Final, Iterable, List, Optional
+from typing import Any, Callable, Final, Iterable, List, Optional, TYPE_CHECKING
 
 import discord
 from redbot.core import Config, commands
@@ -12,7 +12,7 @@ from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, inline, pagify
 
 from .converters import CommandOrCogConverter, NoneChannelConverter
-from .menus import CmdMenu, CmdPages
+from .menus import Page, Menu
 
 log = logging.getLogger("red.JojoCogs.cmd_logger")
 
@@ -25,7 +25,7 @@ def listify(func: Callable):
     """Wraps a function's return type in a list"""
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> list:
         return list(func(*args, **kwargs))
 
     return wrapper
@@ -44,13 +44,13 @@ class CmdLogger(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(log_channel=None, commands=[], cogs=[])
-        if 544974305445019651 in self.bot.owner_ids:
+        if 544974305445019651 in self.bot.owner_ids: # type:ignore
             with suppress(RuntimeError):
                 self.bot.add_dev_env_value("cmdlog", lambda x: self)
 
         self.log_channel: Optional[discord.TextChannel] = None
 
-    def cog_unload(self) -> None:
+    async def cog_unload(self) -> None:
         with suppress(Exception):
             self.bot.remove_dev_env_value("cmdlog")
 
@@ -63,7 +63,7 @@ class CmdLogger(commands.Cog):
             f"Version: `{self.__version__}`"
         )
 
-    async def cog_check(self, ctx: commands.Context) -> bool:
+    async def cog_check(self, ctx: commands.Context) -> bool: # type:ignore
         return await ctx.bot.is_owner(ctx.author)
 
     @commands.group(name="cmdlogger", aliases=["cmdlog"])
@@ -161,8 +161,8 @@ class CmdLogger(commands.Cog):
         if cogs:
             cogs.insert(0, "**Cogs**")
         cmds.extend(cogs)
-        data = pagify("\n".join(cmds), page_length=200)
-        await CmdMenu(CmdPages(data)).start(ctx)  # type:ignore
+        data: list = pagify("\n".join(cmds), page_length=200) # type:ignore
+        await Menu(Page(data), ctx).start()
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):
@@ -194,6 +194,8 @@ class CmdLogger(commands.Cog):
                 log.warning("I could not find the log channel")
                 await self.config.log_channel.clear()
                 return
+        if TYPE_CHECKING:
+            assert isinstance(self.log_channel, discord.TextChannel), "mypy momen"
         try:
             await self.log_channel.send(msg)
         except discord.Forbidden:

@@ -4,7 +4,7 @@
 import asyncio
 import datetime
 import logging
-from typing import Any, Dict, Final, List, Optional, Tuple, TypeVar
+from typing import Any, Dict, Final, List, Optional, Tuple, TypeVar, TYPE_CHECKING
 
 import aiohttp
 import discord
@@ -17,8 +17,12 @@ from .utils import *
 log = logging.getLogger("red.JojoCogs.advanced_invite")
 
 
-class NoneStrict(NoneConverter):
-    strict = True
+if TYPE_CHECKING:
+    NoneStrict = NoneConverter
+else:
+    class NoneStrict(NoneConverter):
+        strict = True
+
 
 
 async def can_invite(ctx: commands.Context) -> bool:
@@ -56,7 +60,7 @@ class AdvancedInvite(commands.Cog):
         self.config.register_global(**_config_structure)
         self._supported_images: Tuple[str, ...] = ("jpg", "jpeg", "png", "gif")
 
-    def cog_unload(self) -> None:
+    async def cog_unload(self) -> None:
         self.bot.remove_command("invite"), self.bot.add_command(  # type:ignore
             self._invite_command
         ) if self._invite_command else None
@@ -94,11 +98,14 @@ class AdvancedInvite(commands.Cog):
     async def invite(self, ctx: commands.Context, send_in_channel: Optional[bool] = False):
         """Invite [botname] to your server!"""
 
-        channel = (
-            await self._get_channel(ctx)
-            if not send_in_channel and await self.bot.is_owner(ctx.author)
-            else ctx.channel
-        )
+        if TYPE_CHECKING:
+            channel: discord.TextChannel
+        else:
+            channel = (
+                await self._get_channel(ctx)
+                if not send_in_channel and await self.bot.is_owner(ctx.author)
+                else ctx.channel
+            )
         settings = await self.config.all()
         title, message = self._get_items(settings, ["title", "custom_message"], ctx)
         url = await self.bot.get_invite_url()
@@ -118,7 +125,7 @@ class AdvancedInvite(commands.Cog):
                 "{user_count}",
                 humanize_number(len(self.bot.users))
             )
-        kwargs = {
+        kwargs: Dict[str, Any] = {
             "content": (
                 f"**{title}**\n\n{message}\n<{url}>\n{support_msg}\n\n{footer}"
             ),
@@ -138,23 +145,25 @@ class AdvancedInvite(commands.Cog):
             if iurl := settings.get("image_url"):
                 embed.set_image(url=iurl)
             if footer:
-                embed.set_footer(footer)
+                embed.set_footer(text=footer)
             kwargs = {"embed": embed}
         view = discord.ui.View()
         view.add_item(self._make_button(url, f"Invite {ctx.me.name}", invite_emoji))
         if support:
             view.add_item(self._make_button(support, "Join the support server", support_emoji))
+        kwargs["view"] = view
         try:
-            await channel.send(**kwargs, view=view)
+            await channel.send(**kwargs)
         except discord.Forbidden: # Couldn't dm
             await ctx.send("I could not dm you!")
 
     @staticmethod
     def _make_button(url: str, label: str, emoji: Optional[Emoji]) -> discord.ui.Button:
-        return discord.ui.Button(style=discord.ButtonStyle.url, label=label, url=url, emoji=emoji)
+        emoji_data = emoji.as_emoji() if emoji else None
+        return discord.ui.Button(style=discord.ButtonStyle.url, label=label, url=url, emoji=emoji_data)
 
     @staticmethod
-    def _get_items(settings: dict, keys: List[str], ctx: commands.Context) -> str:
+    def _get_items(settings: dict, keys: List[str], ctx: commands.Context) -> list:
         return [
             settings.get(key, _config_structure[key]).replace(
                 "{bot_name}", ctx.me.name,
