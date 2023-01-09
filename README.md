@@ -44,11 +44,6 @@ If you want to make a pull request, first thank you for contributing (because I 
 3. Test your changes (really rather not merge broken code)
 4. Make a pull request with the changes listed
 
-## Supporting the project
-To those of you who want to support this project, firstly thanks! You can support by providing code (see Pull Requests above) or by sending a few dollars on [Patreon](https://patreon.com/justjojo)
-
-Thanks!
-
 ## Extra thanks to...
 - JJW for kickstarting my interest in discord bots
 - Kreusada for helping me figure stuff out
