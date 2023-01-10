@@ -28,12 +28,18 @@ _config_structure = {
         "toggled": True,  # Toggle if the status should be cycled or not
         "random": False,
         "status_type": 0, # int, the value corresponds with a `discord.ActivityType` value
+        "status_mode": "online", # str, the value that corresponds with a `discord.Status` value
     },
 }
 
 _bot_guild_var: Final[str] = r"{bot_guild_count}"
 _bot_member_var: Final[str] = r"{bot_member_count}"
 _bot_prefix_var: Final[str] = r"{bot_prefix}"
+
+def humanize_enum_vals(e: enum.Enum) -> str:
+    return humanize_list(
+        list(map(lambda c: f"`{c.name.replace('_', ' ')}`", e)) # type:ignore
+    )
 
 
 class ActivityType(enum.Enum):
@@ -56,9 +62,33 @@ else:
             arg = arg.lower()
             ret = getattr(ActivityType, arg, None)
             if not ret:
-                vals = humanize_list(list(map(lambda c: f"`{c.name}`", ActivityType)))
-                raise commands.BadArgument(f"The argument must be one of the following: {vals}")
+                raise commands.BadArgument(
+                    f"The argument must be one of the following: {humanize_enum_vals(ActivityType)}"
+                )
             return ret
+
+
+class Status(enum.Enum):
+    online = "online"
+    idle = "idle"
+    do_not_disturb = dnd = "dnd"
+
+    def __str__(self) -> str:
+        return self.value
+
+
+if TYPE_CHECKING:
+    StatusConverter = Status
+else:
+    class StatusConverter(commands.Converter):
+        async def convert(self, ctx: commands.Context, arg: str) -> Status:
+            arg = arg.lower().replace(" ", "_")
+            try:
+                return Status(arg)
+            except ValueError:
+                raise commands.BadArgument(
+                    f"The argument must be one of the following: {humanize_enum_vals(Status)}"
+                )
 
 
 class CycleStatus(commands.Cog):
@@ -118,6 +148,17 @@ class CycleStatus(commands.Cog):
         """
         await self.config.status_type.set(status.value)
         await ctx.send(f"Done, set the status type to `{status.name}`.")
+
+    @status.command(name="mode")
+    async def status_mode(self, ctx: commands.Context, mode: StatusConverter):
+        """Change [botname]'s status mode
+        
+        **Arguments**
+            - `mode` The mode type. Valid types are:
+            `online, idle, dnd, and do not disturb`
+        """
+        await self.config.status_mode.set(mode.value)
+        await ctx.send(f"Done, set the status mode to `{mode.value}`.")
 
     @status.command()
     @commands.check(lambda ctx: ctx.cog.random is False) # type:ignore
@@ -318,4 +359,4 @@ class CycleStatus(commands.Cog):
         if use_help:
             status += f" | {prefix}help"
         game = discord.Activity(type=await self.config.status_type(), name=status)
-        await self.bot.change_presence(activity=game)
+        await self.bot.change_presence(activity=game, status=await self.config.status_mode())
