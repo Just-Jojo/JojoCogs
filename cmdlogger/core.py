@@ -152,7 +152,7 @@ class CmdLogger(commands.Cog):
             if cmd in cmds:
                 return await ctx.send(
                     f"I am already tracking the {key} `{cmd}`.\n"
-                    "If this {key} isn't being tracked, please make an issue on my github"
+                    f"If this {key} isn't being tracked, please make an issue on my github"
                 )
             cmds.append(cmd)
         await ctx.tick()
@@ -174,7 +174,7 @@ class CmdLogger(commands.Cog):
             if cmd not in cmds:
                 return await ctx.send(
                     f"I am already not tracking the {key} `{cmd}`.\n"
-                    "If this {key} is being tracked, please make an issue on my github\n"
+                    f"If this {key} is being tracked, please make an issue on my github\n"
                     "<https://github.com/Just-Jojo/JojoCogs>"
                 )
             cmds.remove(cmd)
