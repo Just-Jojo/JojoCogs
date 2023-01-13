@@ -11,12 +11,13 @@ body:
       options:
         - AdvancedBlacklist
         - AdvancedInvite
-        - Collectibles
-        - Cyclestatus
-        - Depypher
-        - Ducks
+        - AdvancedLog
+        - AntiAdmin
+        - CmdLogger
+        - CycleStatus
+        - ErrorBlacklist
+        - ModNotes
         - ToDo
-        - UpdateUtils
     validations:
       required: true
   - type: input
