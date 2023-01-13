@@ -207,7 +207,7 @@ class CmdLogger(commands.Cog):
         name = ctx.command.qualified_name
         if (
             not conf["log_all"]
-            and (conf["ignore_owners"] and await ctx.bot.is_owner(ctx.author))
+            and (conf["ignore_owner"] and await ctx.bot.is_owner(ctx.author))
             and ctx.command.qualified_name not in conf["commands"]
             and (ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"])
         ):
