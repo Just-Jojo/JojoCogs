@@ -4,7 +4,7 @@
 import logging
 from contextlib import suppress
 from functools import wraps
-from typing import Any, Callable, Final, Iterable, List, Optional, TYPE_CHECKING
+from typing import Any, Callable, Final, Iterable, List, Optional, Union, TYPE_CHECKING
 
 import discord
 from redbot.core import Config, commands
@@ -38,17 +38,17 @@ class CmdLogger(commands.Cog):
     """Log used commands"""
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
-    __version__: Final[str] = "1.0.1"
+    __version__: Final[str] = "1.0.2"
 
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
-        self.config.register_global(log_channel=None, commands=[], cogs=[])
+        self.config.register_global(log_channel=None, commands=[], cogs=[], ignore_owner=True)
         if 544974305445019651 in self.bot.owner_ids: # type:ignore
             with suppress(RuntimeError):
                 self.bot.add_dev_env_value("cmdlog", lambda x: self)
 
-        self.log_channel: Optional[discord.TextChannel] = None
+        self.log_channel: Optional[Union[discord.TextChannel, discord.Thread]] = None
 
     async def cog_unload(self) -> None:
         with suppress(Exception):
@@ -70,6 +70,16 @@ class CmdLogger(commands.Cog):
     async def cmd_logger(self, ctx: commands.Context):
         """Commands working with the cmd logger cog"""
         pass
+
+    @cmd_logger.command(name="ignoreowner", aliases=["ignoreowners"])
+    async def cmd_ignore_owner(self, ctx: commands.Context, value: bool):
+        """Whether the command logger should ignore the owner
+
+        **Arguments**
+            - `value` Whether the command logger should ignore the owner or not.
+        """
+        await self.config.ignore_owner.set(value)
+        await ctx.tick()
 
     @cmd_logger.command(name="version")
     async def cmd_log_version(self, ctx: commands.Context):
@@ -117,7 +127,7 @@ class CmdLogger(commands.Cog):
             if cmd in cmds:
                 return await ctx.send(
                     f"I am already tracking the {key} `{cmd}`.\n"
-                    "If this {key} isn't being tracked, please make an issue on my github"
+                    f"If this {key} isn't being tracked, please make an issue on my github"
                 )
             cmds.append(cmd)
         await ctx.tick()
@@ -139,7 +149,7 @@ class CmdLogger(commands.Cog):
             if cmd not in cmds:
                 return await ctx.send(
                     f"I am already not tracking the {key} `{cmd}`.\n"
-                    "If this {key} is being tracked, please make an issue on my github\n"
+                    f"If this {key} is being tracked, please make an issue on my github\n"
                     "<https://github.com/Just-Jojo/JojoCogs>"
                 )
             cmds.remove(cmd)
@@ -172,6 +182,8 @@ class CmdLogger(commands.Cog):
             ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"]
         ):
             return  # Large if statements are fucking dumb
+        if await self.bot.is_owner(ctx.author) and conf["ignore_owner"]:
+            return
         guild_data = "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
         msg = f"Command '{ctx.command.qualified_name}' was used by {ctx.author} ({ctx.author.id}). {guild_data}"
         log.info(msg)
