@@ -4,7 +4,7 @@
 import asyncio
 import datetime
 import logging
-from typing import Any, Dict, Final, List, Optional, Tuple, TypeVar, TYPE_CHECKING
+from typing import Any, Dict, Final, List, Optional, Union, Tuple, TypeVar, TYPE_CHECKING
 
 import aiohttp
 import discord
@@ -155,7 +155,17 @@ class AdvancedInvite(commands.Cog):
         try:
             await channel.send(**kwargs)
         except discord.Forbidden: # Couldn't dm
-            await ctx.send("I could not dm you!")
+            if channel == ctx.author.dm_channel:
+                return await ctx.send("I could not dm you!")
+            await ctx.send(
+                "I'm sorry, something went wrong when trying to send the invite."
+                "Please let my owner know if this problem continues."
+            )
+        except discord.HTTPException:
+            await ctx.send(
+                "I'm sorry, something went wrong when trying to send the invite."
+                "Please let my owner know if this problem continues."
+            )
 
     @staticmethod
     def _make_button(url: str, label: str, emoji: Optional[Emoji]) -> discord.ui.Button:
@@ -415,7 +425,7 @@ class AdvancedInvite(commands.Cog):
         msg = "**Invite settings**\n\n" + "\n".join(
             f"**{key}:** {value}" for key, value in _data.items()
         )
-        kwargs = {"content": msg}
+        kwargs: dict = {"content": msg}
         if await ctx.embed_requested():
             embed = discord.Embed(
                 title="Invite settings",
@@ -426,7 +436,7 @@ class AdvancedInvite(commands.Cog):
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
 
-    async def _get_channel(self, ctx: commands.Context) -> discord.TextChannel:
+    async def _get_channel(self, ctx: commands.Context) -> Union[discord.TextChannel, discord.DMChannel]:
         if await self.config.send_in_channel():
             return ctx.channel
 
