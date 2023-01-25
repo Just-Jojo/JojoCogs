@@ -49,7 +49,7 @@ class AdvancedInvite(commands.Cog):
     """
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
-    __version__: Final[str] = "3.0.10"
+    __version__: Final[str] = "3.0.11"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -153,8 +153,18 @@ class AdvancedInvite(commands.Cog):
         kwargs["components"] = [Component(buttons)]
         try:
             await send_button(ctx, **kwargs)
+        except discord.Forbidden:
+            if channel == ctx.author.dm_channel:
+                return await ctx.send("I could not dm you!")
+            await ctx.send(
+                "I'm sorry, something went wrong when trying to send the invite. "
+                "Please let my owner know if this problem continues."
+            )
         except discord.HTTPException:
-            await ctx.send("I could not dm you!")
+            await ctx.send(
+                "I'm sorry, something went wrong when trying to send the invite. "
+                "Please let my owner know if this problem continues."
+            )
 
     @invite.group(name="settings", aliases=("set",))
     @commands.is_owner()
