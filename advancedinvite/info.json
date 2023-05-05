@@ -8,7 +8,7 @@
         "Jojo#7791"
     ],
     "required_cogs": {},
-    "requirements": ["emoji"],
+    "requirements": ["emoji==1.7"],
     "tags": ["Utility"],
     "min_bot_version": "3.5.0.dev0",
     "hidden": false,

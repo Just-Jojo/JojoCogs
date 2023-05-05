@@ -1,7 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 __all__ = ["_format_todos", "_format_completed", "_build_underline"]
 

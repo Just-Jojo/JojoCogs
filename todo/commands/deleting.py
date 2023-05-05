@@ -43,7 +43,8 @@ class Deleting(TodoMixin):
         removed = []
         for index in indexes:
             try:
-                removed.append(todos.pop(index)["task"])
+                removed.append(todos[index]["task"])
+                del todos[index]
             except IndexError:
                 pass
             except Exception as e:
