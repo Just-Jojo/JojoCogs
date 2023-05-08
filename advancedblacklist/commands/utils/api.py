@@ -170,8 +170,7 @@ async def add_to_whitelist(
     if override:
         return
     await bot._whiteblacklist_cache.add_to_whitelist(  # type:ignore
-        guild,
-        {getattr(u, "id", u) for u in users_or_roles},
+        guild, {getattr(u, "id", u) for u in users_or_roles},
     )
 
 
@@ -190,8 +189,7 @@ async def remove_from_whitelist(
     if override:
         return
     await bot._whiteblacklist_cache.remove_from_whitelist(  # type:ignore
-        guild,
-        {getattr(u, "id", u) for u in users_or_roles},
+        guild, {getattr(u, "id", u) for u in users_or_roles},
     )
 
 

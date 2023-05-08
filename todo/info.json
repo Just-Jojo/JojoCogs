@@ -8,7 +8,11 @@
         "Jojo#7791"
     ],
     "required_cogs": {},
+<<<<<<< HEAD
     "requirements": ["tabulate", "emoji==1.7"],
+=======
+    "requirements": ["tabulate", "emoji~=1.7"],
+>>>>>>> parent of 7042f21 (Merge conflicts)
     "tags": [
         "todo", "utility"
     ],

@@ -86,7 +86,7 @@ class Complete(TodoMixin):
             return await ctx.send(self._no_completed_message.format(prefix=ctx.clean_prefix))
         for index in indexes:
             try:
-                del completed[index]
+                completed.pop(index)
             except IndexError:
                 pass
             except Exception as e:

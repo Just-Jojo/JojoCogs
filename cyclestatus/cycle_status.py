@@ -1,8 +1,6 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from __future__ import annotations
-
 import asyncio
 import enum
 import logging
@@ -93,65 +91,13 @@ else:
                 )
 
 
-class ActivityType(enum.Enum):
-    """Copy of `discord.ActivityType` minus `unknown`"""
-
-    playing = 0
-    listening = 2
-    watching = 3
-    competing = 5
-
-    def __int__(self):
-        return self.value
-
-
-if TYPE_CHECKING:
-    ActivityConverter = ActivityType
-else:
-
-    class ActivityConverter(commands.Converter):
-        async def convert(self, ctx: commands.Context, arg: str) -> ActivityType:
-            arg = arg.lower()
-            try:
-                return getattr(ActivityType, arg)
-            except AttributeError:
-                vals = humanize_list(list(map(lambda c: f"`{c.name}`", ActivityType)))
-                raise commands.BadArgument(f"The argument must be one of the following: {vals}")
-
-
-class Status(enum.Enum):
-    online = "online"
-    idle = "idle"
-    dnd = "dnd"
-    do_not_disturb = "dnd"
-
-    def __str__(self):
-        return self.value
-
-
-if TYPE_CHECKING:
-    StatusConverter = Status
-else:
-
-    class StatusConverter(commands.Converter):
-        async def convert(self, ctx: commands.Context, arg: str) -> Status:
-            arg = arg.lower().replace(" ", "_")
-            try:
-                return Status(arg)
-            except ValueError:
-                vals = humanize_list(
-                    list(map(lambda c: f"`{c.name.replace('_', ' ')}`", discord.Status))
-                )
-                raise commands.BadArgument(f"The argument must be one of the following: {vals}")
-
-
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__: Final[List[str]] = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
-    __version__: Final[str] = "1.0.14"
+    __version__: Final[str] = "1.0.12"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -231,7 +177,7 @@ class CycleStatus(commands.Cog):
             status = statuses[0]
             nl = 0
         await self.config.next_iter.set(nl + 1 if nl < len(statuses) else 0)
-        await self._status_add(status, use_help)
+        await self._status_add(status, await self.config.use_help())
         await ctx.tick()
 
     @status.command(name="usehelp")
@@ -276,7 +222,7 @@ class CycleStatus(commands.Cog):
         async with self.config.statuses() as sts:
             if num >= len(sts):
                 return await ctx.send("You don't have that many statuses, silly")
-            del sts[num]
+            sts.pop(num)
         await ctx.tick()
 
     @status.command(name="list")
@@ -342,7 +288,7 @@ class CycleStatus(commands.Cog):
         settings = {
             "Randomized statuses?": "Enabled" if self.random else "Disabled",
             "Toggled?": "Yes" if self.toggled else "No",
-            "Statuses?": f"See `{ctx.clean_prefix}cyclestatus list`",
+            "Statuses?": f"See `{ctx.clean_prefix}status list`",
             "Status Type?": ActivityType(await self.config.status_type()).name,
         }
         title = "Your Cycle Status settings"
@@ -365,7 +311,6 @@ class CycleStatus(commands.Cog):
             if self.last_random is not None and len(statuses) > 1:
                 statuses.pop(self.last_random)  # Remove that last picked one
             msg = random.choice(statuses)
-            self.last_random = statuses.index(msg)
         else:
             try:
                 # So, sometimes this gets larger than the list of the statuses

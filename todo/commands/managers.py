@@ -1,8 +1,8 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import discord
 from redbot.core import commands
+import discord
 
 from ..abc import TodoMixin
 from ..utils import NonBotMember

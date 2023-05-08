@@ -21,7 +21,7 @@ class Importer(TodoMixin):
         ...
 
     @todo.command(name="importall")
-    @commands.is_owner()  # First owner only command in todo :ducksweat:
+    @commands.is_owner() # First owner only command in todo :ducksweat:
     async def todo_import_all(self, ctx: commands.Context, confirm: bool = False):
         """Import every user's todos from epic guy's todo cog
 

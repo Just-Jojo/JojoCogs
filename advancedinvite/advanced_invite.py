@@ -324,7 +324,7 @@ class AdvancedInvite(commands.Cog):
     async def invite_custom_url(self, ctx: commands.Context, url: str = None):
         """Set the thumbnail url for the invite command's embed
 
-        This setting only applies for embeds.
+        This setting only applies for embeds
 
         **Arguments**
             - `url` The thumbnail url for embed command. This can also be a file (upload the image when you run the command)
