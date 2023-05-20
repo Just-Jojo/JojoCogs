@@ -46,9 +46,7 @@ def init(bot: Red):
         await _original_funcs["remove_from_blacklist"](self, guild, user_or_role)
         bot.dispatch("blacklist_remove", guild, user_or_role)
 
-    async def clear_blacklist(
-        self: WhitelistBlacklistManager, guild: discord.Guild
-    ):
+    async def clear_blacklist(self: WhitelistBlacklistManager, guild: discord.Guild):
         await _original_funcs["clear_blacklist"](self, guild)
         bot.dispatch("blacklist_clear", guild)
 
@@ -69,7 +67,8 @@ def init(bot: Red):
         bot.dispatch("whitelist_remove", guild, user_or_role)
 
     async def clear_whitelist(
-        self: WhitelistBlacklistManager, guild: discord.Guild,
+        self: WhitelistBlacklistManager,
+        guild: discord.Guild,
     ):
         await _original_funcs["clear_whitelist"](self, guild)
         bot.dispatch("whitelist_clear", guild)

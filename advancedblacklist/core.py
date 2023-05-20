@@ -3,13 +3,13 @@
 
 from __future__ import annotations
 
+import datetime
 import logging
 from contextlib import suppress
 from types import ModuleType
 from typing import Optional, Set, Union, TYPE_CHECKING
 
 import discord  # type:ignore
-import datetime
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, pagify
@@ -163,10 +163,12 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
 
     @commands.Cog.listener()
     async def on_whitelist_remove(self, guild: discord.Guild, users: Set[int]):
-        u = str(users)[1:-1] # :kappa:
+        u = str(users)[1:-1]  # :kappa:
         users = {u for u in users if await in_whitelist(self.bot, u, guild)}
         if users:
-            log.debug(f"Removing these users/roles from the whitelist config. {users = }. {guild = }")
+            log.debug(
+                f"Removing these users/roles from the whitelist config. {users = }. {guild = }"
+            )
             await remove_from_whitelist(self.bot, users, guild=guild, override=True)
         if guild or not self._log_channel:
             return

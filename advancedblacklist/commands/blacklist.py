@@ -2,16 +2,22 @@
 # Licensed under MIT
 
 import asyncio
-import discord
-from redbot.core import commands
-from redbot.core.utils.predicates import MessagePredicate
-from redbot.core.utils.chat_formatting import pagify
-
 from typing import Union
 
+import discord
+from redbot.core import commands
+from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.predicates import MessagePredicate
+
 from ..abc import ABMixin  # type:ignore
-from .utils import (add_to_blacklist, clear_blacklist, edit_reason, get_blacklist, in_blacklist,
-                    remove_from_blacklist)
+from .utils import (
+    add_to_blacklist,
+    clear_blacklist,
+    edit_reason,
+    get_blacklist,
+    in_blacklist,
+    remove_from_blacklist,
+)
 
 __all__ = ["Blacklist"]
 
@@ -179,7 +185,9 @@ class Blacklist(ABMixin):
     @local_blacklist.command(
         name="remove", aliases=["del", "delete", "rm"], require_var_positional=True
     )
-    async def local_blacklist_remove(self, ctx: commands.Context, *users: Union[discord.Member, discord.Role]):
+    async def local_blacklist_remove(
+        self, ctx: commands.Context, *users: Union[discord.Member, discord.Role]
+    ):
         """Remove users from the local blacklist.
 
         **Arguments**
@@ -193,7 +201,11 @@ class Blacklist(ABMixin):
 
     @local_blacklist.command(name="reason")
     async def local_blacklist_reason(
-        self, ctx: commands.Context, member_or_role: Union[discord.Member, discord.Role], *, reason: str
+        self,
+        ctx: commands.Context,
+        member_or_role: Union[discord.Member, discord.Role],
+        *,
+        reason: str,
     ):
         """Edit the reason for a member or role in the local blacklist.
 
@@ -238,7 +250,12 @@ class Blacklist(ABMixin):
             return await ctx.send("There are no members or roles in the local blacklist.")
         msg = "Locally Blacklisted Members/Roles:"
         for key, value in bl.items():
-            name = u.name if (u := ctx.guild.get_member(int(key)))\
-                else r.name if (r := ctx.guild.get_role(int(key))) else "Unknown or Deleted Member/Role"
+            name = (
+                u.name
+                if (u := ctx.guild.get_member(int(key)))
+                else r.name
+                if (r := ctx.guild.get_role(int(key)))
+                else "Unknown or Deleted Member/Role"
+            )
             msg += f"\n\t- [{key}] {name}: {value}"
         await ctx.send_interactive(pagify(msg, page_length=1800), "yml")

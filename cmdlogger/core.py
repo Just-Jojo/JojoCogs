@@ -1,6 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import asyncio
 import logging
 from contextlib import suppress
 from functools import wraps
@@ -10,6 +11,7 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, inline, pagify
+from redbot.core.utils.predicates import MessagePredicate
 
 from .converters import CommandOrCogConverter, NoneChannelConverter
 from .menus import Page, Menu
@@ -71,16 +73,6 @@ class CmdLogger(commands.Cog):
         """Commands working with the cmd logger cog"""
         pass
 
-    @cmd_logger.command(name="ignoreowner", aliases=["ignoreowners"])
-    async def cmd_ignore_owner(self, ctx: commands.Context, value: bool):
-        """Whether the command logger should ignore the owner
-
-        **Arguments**
-            - `value` Whether the command logger should ignore the owner or not.
-        """
-        await self.config.ignore_owner.set(value)
-        await ctx.tick()
-
     @cmd_logger.command(name="version")
     async def cmd_log_version(self, ctx: commands.Context):
         """Get the version of Cmd Logger that [botname] is running"""
@@ -90,6 +82,42 @@ class CmdLogger(commands.Cog):
     async def cmd_settings(self, ctx: commands.Context):
         """Manage the settings for cmd logger"""
         pass
+
+    @cmd_settings.command(name="logall", hidden=True)
+    async def cmd_log_all(
+        self, ctx: commands.Context, value: bool, confirm: Optional[bool] = False
+    ):
+        """Log every command used
+
+        This is not recommended if your bot is semi-large (or large) and you have a log channel set.
+
+        **Arguments**
+            - `confirm` Skips the confirmation check
+        """
+        if not confirm and value:
+            msg = await ctx.send("Are you sure you would like to log every command? (y/n)")
+            pred = MessagePredicate.yes_or_no(ctx)
+            try:
+                umsg = await ctx.bot.wait_for("message", check=pred)
+            except asyncio.TimeoutError:
+                pass
+            with suppress(discord.Forbidden, discord.NotFound):
+                await msg.delete()
+                await umsg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+            if not pred.result:
+                await ctx.send("Okay, I won't log every command.")
+        await self.config.log_all.set(value)
+        await ctx.tick()
+
+    @cmd_settings.command(name="ignoreowner")
+    async def cmd_settings_ignore_owner(self, ctx: commands.Context, value: bool):
+        """Whether the command logger should ignore the owner
+
+        **Arguments**
+            - `value` Whether the command logger should ignore the owner or not.
+        """
+        await self.config.ignore_owner.set(value)
+        await ctx.tick()
 
     @cmd_settings.command(name="channel", usage="<channel or None>")
     async def cmd_channel(self, ctx: commands.Context, channel: NoneChannelConverter):
@@ -158,6 +186,8 @@ class CmdLogger(commands.Cog):
     @cmd_logger.command(name="list")
     async def cmd_list(self, ctx: commands.Context):
         """List the commands and cogs tracked by [botname]"""
+        if await self.config.log_all():
+            return await ctx.send("I am currently logging every command used.")
         cmds = await self.config.commands()
         cogs = await self.config.cogs()
         if not cmds and not cogs:
@@ -178,8 +208,11 @@ class CmdLogger(commands.Cog):
     async def on_command_completion(self, ctx: commands.Context):
         conf = await self.config.all()
         name = ctx.command.qualified_name
-        if ctx.command.qualified_name not in conf["commands"] and (
-            ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"]
+        if (
+            not conf["log_all"]
+            and (conf["ignore_owner"] and await ctx.bot.is_owner(ctx.author))
+            and ctx.command.qualified_name not in conf["commands"]
+            and (ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"])
         ):
             return  # Large if statements are fucking dumb
         if await self.bot.is_owner(ctx.author) and conf["ignore_owner"]:
