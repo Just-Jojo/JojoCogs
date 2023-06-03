@@ -84,40 +84,6 @@ class ToDo(
 
         with suppress(RuntimeError):
             self.bot.add_dev_env_value("todo", lambda x: self)
-        for uid in (await self.config.all_users()).keys():
-            data = await self.config.user_from_id(uid).all()
-            if data.get("migrated_v2"):
-                continue
-            self.log.debug(data)
-            if not (user_settings := data.get("user_settings")):  # Old system
-                user_settings = {
-                    "extra_details": data["detailed_pop"],
-                    "autosorting": data["autosort"],
-                    "use_markdown": data["use_md"],
-                    "use_embeds": data["use_embeds"],
-                    "use_timestamps": data["timestamp"],
-                    "colour": data["colour"],
-                    "combine_lists": data["combined_lists"],
-                    "private": False,  # Private does nothing at this point
-                    "reverse_sort": data["reverse_sort"],
-                }
-
-            new_data = {
-                "todos": None,
-                "user_settings": user_settings,
-                "migrated_v2": True,
-                "completed": data["completed"],
-            }
-            todos = []
-            for todo in data["todos"]:
-                if isinstance(todo, dict):
-                    todos.append(todo)
-                else:
-                    todos.append({"task": todo, "pinned": False, "timestamp": None})
-            new_data["todos"] = todos
-            self.log.debug(new_data)
-            await self.config.user_from_id(uid).clear()
-            await self.config.user_from_id(uid).set(new_data)
 
     @commands.group(invoke_without_command=True)
     @commands.bot_has_permissions(add_reactions=True)
