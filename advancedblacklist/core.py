@@ -1,11 +1,13 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+from __future__ import annotations
+
 import datetime
 import logging
 from contextlib import suppress
 from types import ModuleType
-from typing import Optional, Set, Union
+from typing import Optional, Set, Union, TYPE_CHECKING
 
 import discord  # type:ignore
 from redbot.core import Config, commands
@@ -14,18 +16,10 @@ from redbot.core.utils.chat_formatting import humanize_list, pagify
 
 from .abc import CompositeMetaclass
 from .commands import Blacklist, Whitelist
-from .commands.utils import (
-    add_to_blacklist,
-    add_to_whitelist,
-    clear_blacklist,
-    clear_whitelist,
-    in_blacklist,
-    in_whitelist,
-    remove_from_blacklist,
-    remove_from_whitelist,
-    startup,
-)
-from .const import __authors__, __version__, _config_structure
+from .commands.utils import (add_to_blacklist, add_to_whitelist, clear_blacklist, clear_whitelist,
+                             in_blacklist, in_whitelist, remove_from_blacklist,
+                             remove_from_whitelist, startup)
+from .const import __authors__, __version__
 from .patch import destroy, init
 
 log = logging.getLogger("red.jojocogs.advancedblacklist")
@@ -43,8 +37,8 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
     def __init__(self, bot: Red):
         self.bot = bot
         self._commands: Set[Optional[commands.Command]] = set()
-        self.config = Config.get_conf(self, 544974305445019651, True)  # Log channel stuff
-        self._log_channel: Optional[discord.TextChannel] = None
+        self.config = Config.get_conf(self, 544974305445019651, True) # Log channel stuff
+        self._log_channel: Optional[discord.TextChannel] = None # type:ignore # Dunno why mypy is complaining
         self._task = self.bot.loop.create_task(startup(self.bot))
         self._log_task = self.bot.loop.create_task(self._get_log_channel())
         init(self.bot)
@@ -60,8 +54,8 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         destroy()
 
     @classmethod
-    async def init(cls, bot: Red) -> "AdvancedBlacklist":
-        self = cls(bot)
+    async def init(cls, bot: Red) -> AdvancedBlacklist:
+        self: AdvancedBlacklist = cls(bot)
         for c in ["blocklist", "allowlist"]:
             self._commands |= {self.bot.remove_command(y) for y in (c, f"local{c}")}
             # I am lazy :)
@@ -78,9 +72,15 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
                 channel = await self.bot.fetch_channel(cid)
             except discord.HTTPException:
                 return
+        if TYPE_CHECKING:
+            assert isinstance(channel, discord.TextChannel), "mypy"
         self._log_channel = channel
 
     async def _log_message(self, msg: str) -> None:
+        if TYPE_CHECKING:
+            assert isinstance(self._log_channel, discord.TextChannel), "mypy momen"
+        log.info(msg)
+        msg += f"\n{self._get_timestamp()}"
         try:
             if len(msg) <= 2000:
                 await self._log_channel.send(content=msg)
@@ -122,12 +122,10 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if not await in_blacklist(self.bot, u, guild)}
         if users:
             log.debug(f"Adding these users to the blacklist config. {users = }. {guild = }")
-            await add_to_blacklist(
-                self.bot, users, "No reason provided.", guild=guild, override=True
-            )
+            await add_to_blacklist(self.bot, users, "No reason provided.", guild=guild, override=True)
         if guild or not self._log_channel:
             return
-        msg = f"Added these users/roles to {self._guild_global(guild)} blacklist.\n\n{u}\n\n{self._get_timestamp()}"
+        msg = f"Added these users/roles to {self._guild_global(guild)} blacklist.\n\n{u}"
         await self._log_message(msg)
 
     @commands.Cog.listener()
@@ -139,7 +137,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
             await remove_from_blacklist(self.bot, users, guild=guild, override=True)
         if guild or not self._log_channel:
             return
-        msg = f"Removed these users/roles from {self._guild_global(guild)} blacklist.\n\n{u}\n\n{self._get_timestamp()}"
+        msg = f"Removed these users/roles from {self._guild_global(guild)} blacklist.\n\n{u}"
         await self._log_message(msg)
 
     @commands.Cog.listener()
@@ -148,7 +146,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         await clear_blacklist(self.bot, guild, True)
         if guild or not self._log_channel:
             return
-        msg = f"Cleared {self._guild_global(guild)} blacklist. {self._get_timestamp()}"
+        msg = f"Cleared {self._guild_global(guild)} blacklist."
         await self._log_message(msg)
 
     @commands.Cog.listener()
@@ -157,12 +155,10 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if not await in_whitelist(self.bot, u, guild)}
         if users:
             log.debug(f"Adding these users to the whitelist config. {users = }. {guild = }")
-            await add_to_whitelist(
-                self.bot, users, "No reason provided.", guild=guild, override=True
-            )
+            await add_to_whitelist(self.bot, users, "No reason provided.", guild=guild, override=True)
         if guild or not self._log_channel:
             return
-        msg = f"Added these users/roles to {self._guild_global(guild)} whitelist.\n\n{u}\n\n{self._get_timestamp()}"
+        msg = f"Added these users/roles to {self._guild_global(guild)} whitelist.\n\n{u}"
         await self._log_message(msg)
 
     @commands.Cog.listener()
@@ -188,7 +184,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         await clear_whitelist(self.bot, guild, override=True)
         if guild or not self._log_channel:
             return
-        msg = f"Cleared {self._guild_global(guild)} whitelist. {self._get_timestamp()}"
+        msg = f"Cleared {self._guild_global(guild)} whitelist."
         await self._log_message(msg)
 
     @commands.Cog.listener()
@@ -207,7 +203,5 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         self, ctx: commands.Context, member_id: str
     ) -> Optional[Union[discord.Member, discord.User]]:
         mid = int(member_id)
-        ret: Optional[discord.Member] = None
-        if ctx.guild:
-            ret = ctx.guild.get_member(mid)
+        ret: Optional[discord.Member] = ctx.guild.get_member(mid) if ctx.guild else None
         return ret or self.bot.get_user(mid)

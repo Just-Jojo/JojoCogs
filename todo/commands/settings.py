@@ -230,6 +230,23 @@ class Settings(Emojis):
         await self.cache.set_user_setting(ctx.author, "autosorting", value)
         await ctx.send(f"Autosorting is now {enabled}.")
 
+    @todo_settings.command(name="private")
+    async def todo_private(self, ctx: commands.Context, value: bool):
+        """Set your todo list to display privately
+
+        This will make the menu be ephemeral when you use it
+
+        **Arguments**
+            - `value` Whether your todo list should be private.
+        """
+
+        current = await self.cache.get_user_setting(ctx.author, "private")
+        enabled = self._get_enabled_status(value)
+        if current == value:
+            return await ctx.send(f"Private lists are already {enabled}.")
+        await self.cache.set_user_setting(ctx.author, "private", value)
+        await ctx.send(f"Private lists is now {enabled}.")
+
     @todo_settings.command(name="showsettings")
     async def todo_show_settings(self, ctx: commands.Context):
         """Show your todo settings

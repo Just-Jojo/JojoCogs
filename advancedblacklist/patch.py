@@ -6,7 +6,7 @@ from typing import Any, Callable, Coroutine, Dict, Final, Set, TypeVar
 
 import discord
 from redbot.core.bot import Red
-from redbot.core.settings_caches import WhitelistBlacklistManager
+from redbot.core._settings_caches import WhitelistBlacklistManager
 
 T = TypeVar("T")
 log = logging.getLogger("red.jojocogs.advancedblacklist.patch")

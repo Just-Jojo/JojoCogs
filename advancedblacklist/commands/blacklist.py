@@ -37,8 +37,12 @@ class Blacklist(ABMixin):
         pass
 
     @blacklist_log.command(name="set")
-    async def blacklist_log_set(self, ctx: commands.Context, *, channel: discord.TextChannel):
-        """Set the channel for logging black/whitelistings"""
+    async def blacklist_log_set(self, ctx: commands.Context, *, channel: Union[discord.TextChannel, discord.Thread]):
+        """Set the channel for logging black/whitelistings
+
+        **Arguments**
+            - `channel` The channel or thread to use for logging.
+        """
         if not channel.permissions_for(ctx.me).send_messages:
             return await ctx.send("I cannot send messages to that channel.")
         await self.config.log_channel.set(channel.id)

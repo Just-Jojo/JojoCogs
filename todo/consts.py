@@ -4,7 +4,7 @@ __all__ = ["__author__", "__suggestors__", "__version__", "config_structure"]
 
 __authors__ = ["Jojo#7791"]
 __suggestors__ = ["Blackbird#0001", "EVOLVE#8888", "skylarr#6666", "kato#0666", "MAX#1000"]
-__version__ = "3.0.24"
+__version__ = "3.1.1"
 config_structure: Final[Dict[str, Any]] = {
     "todos": [],  # List[Dict[str, Any]] "task": str, "pinned": False
     "completed": [],  # List[str]

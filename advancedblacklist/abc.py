@@ -6,13 +6,14 @@ from typing import Optional, Union
 
 import discord
 from discord.ext.commands.cog import CogMeta
-from redbot.core import commands
+from redbot.core import commands, Config
 from redbot.core.bot import Red
 
 
 class ABMixin(ABC):
     def __init__(self, *_args):
         self.bot: Red
+        self.config: Config
 
     def _get_user(
         self, ctx: commands.Context, member_id: str

@@ -2,7 +2,7 @@
     "author": [
         "Jojo#7791"
     ],
-    "install_msg": "https://github.com/Just-Jojo/JojoCog-Assets/blob/main/JOJO_COGS.png?raw=true\nThank you for adding Jojo's repo. If you have a bug please create a pull request and let me know :D",
+    "install_msg": "Thank you for adding Jojo's repo. If you have a bug please create a pull request and let me know :D",
     "description": "Just a bunch of weird cogs developed by Jojo.",
     "short": "Silly (and sometimes useful) cogs by Jojo",
     "name": "jojo-cogs"

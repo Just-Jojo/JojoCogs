@@ -29,11 +29,15 @@ else:
 
 
 if TYPE_CHECKING:
-    NoneChannelConverter = Union[None, discord.TextChannel]
+    NoneChannelConverter = Union[None, discord.TextChannel, discord.Thread]
 else:
 
     class NoneChannelConverter(commands.Converter):
-        async def convert(self, ctx: commands.Context, arg: str) -> discord.TextChannel:
+        async def convert(self, ctx: commands.Context, arg: str) -> Union[discord.GuildChannel, discord.Thread]:
             if arg == "None":
                 return None
-            return await commands.TextChannelConverter().convert(ctx, arg)
+
+            try:
+                return await commands.ThreadConverter().convert(ctx, arg)
+            except commands.BadArgument:
+                return await commands.GuildChannelConverter().convert(ctx, arg)

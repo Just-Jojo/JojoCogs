@@ -10,7 +10,7 @@
     "required_cogs": {},
     "requirements": ["emoji==1.7"],
     "tags": ["Utility"],
-    "min_bot_version": "3.4.6",
+    "min_bot_version": "3.5.0.dev0",
     "hidden": false,
     "disabled": false,
     "type": "COG"

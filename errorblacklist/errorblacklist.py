@@ -16,6 +16,8 @@ from .api import *
 from .menus import Menu, Page
 from .utils import *
 
+__all__ = ["ErrorBlacklist"]
+
 log = logging.getLogger("red.JojoCogs.error_blacklist")
 RequestType = Literal["discord_deleted_user", "owner", "user", "user_strict"]
 
@@ -76,7 +78,7 @@ class ErrorBlacklist(commands.Cog):
         self._cache: dict = {}
         self.first_run: bool = True
 
-    async def startup(self) -> None:
+    async def cog_load(self) -> None:
         if await self.config.clear_usage():
             self.clear_cache.start()
         self._cache = await self.config.all_users()

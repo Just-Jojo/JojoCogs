@@ -30,6 +30,8 @@ else:
             else:
                 if user.bot:
                     raise commands.BadArgument("The user cannot be a bot")
+                elif user == ctx.author:
+                    raise commands.BadArgument("The user cannot be yourself")
                 return user
 
 

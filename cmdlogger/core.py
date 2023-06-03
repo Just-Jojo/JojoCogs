@@ -1,10 +1,11 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
+import asyncio
 import logging
 from contextlib import suppress
 from functools import wraps
-from typing import Any, Callable, Final, Iterable, List, Optional
+from typing import Any, Callable, Final, Iterable, List, Optional, Union, TYPE_CHECKING
 
 import discord
 from redbot.core import Config, commands
@@ -13,7 +14,7 @@ from redbot.core.utils.chat_formatting import humanize_list, inline, pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from .converters import CommandOrCogConverter, NoneChannelConverter
-from .menus import CmdMenu, CmdPages
+from .menus import Page, Menu
 
 log = logging.getLogger("red.JojoCogs.cmd_logger")
 
@@ -26,7 +27,7 @@ def listify(func: Callable):
     """Wraps a function's return type in a list"""
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> list:
         return list(func(*args, **kwargs))
 
     return wrapper
@@ -44,16 +45,14 @@ class CmdLogger(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
-        self.config.register_global(
-            log_channel=None, commands=[], cogs=[], log_all=False, ignore_owner=False
-        )
-        if 544974305445019651 in self.bot.owner_ids:
+        self.config.register_global(log_channel=None, commands=[], cogs=[], ignore_owner=True)
+        if 544974305445019651 in self.bot.owner_ids: # type:ignore
             with suppress(RuntimeError):
                 self.bot.add_dev_env_value("cmdlog", lambda x: self)
 
-        self.log_channel: Optional[discord.TextChannel] = None
+        self.log_channel: Optional[Union[discord.TextChannel, discord.Thread]] = None
 
-    def cog_unload(self) -> None:
+    async def cog_unload(self) -> None:
         with suppress(Exception):
             self.bot.remove_dev_env_value("cmdlog")
 
@@ -66,7 +65,7 @@ class CmdLogger(commands.Cog):
             f"Version: `{self.__version__}`"
         )
 
-    async def cog_check(self, ctx: commands.Context) -> bool:
+    async def cog_check(self, ctx: commands.Context) -> bool: # type:ignore
         return await ctx.bot.is_owner(ctx.author)
 
     @commands.group(name="cmdlogger", aliases=["cmdlog"])
@@ -111,8 +110,12 @@ class CmdLogger(commands.Cog):
         await ctx.tick()
 
     @cmd_settings.command(name="ignoreowner")
-    async def cmd_ignore_owner(self, ctx: commands.Context, value: bool):
-        """Ignore owner used commands"""
+    async def cmd_settings_ignore_owner(self, ctx: commands.Context, value: bool):
+        """Whether the command logger should ignore the owner
+
+        **Arguments**
+            - `value` Whether the command logger should ignore the owner or not.
+        """
         await self.config.ignore_owner.set(value)
         await ctx.tick()
 
@@ -198,8 +201,8 @@ class CmdLogger(commands.Cog):
         if cogs:
             cogs.insert(0, "**Cogs**")
         cmds.extend(cogs)
-        data = pagify("\n".join(cmds), page_length=200)
-        await CmdMenu(CmdPages(data)).start(ctx)  # type:ignore
+        data: list = pagify("\n".join(cmds), page_length=200) # type:ignore
+        await Menu(Page(data), ctx).start()
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):
@@ -211,7 +214,9 @@ class CmdLogger(commands.Cog):
             and ctx.command.qualified_name not in conf["commands"]
             and (ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"])
         ):
-            return  # Large chains of if statements are fucking dumb
+            return  # Large if statements are fucking dumb
+        if await self.bot.is_owner(ctx.author) and conf["ignore_owner"]:
+            return
         guild_data = "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
         msg = f"Command '{ctx.command.qualified_name}' was used by {ctx.author} ({ctx.author.id}). {guild_data}"
         log.info(msg)
@@ -234,6 +239,8 @@ class CmdLogger(commands.Cog):
                 log.warning("I could not find the log channel")
                 await self.config.log_channel.clear()
                 return
+        if TYPE_CHECKING:
+            assert isinstance(self.log_channel, discord.TextChannel), "mypy momen"
         try:
             await self.log_channel.send(msg)
         except discord.Forbidden:

@@ -11,8 +11,6 @@ body:
       options:
         - AdvancedBlacklist
         - AdvancedInvite
-        - AdvancedLog
-        - AntiAdmin
         - CmdLogger
         - CycleStatus
         - ErrorBlacklist
