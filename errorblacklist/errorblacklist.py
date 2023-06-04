@@ -78,6 +78,9 @@ class ErrorBlacklist(commands.Cog):
         self._cache: dict = {}
         self.first_run: bool = True
 
+    async def cog_check(self, ctx: commands.Context) -> bool:
+        return await ctx.bot.is_owner(ctx.author)
+
     async def cog_load(self) -> None:
         if await self.config.clear_usage():
             self.clear_cache.start()
