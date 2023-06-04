@@ -18,7 +18,7 @@ class Miscellaneous(TodoMixin):
     async def todo(self, *args):
         ...
 
-    @todo.command(name="version")
+    @todo.command(name="version", hidden=True)
     async def todo_version(self, ctx: commands.Context):
         """Get todo's version"""
         msg = f"ToDo, created with ❤ by Jojo#7791. Version `{__version__}`\n" f"Have fun :)"

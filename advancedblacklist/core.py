@@ -108,7 +108,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
     def _get_timestamp() -> str:
         return f"<t:{int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp())}>"
 
-    @commands.command(name="advancedblacklistversion", aliases=("abversion",))
+    @commands.command(name="advancedblacklistversion", aliases=("abversion",), hidden=True)
     async def advanced_blacklist_version(self, ctx: commands.Context):
         """Get the version of Advanced Blacklist that [botname] is running"""
         await ctx.send(

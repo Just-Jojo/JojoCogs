@@ -81,7 +81,7 @@ class AdvancedInvite(commands.Cog):
         """Nothing to delete"""
         return
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def inviteversion(self, ctx: commands.Context):
         """Get the version of Advanced Invite"""
         msg = (
