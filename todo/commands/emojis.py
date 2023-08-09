@@ -5,7 +5,10 @@ import asyncio
 from typing import Optional, Union
 
 import discord
-from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
+try:
+    from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
+except ImportError:
+    from emoji import EMOJI_DATA as UNICODE_EMOJI_ENGLISH
 from redbot.core import commands
 from redbot.core.utils.predicates import ReactionPredicate
 

@@ -7,7 +7,10 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Union, Optional
 
 import discord
-from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
+try:
+    from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
+except ImportError:
+    from emoji import EMOJI_DATA as UNICODE_EMOJI_ENGLISH
 from redbot.core import commands
 
 log = logging.getLogger("red.jojocogs.advancedinvite.utils")
