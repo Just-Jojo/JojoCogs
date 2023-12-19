@@ -74,6 +74,7 @@ class FirstPageButton(discord.ui.Button, _ButtonMixin):
         )
 
     async def callback(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
         await self.view.show_page(0, interaction)
 
 
@@ -86,6 +87,7 @@ class PreviousPageButton(discord.ui.Button, _ButtonMixin):
         )
 
     async def callback(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
         await self.view.show_checked_page(self.view.current_page - 1, interaction)
 
 
@@ -115,6 +117,7 @@ class NextPageButton(discord.ui.Button, _ButtonMixin):
         )
 
     async def callback(self, interaction: discord.Intertion) -> None:
+        await interaction.response.defer()
         await self.view.show_checked_page(self.view.current_page + 1, interaction)
 
 
@@ -127,6 +130,7 @@ class LastPageButton(discord.ui.Button, _ButtonMixin):
         )
 
     async def callback(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
         await self.view.show_checked_page(-1, interaction)
 
 
