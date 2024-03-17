@@ -79,9 +79,6 @@ class ToDo(
         await self.cache.delete_data(user_id)
 
     async def cog_load(self) -> None:
-        """This is based off of Obi-Wan3's migration method in their github cog
-        https://github.com/Obi-Wan3/OB13-Cogs/blob/main/github/github.py#L88"""
-
         with suppress(RuntimeError):
             self.bot.add_dev_env_value("todo", lambda x: self)
 

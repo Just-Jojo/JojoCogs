@@ -24,7 +24,6 @@ else:
         strict = True
 
 
-
 async def can_invite(ctx: commands.Context) -> bool:
     return await ctx.bot.is_owner(ctx.author) or await ctx.bot.is_invite_url_public()
 
