@@ -231,7 +231,7 @@ class CycleStatus(commands.Cog):
             status = statuses[0]
             nl = 0
         await self.config.next_iter.set(nl + 1 if nl < len(statuses) else 0)
-        await self._status_add(status, use_help)
+        await self._status_add(status, await self.config.use_help())
         await ctx.tick()
 
     @status.command(name="usehelp")
