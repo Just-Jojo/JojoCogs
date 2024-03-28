@@ -8,8 +8,15 @@ import enum
 import logging
 import random
 import re
-from datetime import datetime, UTC as DatetimeUTC
-from itertools import cycle
+try:
+    from datetime import datetime, UTC as DatetimeUTC
+    def get_datetime():
+        return datetime.now(DatetimeUTC)
+except ImportError:
+    from datetime import datetime
+    def get_datetime():
+        return datetime.utcnow()
+
 from typing import Any, Final, List, Dict, Optional, TYPE_CHECKING
 
 import discord
@@ -101,7 +108,7 @@ class CycleStatus(commands.Cog):
     __authors__: Final[List[str]] = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__: Final[List[str]] = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
-    __version__: Final[str] = "1.0.15"
+    __version__: Final[str] = "1.0.16"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -304,7 +311,7 @@ class CycleStatus(commands.Cog):
         }
         if await ctx.embed_requested():
             embed = discord.Embed(
-                title=title, colour=await ctx.embed_colour(), timestamp=datetime.now(DatetimeUTC)
+                title=title, colour=await ctx.embed_colour(), timestamp=get_datetime()
             )
             [embed.add_field(name=k, value=v, inline=False) for k, v in settings.items()]
             kwargs = {"embed": embed}
