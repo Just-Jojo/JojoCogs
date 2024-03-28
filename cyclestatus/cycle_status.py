@@ -8,7 +8,7 @@ import enum
 import logging
 import random
 import re
-from datetime import datetime
+from datetime import datetime, UTC as DatetimeUTC
 from itertools import cycle
 from typing import Any, Final, List, Dict, Optional, TYPE_CHECKING
 
@@ -38,6 +38,7 @@ _bot_guild_var: Final[str] = r"{bot_guild_count}"
 _bot_member_var: Final[str] = r"{bot_member_count}"
 _bot_prefix_var: Final[str] = r"{bot_prefix}"
 
+
 def humanize_enum_vals(e: enum.Enum) -> str:
     return humanize_list(
         list(map(lambda c: f"`{c.name.replace('_', ' ')}`", e)) # type:ignore
@@ -50,6 +51,7 @@ class ActivityType(enum.Enum):
     playing = 0
     listening = 2
     watching = 3
+    custom = 4
     competing = 5
 
     def __int__(self):
@@ -93,65 +95,13 @@ else:
                 )
 
 
-class ActivityType(enum.Enum):
-    """Copy of `discord.ActivityType` minus `unknown`"""
-
-    playing = 0
-    listening = 2
-    watching = 3
-    competing = 5
-
-    def __int__(self):
-        return self.value
-
-
-if TYPE_CHECKING:
-    ActivityConverter = ActivityType
-else:
-
-    class ActivityConverter(commands.Converter):
-        async def convert(self, ctx: commands.Context, arg: str) -> ActivityType:
-            arg = arg.lower()
-            try:
-                return getattr(ActivityType, arg)
-            except AttributeError:
-                vals = humanize_list(list(map(lambda c: f"`{c.name}`", ActivityType)))
-                raise commands.BadArgument(f"The argument must be one of the following: {vals}")
-
-
-class Status(enum.Enum):
-    online = "online"
-    idle = "idle"
-    dnd = "dnd"
-    do_not_disturb = "dnd"
-
-    def __str__(self):
-        return self.value
-
-
-if TYPE_CHECKING:
-    StatusConverter = Status
-else:
-
-    class StatusConverter(commands.Converter):
-        async def convert(self, ctx: commands.Context, arg: str) -> Status:
-            arg = arg.lower().replace(" ", "_")
-            try:
-                return Status(arg)
-            except ValueError:
-                vals = humanize_list(
-                    list(map(lambda c: f"`{c.name.replace('_', ' ')}`", discord.Status))
-                )
-                raise commands.BadArgument(f"The argument must be one of the following: {vals}")
-
-
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
     # These people have suggested something for this cog!
     __suggesters__: Final[List[str]] = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
-    __version__: Final[str] = "1.0.14"
+    __version__: Final[str] = "1.0.15"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -198,7 +148,7 @@ class CycleStatus(commands.Cog):
 
         **Arguments**
             - `status` The status type. Valid types are
-            `playing, listening, watching, and competing`
+            `playing, listening, watching, custom, and competing`
         """
         await self.config.status_type.set(status.value)
         await ctx.send(f"Done, set the status type to `{status.name}`.")
@@ -320,7 +270,7 @@ class CycleStatus(commands.Cog):
         await ctx.send(f"Statuses will {now_no_longer} be random")
 
     @status.command(name="toggle")
-    async def status_toggle(self, ctx: commands.Context, value: bool):
+    async def status_toggle(self, ctx: commands.Context, value: Optional[bool]):
         """Toggle whether the status should be cycled.
 
         This is handy for if you want to keep your statuses but don't want them displayed at the moment
@@ -328,6 +278,9 @@ class CycleStatus(commands.Cog):
         **Arguments**
             - `value` Whether to toggle cycling statues
         """
+        if value is None:
+            await ctx.send(f"Cycling Statuses is {'enabled' if self.toggled else 'disabled'}")
+            return
         if value == self.toggled:
             enabled = "enabled" if value else "disabled"
             return await ctx.send(f"Cycling statuses is already {enabled}")
@@ -351,7 +304,7 @@ class CycleStatus(commands.Cog):
         }
         if await ctx.embed_requested():
             embed = discord.Embed(
-                title=title, colour=await ctx.embed_colour(), timestamp=datetime.utcnow()
+                title=title, colour=await ctx.embed_colour(), timestamp=datetime.now(DatetimeUTC)
             )
             [embed.add_field(name=k, value=v, inline=False) for k, v in settings.items()]
             kwargs = {"embed": embed}
@@ -413,5 +366,8 @@ class CycleStatus(commands.Cog):
 
         if use_help:
             status += f" | {prefix}help"
-        game = discord.Activity(type=await self.config.status_type(), name=status)
+
+        # For some reason using `discord.Activity(type=discord.ActivityType.custom)` will result in the bot not changing its status
+        # So I'm gonna use this until I figure out something better lmao
+        game = discord.Activity(type=status_type, name=status) if (status_type := await self.config.status_type()) != 4 else discord.CustomActivity(name=status)
         await self.bot.change_presence(activity=game, status=await self.config.status_mode())
