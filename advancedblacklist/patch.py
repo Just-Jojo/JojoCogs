@@ -11,7 +11,7 @@ T = TypeVar("T")
 log = logging.getLogger("red.jojocogs.advancedblacklist.patch")
 __all__ = ["init", "destory"]
 
-_monkey_patched_names: Final[Set[str, str]] = {
+_monkey_patched_names: Final[Set[str]] = {
     "add_to_blacklist",
     "remove_from_blacklist",
     "clear_blacklist",
