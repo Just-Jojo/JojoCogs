@@ -26,6 +26,7 @@ log = logging.getLogger("red.jojocogs.advancedblacklist")
 
 
 def api_tool(ctx: commands.Context) -> ModuleType:
+    # Allows access ot the api within a red repl session
     from .commands.utils import api
 
     return api
@@ -76,10 +77,11 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
             assert isinstance(channel, discord.TextChannel), "mypy"
         self._log_channel = channel
 
-    async def _log_message(self, msg: str) -> None:
+    async def _log_message(self, msg: str, *, err: bool = False) -> None:
         if TYPE_CHECKING:
             assert isinstance(self._log_channel, discord.TextChannel), "mypy momen"
-        log.info(msg)
+        if not err:
+            log.info(msg)
         msg += f"\n{self._get_timestamp()}"
         try:
             if len(msg) <= 2000:
@@ -117,7 +119,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         )
 
     @commands.Cog.listener()
-    async def on_blacklist_add(self, guild: discord.Guild, users: Set[int]):
+    async def on_add_to_blacklist(self, guild: discord.Guild, users: Set[int]):
         u = str(users)[1:-1]
         users = {u for u in users if not await in_blacklist(self.bot, u, guild)}
         if users:
@@ -129,7 +131,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         await self._log_message(msg)
 
     @commands.Cog.listener()
-    async def on_blacklist_remove(self, guild: discord.Guild, users: Set[int]):
+    async def on_remove_from_blacklist(self, guild: discord.Guild, users: Set[int]):
         u = str(users)[1:-1]
         users = {u for u in users if await in_blacklist(self.bot, u, guild)}
         if users:
@@ -141,7 +143,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         await self._log_message(msg)
 
     @commands.Cog.listener()
-    async def on_blacklist_clear(self, guild: discord.Guild):
+    async def on_clear_blacklist(self, guild: discord.Guild):
         log.debug(f"Clearing blacklist config. {guild = }")
         await clear_blacklist(self.bot, guild, True)
         if guild or not self._log_channel:
@@ -150,7 +152,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         await self._log_message(msg)
 
     @commands.Cog.listener()
-    async def on_whitelist_add(self, guild: discord.Guild, users: Set[int]):
+    async def on_add_to_whitelist(self, guild: discord.Guild, users: Set[int]):
         u = str(users)[1:-1]
         users = {u for u in users if not await in_whitelist(self.bot, u, guild)}
         if users:
@@ -162,7 +164,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         await self._log_message(msg)
 
     @commands.Cog.listener()
-    async def on_whitelist_remove(self, guild: discord.Guild, users: Set[int]):
+    async def on_remove_from_whitelist(self, guild: discord.Guild, users: Set[int]):
         u = str(users)[1:-1]  # :kappa:
         users = {u for u in users if await in_whitelist(self.bot, u, guild)}
         if users:
@@ -179,7 +181,7 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         await self._log_message(msg)
 
     @commands.Cog.listener()
-    async def on_whitelist_clear(self, guild: discord.Guild):
+    async def on_clear_whitelist(self, guild: discord.Guild):
         log.debug(f"Clearing the whitelist config. {guild = }")
         await clear_whitelist(self.bot, guild, override=True)
         if guild or not self._log_channel:
@@ -189,15 +191,10 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
 
     @commands.Cog.listener()
     async def on_error_blacklist(self, user: discord.User, command: commands.Command):
-        await add_to_blacklist(
-            self.bot,
-            {user.id},
-            f"Used the command '{command.name}' which errored too many times",
-        )
         if not self._log_channel:
             return
         msg = f"Blacklisted {user.id} for using '{command.name}' which errored too many times."
-        await self._log_message(msg)
+        await self._log_message(msg, err=True)
 
     def _get_user(
         self, ctx: commands.Context, member_id: str
