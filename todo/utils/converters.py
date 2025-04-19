@@ -41,7 +41,7 @@ else:
         async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
             try:
                 member = await super().convert(ctx, arg)
-            except commands.BadArgument as e:
+            except commands.BadArgument:
                 if self.strict:
                     raise
                 raise commands.UserInputError

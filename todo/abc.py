@@ -1,7 +1,10 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-from abc import ABC, ABCMeta, abstractmethod, abstractstaticmethod
+from __future__ import annotations
+
+from abc import ABC, ABCMeta, abstractmethod
+
 from logging import Logger
 from typing import List, Tuple
 
@@ -20,7 +23,7 @@ __all__ = ["TodoMixin", "MetaClass"]
 class TodoMixin(ABC):
     """An abstract base class to keep type hints in order"""
 
-    def __init__(self, *_args):
+    def __init__(self, bot: Red):
         self.bot: Red
         self.cache: TodoApi
         self.config: Config
@@ -28,8 +31,6 @@ class TodoMixin(ABC):
         self._no_todo_message: str
         self._no_completed_message: str
 
-    # The best thing about this is it that I don't have to reimpliment this every time
-    # I create a new subclass, just in the main class which will be a subclass of every other class
     @abstractmethod
     async def page_logic(self, ctx: commands.Context, data: list, title: str, **settings) -> None:
         ...
@@ -39,20 +40,20 @@ class TodoMixin(ABC):
         ...
 
     @staticmethod
-    @abstractstaticmethod
+    @abstractmethod
     async def _get_todos(
         todos: List[dict], *, timestamp: bool = False, md: bool = False
     ) -> Tuple[List[str], ...]:  # type:ignore
-        ...
+        raise NotImplementedError
 
     @staticmethod
-    @abstractstaticmethod
+    @abstractmethod
     def _gen_timestamp() -> int:
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     async def _embed_colour(self, ctx: commands.Context) -> discord.Colour:
-        ...
+        raise NotImplementedError
 
 
 class MetaClass(CogMeta, ABCMeta):  # type:ignore

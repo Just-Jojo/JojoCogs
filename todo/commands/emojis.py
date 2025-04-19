@@ -1,8 +1,7 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import asyncio
-from typing import Optional, Union
+from typing import Optional, Union, TYPE_CHECKING
 
 import discord
 try:
@@ -10,7 +9,6 @@ try:
 except ImportError:
     from emoji import EMOJI_DATA as UNICODE_EMOJI_ENGLISH
 from redbot.core import commands
-from redbot.core.utils.predicates import ReactionPredicate
 
 from ..abc import TodoMixin
 
@@ -18,11 +16,13 @@ __all__ = ["Emojis"]
 
 
 async def pretty(ctx: commands.Context) -> bool:
+    if TYPE_CHECKING:
+        assert ctx.cog is not None and isinstance(ctx.cog, TodoMixin)
     return await ctx.cog.cache.get_user_setting(ctx.author, "pretty_todos")
 
 
 class EmojiConverter(commands.EmojiConverter):
-    async def convert(self, ctx: commands.Context, arg: str) -> Union[str, discord.Emoji]:
+    async def convert(self, ctx: commands.Context, arg: str) -> Union[str, discord.Emoji]:  # type:ignore
         arg = arg.strip()
         return arg if arg in UNICODE_EMOJI_ENGLISH.keys() else await super().convert(ctx, arg)
 
@@ -41,7 +41,7 @@ class Emojis(TodoMixin):
 
     @category_emoji.command(name="todoemoji", aliases=["temoji"])
     async def category_todo_emoji(
-        self, ctx: commands.Context, reset: Optional[bool], emoji: EmojiConverter = None
+        self, ctx: commands.Context, reset: Optional[bool], emoji: Optional[EmojiConverter] = None
     ):
         """Set the emoji for the todo category.
 
@@ -67,7 +67,7 @@ class Emojis(TodoMixin):
 
     @category_emoji.command(name="completedemoji", aliases=["cemoji"])
     async def category_completed_emoji(
-        self, ctx: commands.Context, reset: Optional[bool], emoji: EmojiConverter = None
+        self, ctx: commands.Context, reset: Optional[bool], emoji: Optional[EmojiConverter] = None
     ):
         """Set the emoji for the completed category.
 

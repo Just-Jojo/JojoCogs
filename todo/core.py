@@ -5,25 +5,45 @@ import asyncio
 import logging
 from contextlib import suppress
 from datetime import datetime, timezone
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import List, Literal, Optional, Tuple, TYPE_CHECKING
 
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.utils import AsyncIter
-from redbot.core.utils.chat_formatting import escape, humanize_list, pagify, text_to_file
+from redbot.core.utils.chat_formatting import humanize_list, pagify, text_to_file
 from redbot.core.utils.predicates import MessagePredicate
 
 from .abc import MetaClass
-from .commands import *
-from .consts import __authors__, __suggestors__, __version__, config_structure
-from .utils import (PositiveInt, TimestampFormats, TodoApi, TodoMenu, TodoPages, ViewTodo,
-                    TodoPrivateMenu, PrivateMenuStarter, formatting, timestamp_format)
+from .commands import (
+    Complete,
+    Deleting,
+    Edit,
+    Emojis,
+    Importer,
+    Managers,
+    Miscellaneous,
+    Settings,
+    SharedTodos,
+)
+from .consts import __authors__, __version__, config_structure
+from .utils import (
+    PositiveInt,
+    TimestampFormats,
+    TodoApi,
+    TodoMenu,
+    TodoPages,
+    ViewTodo,
+    PrivateMenuStarter,
+    formatting,
+    timestamp_format
+)
 
 
 def attach_or_in_dm(ctx: commands.Context) -> bool:
     if not ctx.guild:
         return True
+    if TYPE_CHECKING:
+        assert isinstance(ctx.me, discord.Member), "mypy"
     return ctx.channel.permissions_for(ctx.me).attach_files
 
 
@@ -35,6 +55,7 @@ class ToDo(
     Managers,
     Miscellaneous,
     Settings,
+    Emojis,  # NOTE this has to be loaded after settings
     SharedTodos,
     commands.Cog,
     metaclass=MetaClass,
@@ -55,13 +76,13 @@ class ToDo(
         self.cache = TodoApi(self.bot, self.config)
         self.log = logging.getLogger("red.JojoCogs.todo")
 
-    def cog_unload(self) -> None:
+    async def cog_unload(self) -> None:
         with suppress(KeyError):
             self.bot.remove_dev_env_value("todo")
         self.cache._pool.close()
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
-        pre = super().format_help_for_context(ctx)
+        pre = super().format_help_for_context(ctx)  # type:ignore
         plural = "s" if len(__authors__) > 1 else ""
         return (
             f"{pre}\n\n"
@@ -125,7 +146,7 @@ class ToDo(
         await self.cache.set_user_item(ctx.author, "todos", data["todos"])
 
         data = data["user_settings"]
-        msg = f"Added that as a todo."
+        msg = "Added that as a todo."
         if data["extra_details"]:
             msg += f"\n'{discord.utils.escape_markdown(todo)}'"
         if data["use_timestamps"]:
@@ -164,10 +185,17 @@ class ToDo(
             )
             todos.extend(completed)
 
-        await self.page_logic(ctx, todos, f"{ctx.author.name}'s Todos", **user_settings)
+        name = ctx.author.name
+        display_name = ctx.author.display_name
+        plural = "'" if name.lower().endswith("s") else "'s"
+        if name == display_name:
+            names = name + plural
+        else:
+            names = f"{display_name}{plural} ({name})"
+        await self.page_logic(ctx, todos, f"{names} Todos", **user_settings)
 
     @todo.command(name="multiadd")
-    async def todo_multi_add(self, ctx: commands.Context, *, todos: str = None):
+    async def todo_multi_add(self, ctx: commands.Context, *, todos: Optional[str] = None):
         """Add multiple todos in one command. These are split by a newline.
 
         You can upload a file instead of inputting the todos, or reply to a message that contains a file\
@@ -185,6 +213,8 @@ class ToDo(
         if ctx.message.reference and not any([todos is not None, ctx.message.attachments]):
             # Message references get checked first
             msg = ctx.message.reference.resolved
+            if TYPE_CHECKING:
+                assert isinstance(msg, discord.Message), "mpy"
             if not msg.attachments:
                 return await ctx.send("That message does not have files!")
             maybe_file: discord.Attachment = msg.attachments[0]
@@ -282,7 +312,7 @@ class ToDo(
         await self.cache.set_user_item(ctx.author, "todos", todos)
 
     @todo.command(name="sort")
-    async def todo_sort(self, ctx: commands.Context, reverse: bool = None):
+    async def todo_sort(self, ctx: commands.Context, reverse: Optional[bool] = None):
         """Sort your todos by alphabetical order
 
         You can optionally set it to sort in reverse
@@ -331,10 +361,10 @@ class ToDo(
     @staticmethod
     async def _get_todos(
         todos: List[dict], *, timestamp: bool = False, md: bool = False
-    ) -> Tuple[List[str], List[str]]:
+    ) -> Tuple[List[str], ...]:
         """An internal function to get todos sorted by pins"""
-        pinned = []
-        extra = []
+        pinned: List[str] = []
+        extra: List[str] = []
         for todo in todos:
             if not isinstance(todo, dict):
                 extra.append(str(todo))
@@ -367,6 +397,8 @@ class ToDo(
 
     async def _embed_requested(self, ctx: commands.Context, user: discord.User) -> bool:
         """An slightly rewritten method for checking if a command should embed or not"""
+        if TYPE_CHECKING:
+            assert isinstance(ctx.me, discord.Member), "mypy"
         if ctx.guild and not ctx.channel.permissions_for(ctx.me).embed_links:
             return False
         return await self.cache.get_user_setting(user, "use_embeds")
