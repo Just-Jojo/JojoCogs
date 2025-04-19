@@ -12,15 +12,15 @@ __all__ = ["NonBotMember", "PositiveInt"]
 
 
 if TYPE_CHECKING:
-    NonBotMember = discord.Member
+    NonBotMember = discord.User
 else:
 
-    class NonBotMember(commands.MemberConverter):
+    class NonBotMember(commands.UserConverter):
         def __init__(self, strict: bool = True):
             self.strict = strict
             super().__init__()
 
-        async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
+        async def convert(self, ctx: commands.Context, arg: str) -> discord.User:
             try:
                 user = await super().convert(ctx, arg)
             except commands.BadArgument:

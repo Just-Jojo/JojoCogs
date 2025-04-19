@@ -5,8 +5,11 @@ import logging
 from datetime import datetime, timezone
 
 import discord  # type:ignore
-from redbot.core import Config, commands, modlog
+from redbot.core import Config, modlog
 from redbot.core.bot import Red
+
+from typing import Optional
+
 
 log = logging.getLogger("red.JojoCogs.advanced_log.api")
 
@@ -36,6 +39,8 @@ modlog_exists = no_exception_bool(modlog.get_modlog_channel)
 
 
 class NoteApi:
+    __slots__ = ("config", "bot")
+
     def __init__(self, config: Config, bot: Red):
         self.config = config
         self.bot = bot
@@ -48,12 +53,12 @@ class NoteApi:
     async def create_note(
         self,
         guild: discord.Guild,
-        user: discord.Member,
+        user: discord.User,
         moderator: discord.Member,
         note: str,
     ) -> None:
-        async with self.config.member(user).notes() as notes:
-            case_num = None
+        async with self.config.member_from_ids(guild.id, user.id).notes() as notes:
+            case_num: Optional[int] = None
             if await self._modlog_enabled(guild):
                 case = await modlog.create_case(
                     self.bot, guild, datetime.utcnow(), "Mod Note", user, moderator, note
@@ -68,11 +73,11 @@ class NoteApi:
         self,
         guild: discord.Guild,
         index: int,
-        user: discord.Member,
+        user: discord.User,
         moderator: discord.Member,
         new_note: str,
     ) -> None:
-        async with self.config.member(user).notes() as notes:
+        async with self.config.member_from_ids(guild.id, user.id).notes() as notes:
             data = notes[index]
             if (
                 data["author"] != moderator.id
@@ -109,10 +114,10 @@ class NoteApi:
         self,
         guild: discord.Guild,
         index: int,
-        user: discord.Member,
+        user_id: int,
         moderator: discord.Member,
     ) -> None:
-        async with self.config.member(user).notes() as notes:
+        async with self.config.member_from_ids(guild.id, user_id).notes() as notes:
             note = notes[index]
             if (
                 note["author"] != moderator.id

@@ -4,7 +4,6 @@
 import logging
 from typing import Any, Dict, Final, List
 
-import discord  # type:ignore
 from redbot.core import Config, commands, modlog
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
@@ -12,7 +11,7 @@ from redbot.core.utils.chat_formatting import pagify
 
 from .api import NotAuthor, NoteApi, modlog_exists
 from .menus import Menu, Page
-from .utils import *
+from .utils import NonBotMember, PositiveInt
 
 log = logging.getLogger("red.JojoCogs.advanced_log")
 _config_structure: Dict[str, Dict[str, Any]] = {
@@ -30,7 +29,7 @@ class ModNotes(commands.Cog):
     """A mod note cog for moderators to add notes to users"""
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
-    __version__: Final[str] = "1.0.1"
+    __version__: Final[str] = "1.0.2"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -195,7 +194,7 @@ class ModNotes(commands.Cog):
         **Arguments**
             - `user` The user to view notes of.
         """
-        data = await self.config.member(user).notes()
+        data = await self.config.member_from_ids(ctx.guild.id, user.id).notes()
         if not data:
             return await ctx.send("That user does not have any notes.")
         act = []
@@ -207,5 +206,5 @@ class ModNotes(commands.Cog):
                 ]
             )
         msg = "# Moderator\tNote\n"
-        msg += "\n".join(f"{num}. {mod}\t\t{note}" for num, (mod, note) in enumerate(act, 1))
+        msg += "\n".join(f"{num}. {mod}\t{note}" for num, (mod, note) in enumerate(act, 1))
         await Menu(ctx, Page(list(pagify(msg)), f"Notes on {str(user)} ({user.id})")).start()
