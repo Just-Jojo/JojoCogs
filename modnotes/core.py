@@ -7,7 +7,7 @@ from typing import Any, Dict, Final, List
 from redbot.core import Config, commands, modlog
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
-from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.chat_formatting import box, pagify
 
 from .api import NotAuthor, NoteApi, modlog_exists
 from .menus import Menu, Page
@@ -80,7 +80,7 @@ class ModNotes(commands.Cog):
         If toggled, whenever a note is created on a user it will create a case in the modlog.
 
         **Arguments**
-            - `toggle` Whether to enable or disable the modlog logging.
+            \- `toggle` Whether to enable or disable the modlog logging.
         """
         if toggle and not await modlog_exists(ctx.guild):
             return await ctx.send(
@@ -98,7 +98,7 @@ class ModNotes(commands.Cog):
         """Allow any moderator to edit notes, regardless of who authored it
         
         **Arguments**
-            - `toggle` Whether moderators other than the author can edit notes.
+            \- `toggle` Whether moderators other than the author can edit notes.
         """
         if toggle == await self.config.guild(ctx.guild).allow_other_edits():
             enabled = "" if toggle else "'t"
@@ -120,8 +120,8 @@ class ModNotes(commands.Cog):
         If enabled this will also log to the modlog.
 
         **Arguments**
-            - `user` A non-bot user to log for.
-            - `note` The note to add to them.
+            \- `user` A non-bot user to log for.
+            \- `note` The note to add to them.
         """
         await ctx.send(f"Done. I have added that as a note for {user.name}.")
         await self.api.create_note(ctx.guild, user, ctx.author, note)
@@ -151,8 +151,8 @@ class ModNotes(commands.Cog):
         """Remove a note from a user. This user cannot be a bot.
 
         **Arguments**
-            - `user` The user to remove a note from.
-            - `index` The index of the note to remove.
+            \- `user` The user to remove a note from.
+            \- `index` The index of the note to remove.
         """
         try:
             await self.api.remove_note(ctx.guild, index - 1, user, ctx.author)
@@ -170,17 +170,21 @@ class ModNotes(commands.Cog):
         """Edit a note on a user. This user cannot be a bot.
 
         **Arguments**
-            - `user` The user to edit a note on. This user cannot be a bot.
-            - `index` The index of the reason to edit.
-            - `note` The new note.
+            \- `user` The user to edit a note on. This user cannot be a bot.
+            \- `index` The index of the reason to edit.
+            \- `note` The new note.
         """
         try:
-            await self.api.edit_note(ctx.guild, index - 1, user, ctx.author, note)
+            old = await self.api.edit_note(ctx.guild, index - 1, user, ctx.author, note)
         except NotAuthor:
             await ctx.send("You are not the author of that note.")
         except IndexError:
             await ctx.send(f"I could not find a note at index {index}.")
         else:
+            message = (
+                f"Edited the note at index {index}.\n\n"
+                f"**Old**\n{box(old)}"
+            )
             await ctx.send(
                 f"Edited the note at index {index}."
             )  # TODO(Jojo) Maybe send the new + old note?
