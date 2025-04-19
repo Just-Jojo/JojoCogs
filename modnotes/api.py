@@ -76,7 +76,8 @@ class NoteApi:
         user: discord.User,
         moderator: discord.Member,
         new_note: str,
-    ) -> None:
+    ) -> str:
+        old_note: Optional[str] = None
         async with self.config.member_from_ids(guild.id, user.id).notes() as notes:
             data = notes[index]
             if (
@@ -84,6 +85,7 @@ class NoteApi:
                 and not await self.config.guild(guild).allow_other_edits()
             ):
                 raise NotAuthor(moderator)
+            old_note = data["note"]
             data["note"] = new_note
             data["amend_author"] = str(moderator)
             data["amend_time"] = int(datetime.now(timezone.utc).timestamp())
@@ -109,6 +111,7 @@ class NoteApi:
             f"Moderator {moderator.name} ({moderator.id}) edited the "
             f"note on {user.name} ({user.id}) at index {index} to {new_note}"
         )
+        return old_note
 
     async def remove_note(
         self,

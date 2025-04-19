@@ -185,9 +185,7 @@ class ModNotes(commands.Cog):
                 f"Edited the note at index {index}.\n\n"
                 f"**Old**\n{box(old)}"
             )
-            await ctx.send(
-                f"Edited the note at index {index}."
-            )  # TODO(Jojo) Maybe send the new + old note?
+            await ctx.send(message)
 
     @modnote.command(name="list")
     async def modnote_list(self, ctx: commands.Context, user: NonBotMember):
