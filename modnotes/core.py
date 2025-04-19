@@ -29,7 +29,7 @@ class ModNotes(commands.Cog):
     """A mod note cog for moderators to add notes to users"""
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
-    __version__: Final[str] = "1.0.2"
+    __version__: Final[str] = "1.0.3"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -155,7 +155,7 @@ class ModNotes(commands.Cog):
             \- `index` The index of the note to remove.
         """
         try:
-            await self.api.remove_note(ctx.guild, index - 1, user, ctx.author)
+            await self.api.remove_note(ctx.guild, index - 1, user.id, ctx.author)
         except NotAuthor:
             await ctx.send("You are not the author of that note.")
         except IndexError:
