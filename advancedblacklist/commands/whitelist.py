@@ -3,22 +3,16 @@
 
 import asyncio
 import logging
-from typing import Union
+from typing import Optional, Union
 
 import discord
 from redbot.core import commands
-from redbot.core.utils.chat_formatting import box, pagify
+from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from ..abc import ABMixin  # type:ignore
-from .utils import (
-    add_to_whitelist,
-    clear_whitelist,
-    edit_reason,
-    get_whitelist,
-    in_whitelist,
-    remove_from_whitelist,
-)
+from .utils import (add_to_whitelist, clear_whitelist, edit_reason, get_whitelist, in_whitelist,
+                    remove_from_whitelist)
 
 log = logging.getLogger("red.jojocogs.advancedblacklist.whitelist")
 
@@ -38,7 +32,7 @@ class Whitelist(ABMixin):
         ctx: commands.Context,
         users: commands.Greedy[discord.User],
         *,
-        reason: str = None,
+        reason: Optional[str] = None,
     ):
         """Add a user to the whitelist. These users cannot be bots.
 
@@ -125,7 +119,7 @@ class Whitelist(ABMixin):
         ctx: commands.Context,
         members_or_roles: commands.Greedy[Union[discord.Member, discord.Role]],
         *,
-        reason: str = None,
+        reason: Optional[str] = None,
     ):
         """Add members and roles to the local whitelist.
 
@@ -144,7 +138,9 @@ class Whitelist(ABMixin):
                 return await ctx.send("You cannot locally whitelist a bot.")
         reason = reason or "No reason provided."
         members = {u.id for u in members_or_roles}
-        if not (ctx.guild.owner_id == ctx.author.id or await self.bot.is_owner(ctx.author)):
+        if not (
+            ctx.guild.owner_id == ctx.author.id or await self.bot.is_owner(ctx.author)
+        ):  # type:ignore
             # We need to make sure to not lock an admin out of the bot
             # This is a toned down version of the cog creator's method for this check
             # https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/core/core_commands.py#L4521-#L4532
@@ -221,12 +217,13 @@ class Whitelist(ABMixin):
             return await ctx.send("There are no locally allowed members or roles.")
         msg = "Locally Allowed Members/Roles:"
         for uid, reason in wl.items():
-            name = (
-                u.name
-                if (u := ctx.guild.get_member(int(uid)))
-                else r.name
-                if (r := ctx.guild.get_role(int(uid)))
-                else "Unknown or Deleted Member/Role"
-            )
+            user = ctx.guild.get_member(int(uid))
+            role = ctx.guild.get_role(int(uid))
+            if user:
+                name = user.name
+            elif role:
+                name = role.name
+            else:
+                name = "Unknown User or Role"
             msg += f"\n\t- [{uid}] {name}: {reason}"
         await ctx.send_interactive(pagify(msg, page_length=1800), "yml")

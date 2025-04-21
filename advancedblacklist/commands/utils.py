@@ -2,13 +2,13 @@
 # Licensed under MIT
 
 import logging
-from typing import Dict, Iterable, Optional, Union
+from typing import Dict, Iterable, List, Optional, Union
 
 from discord import Guild, Member, Role, User
 from redbot.core import Config
 from redbot.core.bot import Red
 
-from ...const import _config_structure  # type:ignore
+from ..const import _config_structure
 
 __all__ = [
     "add_to_blacklist",
@@ -79,15 +79,15 @@ async def add_to_blacklist(
     override: Optional[bool] = False,
 ) -> None:
     coro = _config if not guild else _config.guild(guild)
+    to_add: List[int] = []
     async with coro.blacklist() as bl:
         for item in users_or_roles:
-            item = str(getattr(item, "id", item))
-            bl[item] = reason
+            actual: int = getattr(item, "id", item)  # type:ignore
+            to_add.append(actual)
+            bl[str(actual)] = reason
     if override:
         return
-    await bot._whiteblacklist_cache.add_to_blacklist(  # type:ignore
-        guild, {getattr(u, "id", u) for u in users_or_roles}
-    )
+    await bot._whiteblacklist_cache.add_to_blacklist(guild, to_add)
 
 
 async def remove_from_blacklist(
@@ -98,15 +98,15 @@ async def remove_from_blacklist(
     override: Optional[bool] = False,
 ) -> None:
     coro = _config if not guild else _config.guild(guild)
+    to_add: List[int] = []
     async with coro.blacklist() as bl:
         for item in users_or_roles:
-            item = str(getattr(item, "id", item))
-            bl.pop(item, None)
+            actual = getattr(item, "id", item)
+            to_add.append(actual)  # type:ignore
+            bl.pop(str(actual), None)
     if override:
         return
-    await bot._whiteblacklist_cache.remove_from_blacklist(  # type:ignore
-        guild, {getattr(u, "id", u) for u in users_or_roles}
-    )
+    await bot._whiteblacklist_cache.remove_from_blacklist(guild, to_add)
 
 
 async def in_blacklist(bot: Red, id: int, guild: Optional[Guild] = None) -> bool:
@@ -117,7 +117,7 @@ async def in_blacklist(bot: Red, id: int, guild: Optional[Guild] = None) -> bool
 
 async def edit_reason(
     bot: Red,
-    user: Union[User, Member, int],
+    user: UserOrRole,
     reason: str,
     whitelist: bool,
     *,
@@ -151,7 +151,7 @@ async def clear_blacklist(
     await coro.blacklist.clear()
     if override:
         return
-    await bot._whiteblacklist_cache.clear_blacklist(guild)  # type:ignore
+    await bot._whiteblacklist_cache.clear_blacklist(guild)
 
 
 async def add_to_whitelist(
@@ -163,16 +163,15 @@ async def add_to_whitelist(
     override: Optional[bool] = False,
 ) -> None:
     coro = _config if not guild else _config.guild(guild)
+    to_add: List[int] = []
     async with coro.whitelist() as wl:
         for item in users_or_roles:
-            item = str(getattr(item, "id", item))
-            wl[item] = reason
+            actual = getattr(item, "id", item)
+            to_add.append(actual)  # type:ignore
+            wl[str(actual)] = reason
     if override:
         return
-    await bot._whiteblacklist_cache.add_to_whitelist(  # type:ignore
-        guild,
-        {getattr(u, "id", u) for u in users_or_roles},
-    )
+    await bot._whiteblacklist_cache.add_to_whitelist(guild, to_add)
 
 
 async def remove_from_whitelist(
@@ -183,16 +182,15 @@ async def remove_from_whitelist(
     override: Optional[bool] = False,
 ) -> None:
     coro = _config if not guild else _config.guild(guild)
+    to_add: List[int] = []
     async with coro.whitelist() as wl:
         for item in users_or_roles:
-            item = str(getattr(item, "id", item))
-            wl.pop(item, None)
+            actual = getattr(item, "id", item)
+            to_add.append(actual)  # type:ignore
+            wl.pop(str(actual), None)
     if override:
         return
-    await bot._whiteblacklist_cache.remove_from_whitelist(  # type:ignore
-        guild,
-        {getattr(u, "id", u) for u in users_or_roles},
-    )
+    await bot._whiteblacklist_cache.remove_from_whitelist(guild, to_add)
 
 
 async def get_whitelist(bot: Red, guild: Optional[Guild] = None) -> Dict[str, str]:
@@ -221,4 +219,4 @@ async def clear_whitelist(
     await coro.whitelist.clear()
     if override:
         return
-    await bot._whiteblacklist_cache.clear_whitelist(guild)  # type:ignore
+    await bot._whiteblacklist_cache.clear_whitelist(guild)

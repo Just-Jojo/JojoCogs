@@ -13,5 +13,8 @@ with open(Path(__file__).parent / "info.json") as fp:
 
 
 async def setup(bot: Red) -> None:
-    c = await AdvancedBlacklist.init(bot)
-    await bot.add_cog(c)
+    advanced_blacklist = await AdvancedBlacklist.init(bot)
+    # Instead of having the normal cog loading, this will need to patch
+    # some commands in the bot, therefore we need to initialize the cog before adding it
+    # to the bot
+    await bot.add_cog(advanced_blacklist)

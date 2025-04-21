@@ -2,7 +2,7 @@
 # Licensed under MIT
 
 import asyncio
-from typing import Union
+from typing import Optional, Union
 
 import discord
 from redbot.core import commands
@@ -10,14 +10,8 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from ..abc import ABMixin  # type:ignore
-from .utils import (
-    add_to_blacklist,
-    clear_blacklist,
-    edit_reason,
-    get_blacklist,
-    in_blacklist,
-    remove_from_blacklist,
-)
+from .utils import (add_to_blacklist, clear_blacklist, edit_reason, get_blacklist, in_blacklist,
+                    remove_from_blacklist)
 
 __all__ = ["Blacklist"]
 
@@ -37,7 +31,9 @@ class Blacklist(ABMixin):
         pass
 
     @blacklist_log.command(name="set")
-    async def blacklist_log_set(self, ctx: commands.Context, *, channel: Union[discord.TextChannel, discord.Thread]):
+    async def blacklist_log_set(
+        self, ctx: commands.Context, *, channel: Union[discord.TextChannel, discord.Thread]
+    ):
         """Set the channel for logging black/whitelistings
 
         **Arguments**
@@ -61,7 +57,11 @@ class Blacklist(ABMixin):
 
     @blacklist.command(name="add")
     async def blacklist_add(
-        self, ctx: commands.Context, users: commands.Greedy[discord.User], *, reason: str = None
+        self,
+        ctx: commands.Context,
+        users: commands.Greedy[discord.User],
+        *,
+        reason: Optional[str] = None,
     ):
         """Add users to the blacklist.
 
@@ -156,7 +156,7 @@ class Blacklist(ABMixin):
         ctx: commands.Context,
         members_or_roles: commands.Greedy[Union[discord.Member, discord.Role]],
         *,
-        reason: str = None,
+        reason: Optional[str] = None,
     ):
         """Add users to the local blacklist
 
@@ -253,9 +253,11 @@ class Blacklist(ABMixin):
             name = (
                 u.name
                 if (u := ctx.guild.get_member(int(key)))
-                else r.name
-                if (r := ctx.guild.get_role(int(key)))
-                else "Unknown or Deleted Member/Role"
+                else (
+                    r.name
+                    if (r := ctx.guild.get_role(int(key)))
+                    else "Unknown or Deleted Member/Role"
+                )
             )
             msg += f"\n\t- [{key}] {name}: {value}"
         await ctx.send_interactive(pagify(msg, page_length=1800), "yml")

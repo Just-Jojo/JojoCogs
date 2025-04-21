@@ -7,9 +7,9 @@ import datetime
 import logging
 from contextlib import suppress
 from types import ModuleType
-from typing import Optional, Set, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Set, Union
 
-import discord  # type:ignore
+import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, pagify
@@ -19,17 +19,17 @@ from .commands import Blacklist, Whitelist
 from .commands.utils import (add_to_blacklist, add_to_whitelist, clear_blacklist, clear_whitelist,
                              in_blacklist, in_whitelist, remove_from_blacklist,
                              remove_from_whitelist, startup)
-from .const import __authors__, __version__
+from .const import __authors__, __version__, _ChannelType
 from .patch import destroy, init
 
 log = logging.getLogger("red.jojocogs.advancedblacklist")
 
 
 def api_tool(ctx: commands.Context) -> ModuleType:
-    # Allows access ot the api within a red repl session
-    from .commands.utils import api
+    # Allows access to the api within a red repl session
+    from .commands import utils
 
-    return api
+    return utils
 
 
 class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeMetaclass):
@@ -38,8 +38,8 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
     def __init__(self, bot: Red):
         self.bot = bot
         self._commands: Set[Optional[commands.Command]] = set()
-        self.config = Config.get_conf(self, 544974305445019651, True) # Log channel stuff
-        self._log_channel: Optional[discord.TextChannel] = None # type:ignore # Dunno why mypy is complaining
+        self.config = Config.get_conf(self, 544974305445019651, True)  # Log channel stuff
+        self._log_channel: Optional[_ChannelType] = None
         self._task = self.bot.loop.create_task(startup(self.bot))
         self._log_task = self.bot.loop.create_task(self._get_log_channel())
         init(self.bot)
@@ -73,8 +73,6 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
                 channel = await self.bot.fetch_channel(cid)
             except discord.HTTPException:
                 return
-        if TYPE_CHECKING:
-            assert isinstance(channel, discord.TextChannel), "mypy"
         self._log_channel = channel
 
     async def _log_message(self, msg: str, *, err: bool = False) -> None:
@@ -124,7 +122,9 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if not await in_blacklist(self.bot, u, guild)}
         if users:
             log.debug(f"Adding these users to the blacklist config. {users = }. {guild = }")
-            await add_to_blacklist(self.bot, users, "No reason provided.", guild=guild, override=True)
+            await add_to_blacklist(
+                self.bot, users, "No reason provided.", guild=guild, override=True
+            )
         if guild or not self._log_channel:
             return
         msg = f"Added these users/roles to {self._guild_global(guild)} blacklist.\n\n{u}"
@@ -157,7 +157,9 @@ class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeM
         users = {u for u in users if not await in_whitelist(self.bot, u, guild)}
         if users:
             log.debug(f"Adding these users to the whitelist config. {users = }. {guild = }")
-            await add_to_whitelist(self.bot, users, "No reason provided.", guild=guild, override=True)
+            await add_to_whitelist(
+                self.bot, users, "No reason provided.", guild=guild, override=True
+            )
         if guild or not self._log_channel:
             return
         msg = f"Added these users/roles to {self._guild_global(guild)} whitelist.\n\n{u}"
