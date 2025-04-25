@@ -1,206 +1,284 @@
-# Copyright (c) 2021 - Jojo#7791
+# Copyright (c) 2021 - Amy (jojo7791)
 # Licensed under MIT
 
 from __future__ import annotations
 
-import datetime
-import logging
-from contextlib import suppress
-from types import ModuleType
-from typing import TYPE_CHECKING, Optional, Set, Union
-
 import discord
-from redbot.core import Config, commands
+from typing import Dict, List, Literal, Union, Optional, Self, TYPE_CHECKING
+
+from redbot.core import commands, Config
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import humanize_list, pagify
 
-from .abc import CompositeMetaclass
-from .commands import Blacklist, Whitelist
-from .commands.utils import (add_to_blacklist, add_to_whitelist, clear_blacklist, clear_whitelist,
-                             in_blacklist, in_whitelist, remove_from_blacklist,
-                             remove_from_whitelist, startup)
-from .const import __authors__, __version__, _ChannelType
-from .patch import destroy, init
+from ._types import ChannelType, UserOrRole, UsersOrRoles
+from .constants import __author__, __version__
+from .menus import Menu, Page
+from .patching import startup, destroy
 
-log = logging.getLogger("red.jojocogs.advancedblacklist")
+import datetime
+
+try:
+    from datetime import UTC
+
+    def _timestamp() -> datetime.datetime:
+        return datetime.datetime.now(tz=UTC)
+
+except ImportError:
+
+    def _timestamp() -> datetime.datetime:
+        return datetime.datetime.utcnow()
 
 
-def api_tool(ctx: commands.Context) -> ModuleType:
-    # Allows access to the api within a red repl session
-    from .commands import utils
-
-    return utils
+__all___ = ["AdvancedBlacklist"]
 
 
-class AdvancedBlacklist(Blacklist, Whitelist, commands.Cog, metaclass=CompositeMetaclass):
-    """An advanced blacklist cog for more control over your blacklist"""
+_original_commands = ["blocklist", "allowlist"]
+_WhiteBlacklist = Literal["whitelist", "blacklist"]
+
+
+def _format_pages(show: List[str]) -> List[str]:
+    pages: List[str]
+    current_page: str = ""
+    for page in show:
+        current_page += f"\n{page}"
+        if len(current_page) > 1800:
+            pages.append(current_page)
+            current_page = ""
+    if current_page:
+        pages.append(current_page)
+    return pages
+
+
+def _filter_bots(user_or_role: UserOrRole) -> bool:
+    return not getattr(user_or_role, "bot", False)
+
+
+class AdvancedBlacklist(commands.Cog):
+    """An extension of the core blacklisting and whitelisting commands
+
+    Allows for adding reasons for blacklisting/whitelisting users/roles
+    """
 
     def __init__(self, bot: Red):
         self.bot = bot
-        self._commands: Set[Optional[commands.Command]] = set()
-        self.config = Config.get_conf(self, 544974305445019651, True)  # Log channel stuff
-        self._log_channel: Optional[_ChannelType] = None
-        self._task = self.bot.loop.create_task(startup(self.bot))
-        self._log_task = self.bot.loop.create_task(self._get_log_channel())
-        init(self.bot)
-        for k, v in {"advbl": (lambda x: self), "abapi": api_tool}.items():
-            with suppress(RuntimeError):
-                self.bot.add_dev_env_value(k, v)
-
-    def cog_unload(self):
-        for cmd in self._commands:
-            self.bot.add_command(cmd)
-        self._task.cancel()
-        self._log_task.cancel()
-        destroy()
+        self.config = Config.get_conf(self, 544974305445019651, True)
+        self._original_coms: List[commands.Command] = []
+        self.log_channel: Optional[ChannelType]
 
     @classmethod
-    async def init(cls, bot: Red) -> AdvancedBlacklist:
-        self: AdvancedBlacklist = cls(bot)
-        for c in ["blocklist", "allowlist"]:
-            self._commands |= {self.bot.remove_command(y) for y in (c, f"local{c}")}
-            # I am lazy :)
+    async def async_init(cls, bot: Red) -> Self:
+        self = cls(bot)
+        startup(bot)
+        for name in _original_commands:
+            local = "local" + name
+            self._original_coms.append(bot.remove_command(name))  # type:ignore
+            self._original_coms.append(bot.remove_command(local))  # type:ignore
+        del name, local
         return self
 
-    async def _get_log_channel(self) -> None:
-        await self.bot.wait_until_red_ready()
-        cid = await self.config.log_channel()
-        if not cid:
-            return
-        channel = self.bot.get_channel(cid)
-        if not channel:
-            try:
-                channel = await self.bot.fetch_channel(cid)
-            except discord.HTTPException:
-                return
-        self._log_channel = channel
-
-    async def _log_message(self, msg: str, *, err: bool = False) -> None:
-        if TYPE_CHECKING:
-            assert isinstance(self._log_channel, discord.TextChannel), "mypy momen"
-        if not err:
-            log.info(msg)
-        msg += f"\n{self._get_timestamp()}"
-        try:
-            if len(msg) <= 2000:
-                await self._log_channel.send(content=msg)
-                return
-            for i in pagify(msg, delims=[","], page_length=400):
-                await self._log_channel.send(content=i)
-        except discord.Forbidden:
-            self._log_channel = None
-            await self.config.log_channel.clear()
-            log.info("Could not log to the log channel. Resetting log channel.")
+    async def cog_unload(self) -> None:
+        for com in self._original_coms:
+            self.bot.add_command(com)
+        destroy(self.bot)
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
-        plural = "" if len(__authors__) == 1 else "s"
-        return (
-            f"{super().format_help_for_context(ctx)}\n\n"
-            f"**Author{plural}:** {humanize_list([f'`{a}`' for a in __authors__])}\n"
-            f"**Version:** {__version__}"
-        )
+        original = super().format_help_for_context(ctx)
+        return f"{original}\n\n" f"**Author:** {__author__}\n" f"**Version:** {__version__}"
 
-    @staticmethod
-    def _guild_global(guild: Optional[discord.Guild]) -> str:
-        return "the bot's" if not guild else f"{guild.name} ({guild.id})'s"
+    @commands.command(name="advancedblacklistversion", hidden=True)
+    async def advbl_version(self, ctx: commands.Context) -> None:
+        """Get the version info for advancedblacklist"""
+        await ctx.send("")
 
-    @staticmethod
-    def _get_timestamp() -> str:
-        return f"<t:{int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp())}>"
-
-    @commands.command(name="advancedblacklistversion", aliases=("abversion",), hidden=True)
-    async def advanced_blacklist_version(self, ctx: commands.Context):
-        """Get the version of Advanced Blacklist that [botname] is running"""
-        await ctx.send(
-            f"Advanced Blacklist, version `{__version__}` "
-            f"by {humanize_list([f'`{a}`' for a in __authors__])}"
-        )
-
-    @commands.Cog.listener()
-    async def on_add_to_blacklist(self, guild: discord.Guild, users: Set[int]):
-        u = str(users)[1:-1]
-        users = {u for u in users if not await in_blacklist(self.bot, u, guild)}
-        if users:
-            log.debug(f"Adding these users to the blacklist config. {users = }. {guild = }")
-            await add_to_blacklist(
-                self.bot, users, "No reason provided.", guild=guild, override=True
+    async def maybe_send_embed(
+        self, ctx: commands.Context, message: str, *, title: Optional[str] = None
+    ) -> discord.Message:
+        footer = "Written with ❤ - Amy (jojo7791)"
+        data: Dict[str, Union[str, discord.Embed]]
+        if await ctx.embed_requested():
+            embed = discord.Embed(
+                title=title,
+                colour=await ctx.embed_colour(),
+                timestamp=_timestamp(),
+                description=message,
             )
-        if guild or not self._log_channel:
-            return
-        msg = f"Added these users/roles to {self._guild_global(guild)} blacklist.\n\n{u}"
-        await self._log_message(msg)
+            embed.set_footer(text=footer)
+            data = {"embed": embed}
+        else:
+            title = f"**{title}**" if title else ""
+            message = f"{title}\n\n" f"{message}\n\n" f"-# {footer}"
+            data = {"content": message}
+        return await ctx.send(**data)
 
-    @commands.Cog.listener()
-    async def on_remove_from_blacklist(self, guild: discord.Guild, users: Set[int]):
-        u = str(users)[1:-1]
-        users = {u for u in users if await in_blacklist(self.bot, u, guild)}
-        if users:
-            log.debug(f"Removing these users from the blacklist config. {users = }. {guild = }")
-            await remove_from_blacklist(self.bot, users, guild=guild, override=True)
-        if guild or not self._log_channel:
-            return
-        msg = f"Removed these users/roles from {self._guild_global(guild)} blacklist.\n\n{u}"
-        await self._log_message(msg)
+    async def add_to_list(
+        self,
+        users_or_roles: UsersOrRoles,
+        *,
+        white_black_list: _WhiteBlacklist,
+        reason: str,
+        guild: Optional[discord.Guild] = None,
+    ) -> None:
+        config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
+        async with config.blacklist() as blacklist:
+            for item in users_or_roles:
+                actual = str(getattr(item, "id", item))
+                blacklist[actual] = reason
+        del blacklist, item, actual
+        await getattr(self.bot, f"add_to_{white_black_list}")(users_or_roles, guild=guild)
 
-    @commands.Cog.listener()
-    async def on_clear_blacklist(self, guild: discord.Guild):
-        log.debug(f"Clearing blacklist config. {guild = }")
-        await clear_blacklist(self.bot, guild, True)
-        if guild or not self._log_channel:
-            return
-        msg = f"Cleared {self._guild_global(guild)} blacklist."
-        await self._log_message(msg)
+    async def remove_from_list(
+        self,
+        users_or_roles: UsersOrRoles,
+        *,
+        white_black_list: _WhiteBlacklist,
+        guild: Optional[discord.Guild] = None,
+    ) -> None:
+        config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
+        async with config() as blacklist:
+            for item in users_or_roles:
+                actual = str(getattr(item, "id", item))
+                del blacklist[actual]
+        del blacklist, item, actual
+        await getattr(self.bot, f"remove_from_{white_black_list}")(users_or_roles, guild=guild)
 
-    @commands.Cog.listener()
-    async def on_add_to_whitelist(self, guild: discord.Guild, users: Set[int]):
-        u = str(users)[1:-1]
-        users = {u for u in users if not await in_whitelist(self.bot, u, guild)}
-        if users:
-            log.debug(f"Adding these users to the whitelist config. {users = }. {guild = }")
-            await add_to_whitelist(
-                self.bot, users, "No reason provided.", guild=guild, override=True
-            )
-        if guild or not self._log_channel:
-            return
-        msg = f"Added these users/roles to {self._guild_global(guild)} whitelist.\n\n{u}"
-        await self._log_message(msg)
+    async def clear_list(
+        self, *, white_black_list: _WhiteBlacklist, guild: Optional[discord.Guild] = None
+    ) -> None:
+        if guild:
+            await getattr(self.config.guild(guild), white_black_list).clear()
+        else:
+            await getattr(self.config, white_black_list).clear()
+        await getattr(self.bot, f"clear_{white_black_list}")(guild=guild)
 
-    @commands.Cog.listener()
-    async def on_remove_from_whitelist(self, guild: discord.Guild, users: Set[int]):
-        u = str(users)[1:-1]  # :kappa:
-        users = {u for u in users if await in_whitelist(self.bot, u, guild)}
-        if users:
-            log.debug(
-                f"Removing these users/roles from the whitelist config. {users = }. {guild = }"
-            )
-            await remove_from_whitelist(self.bot, users, guild=guild, override=True)
-        if guild or not self._log_channel:
-            return
-        msg = (
-            f"Removed these users from {self._guild_global(guild)} "
-            f"whitelist.\n\n{u}\n\n{self._get_timestamp()}"
-        )
-        await self._log_message(msg)
+    async def get_list(
+        self, *, white_black_list: _WhiteBlacklist, guild: Optional[discord.Guild] = None
+    ) -> Dict[str, str]:
+        config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
+        blacklist = await config()
+        if blacklist:
+            return blacklist
 
-    @commands.Cog.listener()
-    async def on_clear_whitelist(self, guild: discord.Guild):
-        log.debug(f"Clearing the whitelist config. {guild = }")
-        await clear_whitelist(self.bot, guild, override=True)
-        if guild or not self._log_channel:
-            return
-        msg = f"Cleared {self._guild_global(guild)} whitelist."
-        await self._log_message(msg)
+        # We don't have anyone in the blacklist currently
+        # Let's check if the bot has anybody in the blacklist
+        bot_blacklist = await getattr(self.bot, f"get_{white_black_list}")(guild)
+        if not blacklist:
+            return {}
+        blacklist = {str(i): "No reason provided." for i in bot_blacklist}
+        await config.set(blacklist)
+        return blacklist
 
-    @commands.Cog.listener()
-    async def on_error_blacklist(self, user: discord.User, command: commands.Command):
-        if not self._log_channel:
-            return
-        msg = f"Blacklisted {user.id} for using '{command.name}' which errored too many times."
-        await self._log_message(msg, err=True)
+    async def edit_reason(
+        self,
+        users_or_roles: UsersOrRoles,
+        *,
+        white_black_list: _WhiteBlacklist,
+        reason: str,
+        guild: Optional[discord.Guild] = None,
+    ) -> None:
+        config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
+        async with config() as blacklist:
+            for item in users_or_roles:
+                actual = str(getattr(item, "id", item))
+                blacklist[actual] = reason
+        del blacklist, actual, item
 
-    def _get_user(
-        self, ctx: commands.Context, member_id: str
-    ) -> Optional[Union[discord.Member, discord.User]]:
-        mid = int(member_id)
-        ret: Optional[discord.Member] = ctx.guild.get_member(mid) if ctx.guild else None
-        return ret or self.bot.get_user(mid)
+    async def in_list(
+        self,
+        user_or_role: UserOrRole,
+        *,
+        white_black_list: _WhiteBlacklist,
+        guild: Optional[discord.Guild] = None,
+    ) -> bool:
+        config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
+        actual = str(getattr(user_or_role, "id", user_or_role))
+        data = await config()
+        if TYPE_CHECKING:
+            assert isinstance(data, dict)
+        if actual in data.keys():
+            return True
+
+        # Okay, didn't find it in the config
+        # Let's try in the bot
+        data = await self.bot.get_blacklist(guild)
+        return int(actual) in data
+
+    @commands.group(name="blocklist", aliases=["denylist", "blacklist"])
+    @commands.is_owner()
+    async def blocklist(self, ctx: commands.Context) -> None:
+        """"""
+        pass
+
+    @blocklist.group(name="settings", aliases=["set"])
+    async def blocklist_settings(self, ctx: commands.Context) -> None:
+        """Settings for AdvancedBlacklist"""
+        pass  # TODO Show settings?
+
+    @blocklist_settings.command(name="format")
+    async def blocklist_format(
+        self, ctx: commands.Context, *, new_format: Optional[str] = None
+    ) -> None:
+        """Set the format for listing the block/allow list
+
+        Variables:
+            `{bot_name}` -> `[botname]`
+            `{allow_deny_list}` -> `allowlist` or `blocklist`
+            `{version_info}` -> version of AdvancedBlacklist you are running
+            `{reason}` -> reason for adding a user/role to the block/allow list
+        """
+        if not new_format:
+            ...  # TODO Show format
+            return
+
+    @blocklist.command(name="add")
+    async def blocklist_add(
+        self,
+        ctx: commands.Context,
+        users_or_roles: commands.Greedy[UserOrRole],
+        *,
+        reason: Optional[str] = None,
+    ) -> None:
+        """Add a user or role to the blocklist
+
+        **Arguments**
+            `users_or_roles`        The users or roles to add to the blocklist
+            `reason`                      Optional reason, defaults to "No reason provided."
+        """
+        if not users_or_roles:
+            await ctx.send_help(ctx.command)
+            return
+        users_or_roles = filter(_filter_bots, users_or_roles)  # type:ignore
+        if not reason:
+            reason = "No reason provided"
+        await self.add_to_list(users_or_roles, white_black_list="blacklist", reason=reason)
+        await ctx.send("I have added those users/roles to the blocklist")
+
+    @blocklist.command(name="edit")
+    async def blocklist_edit(self, ctx: commands.Context, user_or_role: UserOrRole, *, reason: str) -> None:
+        """Edit the reason for a blocklisted user/role
+        
+        **Arguments**
+            `user_or_role`         The user or role to edit the reason of
+            `reason`                   The new reason
+        """
+        await self.edit_reason([user_or_role], white_black_list="blacklist", reason=reason)
+        await ctx.send("Edited the reason for that user.")
+
+    @blocklist.command(name="list")
+    async def blocklist_list(self, ctx: commands.Context) -> None:
+        """List the users/roles in the bot's blocklist"""
+        list_format: Dict[str, str] = await self.config.format()
+        title = list_format["title"].replace("{bot_name}", ctx.me.name)
+        footer = list_format["footer"].replace("{}", "")
+        user_or_role = list_format["user_or_role"]
+        show: List[str] = []
+
+        blocklist = await self.get_list(white_black_list="blacklist", guild=None)
+        for item, reason in blocklist.items():
+            maybe_user = getattr(self.bot.get_user(int(item)), "name", item)
+            user_or_role = user_or_role.replace("{user_or_role}", maybe_user)
+            user_or_role = user_or_role.replace("{reason}", reason)
+            show.append(user_or_role)
+        del maybe_user, item, reason
+
+        show = _format_pages(show)
+        page = Page(ctx, show, title=title, footer=footer)
+        await Menu.start(page, ctx)
