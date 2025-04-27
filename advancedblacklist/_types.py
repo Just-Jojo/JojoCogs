@@ -8,7 +8,6 @@ from redbot.core import commands
 from typing import Union, Dict, Iterable, TYPE_CHECKING
 
 
-
 __all__ = ["ChannelType", "ConfigType", "GreedyUserOrRole", "UserOrRole", "UsersOrRoles"]
 
 ChannelType = Union[

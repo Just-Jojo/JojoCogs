@@ -19,9 +19,7 @@ try:
     import orjson
 
 except ImportError:
-    if not TYPE_CHECKING:
-        # Easier than writing # type:ignore? Not at all
-        import json as orjson
+    import json as orjson  # type:ignore # mypy momen
 
 import datetime
 
@@ -30,6 +28,7 @@ try:
 
 except ImportError:
     from datetime import timezone
+
     DATETIME_UTC = timezone.utc
 
 
@@ -63,7 +62,9 @@ def _format_str(string: str, replace: Dict[str, str]) -> str:
     return string
 
 
-async def _filter_bots(ctx: commands.Context, users_or_roles: UsersOrRoles) -> Tuple[bool, UsersOrRoles]:
+async def _filter_bots(
+    ctx: commands.Context, users_or_roles: UsersOrRoles
+) -> Tuple[bool, UsersOrRoles]:
     for i in range(2):
         if not users_or_roles:
             if i == 1:
@@ -79,6 +80,9 @@ class AdvancedBlacklist(commands.Cog):
     """An extension of the core blocklisting and allowlisting commands
 
     Allows for adding reasons for blocklisting/allowlisting users/roles
+    and changing the format for the lists
+
+    See `[p]advancedblacklistversion` for version and author information
     """
 
     def __init__(self, bot: Red):
@@ -88,7 +92,7 @@ class AdvancedBlacklist(commands.Cog):
             getattr(self.config, f"register_{config_type}")(**data)
         del config_type, data
         self._original_coms: List[commands.Command] = []
-        self.log_channel: Optional[ChannelType]
+        self.log_channel: Optional[ChannelType]  # TODO(Amy) see if I wanna do this
 
     @classmethod
     async def async_init(cls, bot: Red) -> Self:
@@ -274,7 +278,7 @@ class AdvancedBlacklist(commands.Cog):
 
         Arguments:
             `new_format`    The new format the bot will use to list the block/allowlist.
-            This will be loaded as JSON. 
+            This will be loaded as JSON.
 
         Variables:
             `{bot_name}` -> `[botname]`
@@ -304,7 +308,7 @@ class AdvancedBlacklist(commands.Cog):
             assert isinstance(json_obj, dict)
         for key, value in current_format.items():
             to_add[key] = json_obj.get(key, value)
-        
+
         await self.config.format.set(to_add)
         await ctx.send("The block/allowlist will now use that format")
 
