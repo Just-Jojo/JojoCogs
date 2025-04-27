@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import discord.abc
-from typing import Union, Dict, Iterable
+from redbot.core import commands
+from typing import Union, Dict, Iterable, TYPE_CHECKING
 
 
-__all__ = ["ChannelType", "ConfigType", "UserOrRole", "UsersOrRoles"]
+
+__all__ = ["ChannelType", "ConfigType", "GreedyUserOrRole", "UserOrRole", "UsersOrRoles"]
 
 ChannelType = Union[
     discord.TextChannel,
@@ -20,5 +22,10 @@ ConfigType = Union[
     int,
     Dict[str, str],
 ]
-UserOrRole = Union[int, discord.User, discord.Member, discord.Role]
+UserOrRole = Union[int, discord.Member, discord.Member, discord.Role]
 UsersOrRoles = Iterable[UserOrRole]
+
+if TYPE_CHECKING:
+    GreedyUserOrRole = UsersOrRoles
+else:
+    GreedyUserOrRole = commands.Greedy[UserOrRole]
