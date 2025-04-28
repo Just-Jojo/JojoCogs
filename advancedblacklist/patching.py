@@ -6,52 +6,78 @@
 # So have this fun stuff
 
 
-from typing import Any, Callable, Coroutine, Dict, Final, List
+import asyncio
+import logging
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, Final, List
+
+from discord.utils import maybe_coroutine
 from redbot.core.bot import Red
 
+__all__ = ["Patch"]
 
-__all__ = ["startup", "destroy"]
-initialized: bool = False
+_log = logging.getLogger("redbot.jojocogs.advancedblacklist.patch")
+
 Coro = Callable[..., Coroutine[Any, Any, Any]]
 
-_function_names: Final[List[str]] = [
-    "add_to_blacklist",
-    "remove_from_blacklist",
-    "clear_blacklist",
-    "add_to_whitelist",
-    "remove_from_whitelist",
-    "clear_whitelist",
-]
-_original_functions: Dict[str, Coro] = {}
+_lock = asyncio.Lock()
 
 
-def patch_wrapper(bot: Red, method_name: str, func: Coro) -> Coro:
-    async def inner(*args, **kwargs):
-        await func(*args, **kwargs)
-        bot.dispatch(f"on_{method_name}")
+def _with_lock(func: Callable[[Any], Any]):
+    async def inner(*args, **kwargs) -> Any:
+        async with _lock:
+            return await maybe_coroutine(func, *args, **kwargs)
 
     return inner
 
 
-def startup(bot: Red) -> None:
-    global initialized
-    if initialized:
-        return
-    initialized = True
+class Patch:
+    def __init__(self, bot: Red):
+        self.bot = bot
+        self._names = [
+            "add_to_blacklist",
+            "remove_from_blacklist",
+            "clear_blacklist",
+            "add_to_whitelist",
+            "remove_from_whitelist",
+            "clear_whitelist",
+        ]
+        self._funcs: Dict[str, Coro] = {}
+        self._initialized = False
 
-    for name in _function_names:
-        original = getattr(bot, name)
-        _original_functions[name] = original
-        setattr(bot, name, patch_wrapper(bot, name, original))
-    del name, original
+    def _patch_wrapper(self, method_name: str, func: Coro) -> Coro:
+        async def inner(*args, **kwargs):
+            await func(*args, **kwargs)
+            self.bot.dispatch(f"on_{method_name}")
 
+        return inner
 
-def destroy(bot: Red) -> None:
-    global initialized
-    if not initialized:
-        return
-    initialized = False
+    @_with_lock
+    def startup(self) -> None:
+        if self._initialized:
+            return
+        for name in self._names:
+            func = getattr(self.bot, name)
+            if not func:
+                # Shouldn't really happen let's log just in case
+                _log.warning(
+                    f"Couldn't find {name}, skipping replacement\n"
+                    "Please make an issue if this persists (https://github.com/Just-Jojo/JojoCogs)"
+                )
+                continue
 
-    for key, value in _original_functions.items():
-        setattr(bot, key, value)
-    del key, value
+            self._funcs[name] = func
+            setattr(self.bot, name, self._patch_wrapper(name, func))
+        self._initialized = True
+
+    @_with_lock
+    def destroy(self) -> None:
+        if not self._initialized:
+            return
+
+        # NOTE this shouldn't really need to be here
+        # as I should only be calling this when the cog unloads
+        # but just in case
+        self._initialized = False
+
+        for name, func in self._funcs.items():
+            setattr(self.bot, name, func)

@@ -3,17 +3,25 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
+
 import discord
-from typing import Dict, List, Literal, Union, Tuple, Optional, Self, TYPE_CHECKING
 
-from redbot.core import commands, Config
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self  # type:ignore
+
+from redbot.core import Config, commands
 from redbot.core.bot import Red
+from redbot.core.i18n import Translator, cog_i18n
 
-from ._types import ChannelType, GreedyUserOrRole, UserOrRole, UsersOrRoles
-from .constants import __author__, __version__, default_format, config_structure
+from ._types import (ChannelType, GlobalCache, GreedyUserOrRole, GuildCache, UserOrRole,
+                     UsersOrRoles)
+from .constants import __author__, __version__, config_structure, default_format
 from .menus import Menu, Page
-from .patching import startup, destroy
-
+# from .patching import destroy, startup
+from .patching import Patch
 
 try:
     import orjson
@@ -30,6 +38,10 @@ except ImportError:
     from datetime import timezone
 
     DATETIME_UTC = timezone.utc
+
+
+# Damn chemicals in the water turning the frickin frogs gay
+trans = Translator("AdvancedBlacklist", __file__)
 
 
 def _timestamp() -> datetime.datetime:
@@ -62,20 +74,48 @@ def _format_str(string: str, replace: Dict[str, str]) -> str:
     return string
 
 
+async def _filter_internal(
+    c: commands.Context, u: UsersOrRoles
+) -> Tuple[UsersOrRoles, Optional[str]]:
+    r: UsersOrRoles = []
+    for i in u:
+        if isinstance(i, int):
+            i = discord.Object(i)  # type:ignore
+        if await c.bot.is_owner(i):  # type:ignore
+            return [], "You cannot add yourself to the blocklist"
+        elif isinstance(i, discord.Member) and i.bot:
+            continue
+        r.append(getattr(i, "id", i))  # type:ignore
+    return r, ""
+
+
 async def _filter_bots(
-    ctx: commands.Context, users_or_roles: UsersOrRoles
+    ctx: commands.Context,
+    users_or_roles: UsersOrRoles,
+    white_black_list: _WhiteBlacklist,
 ) -> Tuple[bool, UsersOrRoles]:
     for i in range(2):
         if not users_or_roles:
             if i == 1:
-                await ctx.send("Those users were bots!")
+                await ctx.send(trans("Those users were bots!"))
             else:
                 await ctx.send_help()
             return False, []
-        users_or_roles = filter(lambda x: not getattr(x, "bot", False), users_or_roles)
+        if white_black_list == "whitelist":
+            # NOTE Since the allowlist is just people who
+            # can use the bot, we can just filter out the bots.
+            # However the blocklist needs some more finagling as
+            # adding the owner to the blocklist is kinda not good
+            users_or_roles = filter(lambda x: not getattr(x, "bot", False), users_or_roles)
+            continue
+        users_or_roles, string = await _filter_internal(ctx, users_or_roles)
+        if string:
+            await ctx.send(trans(string))
+            return False, []
     return True, users_or_roles
 
 
+@cog_i18n(trans)
 class AdvancedBlacklist(commands.Cog):
     """An extension of the core blocklisting and allowlisting commands
 
@@ -87,17 +127,22 @@ class AdvancedBlacklist(commands.Cog):
 
     def __init__(self, bot: Red):
         self.bot = bot
+        self._patch = Patch(self.bot)
         self.config = Config.get_conf(self, 544974305445019651, True)
         for config_type, data in config_structure.items():
             getattr(self.config, f"register_{config_type}")(**data)
         del config_type, data
         self._original_coms: List[commands.Command] = []
         self.log_channel: Optional[ChannelType]  # TODO(Amy) see if I wanna do this
+        self._bl_cache: GlobalCache = {}
+        self._bl_guild_cache: GuildCache = {}
+        self._wl_cache: GlobalCache = {}
+        self._wl_guild_cache: GuildCache = {}
 
     @classmethod
     async def async_init(cls, bot: Red) -> Self:
         self = cls(bot)
-        startup(bot)
+        await self._patch.startup()
         for name in _original_commands:
             local = "local" + name
             global_com = bot.remove_command(name)
@@ -107,11 +152,11 @@ class AdvancedBlacklist(commands.Cog):
                 assert isinstance(local_com, commands.Command), "mypy"
             self._original_coms.append(global_com)
             self._original_coms.append(local_com)
-        del name, local
+        del name, local, global_com, local_com
         return self
 
     async def cog_unload(self) -> None:
-        destroy(self.bot)
+        await self._patch.destroy()
         for com in self._original_coms:
             self.bot.add_command(com)
 
@@ -139,8 +184,7 @@ class AdvancedBlacklist(commands.Cog):
                 timestamp=_timestamp(),
                 description=message,
             )
-            if footer:
-                embed.set_footer(text=footer)
+            embed.set_footer(text=footer)
             data = {"embed": embed}
         else:
             title = f"**{title}**" if title else ""
@@ -149,6 +193,15 @@ class AdvancedBlacklist(commands.Cog):
                 message += f"\n\n-# {footer}"
             data = {"content": message}
         return await ctx.send(**data)
+
+    def _get_cache(
+        self, white_black_list: _WhiteBlacklist, guild: Optional[discord.Guild]
+    ) -> Dict[str, str]:
+        if guild:
+            return (
+                self._bl_guild_cache if white_black_list == "blacklist" else self._wl_guild_cache
+            )[guild.id]
+        return self._bl_cache if white_black_list == "blacklist" else self._wl_cache
 
     async def add_to_list(
         self,
@@ -163,6 +216,8 @@ class AdvancedBlacklist(commands.Cog):
             for item in users_or_roles:
                 actual = str(getattr(item, "id", item))
                 blacklist[actual] = reason
+                cache = self._get_cache(white_black_list, guild)
+                cache[actual] = reason
         del blacklist, item, actual
         await getattr(self.bot, f"add_to_{white_black_list}")(users_or_roles, guild=guild)
 
@@ -179,12 +234,15 @@ class AdvancedBlacklist(commands.Cog):
                 actual = str(getattr(item, "id", item))
                 if actual in blacklist:
                     del blacklist[actual]
+
         del blacklist, item, actual
         await getattr(self.bot, f"remove_from_{white_black_list}")(users_or_roles, guild=guild)
 
     async def clear_list(
         self, *, white_black_list: _WhiteBlacklist, guild: Optional[discord.Guild] = None
     ) -> None:
+        cache = self._get_cache(white_black_list, guild)
+        cache.clear()
         if guild:
             await getattr(self.config.guild(guild), white_black_list).clear()
         else:
@@ -194,6 +252,9 @@ class AdvancedBlacklist(commands.Cog):
     async def get_list(
         self, *, white_black_list: _WhiteBlacklist, guild: Optional[discord.Guild] = None
     ) -> Dict[str, str]:
+        blacklist = self._get_cache(white_black_list, guild)
+        if blacklist:
+            return blacklist
         config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
         blacklist = await config()
         if blacklist:
@@ -217,9 +278,11 @@ class AdvancedBlacklist(commands.Cog):
         guild: Optional[discord.Guild] = None,
     ) -> None:
         config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
+        cache = self._get_cache(white_black_list, guild)
         async with config() as blacklist:
             actual = str(getattr(user_or_role, "id", user_or_role))
             blacklist[actual] = reason
+            cache[actual] = reason
         del blacklist, actual
 
     async def in_list(
@@ -229,8 +292,11 @@ class AdvancedBlacklist(commands.Cog):
         white_black_list: _WhiteBlacklist,
         guild: Optional[discord.Guild] = None,
     ) -> bool:
-        config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
         actual = str(getattr(user_or_role, "id", user_or_role))
+        cache = self._get_cache(white_black_list, guild)
+        if actual in cache:
+            return True
+        config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
         data = await config()
         if TYPE_CHECKING:
             assert isinstance(data, dict)
@@ -245,11 +311,13 @@ class AdvancedBlacklist(commands.Cog):
     @commands.command(name="advancedblacklistversion", hidden=True)
     async def advbl_version(self, ctx: commands.Context) -> None:
         """Get the version info for advancedblacklist"""
-        version_info = (
-            f"{ctx.me.name} running version {__version__}\n"
-            f"For more information/bug reporting, see [the github]"
-            f"(https://github.com/Just-Jojo/JojoCogs)"
-        )
+        version_info = trans(
+            (
+                "{bot_name} running version {__version__}\n"
+                "For more information/bug reporting, see [the github]"
+                "(https://github.com/Just-Jojo/JojoCogs)"
+            )
+        ).format(bot_name=ctx.me.name, __version__=__version__)
         footer = "Made with ❤ by Amy (jojo7791)"
         await self.maybe_send_embed(
             ctx, version_info, title="AdvancedBlacklist - JojoCogs", footer=footer
@@ -258,7 +326,10 @@ class AdvancedBlacklist(commands.Cog):
     @commands.group(name="blocklist", aliases=["denylist", "blacklist"])
     @commands.is_owner()
     async def blocklist(self, ctx: commands.Context) -> None:
-        """"""
+        """Commands manage the blocklist on [botname].
+
+        Use `[p]blocklist clear` to disable the blocklist
+        """
         pass
 
     @blocklist.group(name="settings", aliases=["set"])
@@ -266,7 +337,7 @@ class AdvancedBlacklist(commands.Cog):
         """Settings for AdvancedBlacklist"""
         pass
 
-    @blocklist.command(name="showsettings", aliases=["settings"])
+    @blocklist.command(name="showsettings", aliases=["show"])
     async def blocklist_settings_showsettings(self, ctx: commands.Context) -> None:
         """Show the settings for AdvancedBlacklist"""
 
@@ -294,11 +365,11 @@ class AdvancedBlacklist(commands.Cog):
             json_obj = orjson.loads(new_format)
         except orjson.JSONDecodeError:
             # TODO(Amy) maybe use yaml instead :p
-            await ctx.send("That was not valid JSON, please try again")
+            await ctx.send(trans("That was not valid JSON, please try again"))
             return
         else:
             if isinstance(json_obj, list):
-                await ctx.send("Must be a map, not a list")
+                await ctx.send(trans("Must be a map, not a list"))
                 return
 
         to_add = {}
@@ -310,7 +381,7 @@ class AdvancedBlacklist(commands.Cog):
             to_add[key] = json_obj.get(key, value)
 
         await self.config.format.set(to_add)
-        await ctx.send("The block/allowlist will now use that format")
+        await ctx.send(trans("The block/allowlist will now use that format"))
 
     async def _show_format(self, ctx: commands.Context) -> None:
         settings = await self.config.format()
@@ -329,29 +400,41 @@ class AdvancedBlacklist(commands.Cog):
             `users_or_roles`    The users or roles to add to the blocklist
             `reason`                  Optional reason, defaults to "No reason provided."
         """
-        worked, users_or_roles = await _filter_bots(ctx, users_or_roles)
+        worked, users_or_roles = await _filter_bots(ctx, users_or_roles, "blacklist")
         if not worked:
             return
 
         if not reason:
-            reason = "No reason provided"
+            reason = trans("No reason provided")
+
         await self.add_to_list(users_or_roles, white_black_list="blacklist", reason=reason)
-        await ctx.send("I have added those users/roles to the blocklist")
+        if len(tuple(users_or_roles)) > 1:
+            await ctx.send(
+                trans(
+                    "I have added those users/roles to the blocklist with the reason: `{reason}`"
+                ).format(reason=reason)
+            )
+        else:
+            await ctx.send(
+                trans(
+                    "I have added that user/role to the blocklist with the reason: `{reason}`"
+                ).format(reason=reason)
+            )
 
     @blocklist.command(name="remove", aliases=["del", "delete"])
     async def blocklist_remove(
         self, ctx: commands.Context, users_or_roles: GreedyUserOrRole
     ) -> None:
         """Remove users or roles from the blocklist"""
-        worked, users_or_roles = await _filter_bots(ctx, users_or_roles)
+        worked, users_or_roles = await _filter_bots(ctx, users_or_roles, "blacklist")
         if not worked:
             return
 
         await self.remove_from_list(users_or_roles, white_black_list="whitelist", guild=None)
         if len(list(users_or_roles)) > 1:
-            await ctx.send("Removed those users/roles from the blocklist")
+            await ctx.send(trans("Removed those users/roles from the blocklist"))
         else:
-            await ctx.send("Removed that user/role from the blocklist")
+            await ctx.send(trans("Removed that user/role from the blocklist"))
 
     @blocklist.command(name="edit")
     async def blocklist_edit(
@@ -375,11 +458,63 @@ class AdvancedBlacklist(commands.Cog):
     @blocklist.command(name="list")
     async def blocklist_list(self, ctx: commands.Context) -> None:
         """List the users/roles in the bot's blocklist"""
+        await self.send_list(ctx, white_black_list="blacklist", guild=None)
+
+    @commands.group(name="allowlist", aliases=["whitelist"])
+    @commands.is_owner()
+    async def allowlist(self, ctx: commands.Context) -> None:
+        """Commands managing the allowlist on [botname]
+
+        Any users or roles added to the allowlist will be.
+        """
+        pass
+
+    @allowlist.command(name="add")
+    async def allowlist_add(
+        self,
+        ctx: commands.Context,
+        users_or_roles: GreedyUserOrRole,
+        *,
+        reason: Optional[str] = None,
+    ) -> None:
+        """Add users/roles to the allowlist"""
+        worked, users_or_roles = await _filter_bots(ctx, users_or_roles, "whitelist")
+
+        if not worked:
+            return
+
+        if not reason:
+            reason = trans("No reason provided")
+
+        await self.add_to_list(
+            users_or_roles, white_black_list="whitelist", reason=reason, guild=None
+        )
+
+        if len(tuple(users_or_roles)) > 1:
+            await ctx.send(
+                trans(
+                    "I have added those users/roles to the allowlist with the reason: `{reason}`"
+                ).format(reason=reason)
+            )
+        else:
+            await ctx.send(
+                trans(
+                    "I have added that user/role to the allowlist with the reason: `{reason}`"
+                ).format(reason=reason)
+            )
+
+    async def send_list(
+        self,
+        ctx: commands.Context,
+        *,
+        white_black_list: _WhiteBlacklist,
+        guild: Optional[discord.Guild],
+    ) -> None:
         list_format: Dict[str, str] = await self.config.format()
         format_settings = {
             "{reason}": "",
             "{bot_name}": ctx.me.name,
-            "{version_info}": __version__,
+            "{version_info}": str(__version__),
             "{user_or_role}": "",
         }
         title = _format_str(list_format["title"], format_settings)
@@ -387,7 +522,13 @@ class AdvancedBlacklist(commands.Cog):
         user_or_role = list_format["user_or_role"]
         show: List[str] = []
 
-        blocklist = await self.get_list(white_black_list="blacklist", guild=None)
+        blocklist = await self.get_list(white_black_list=white_black_list, guild=guild)
+        if not blocklist:
+            allow_deny = "allowlist" if white_black_list == "whitelist" else "blocklist"
+            await ctx.send(
+                trans("There are no users/roles on the {allow_deny}").format(allow_deny=allow_deny)
+            )
+            return
         for item, reason in blocklist.items():
             maybe_user = getattr(self.bot.get_user(int(item)), "name", item)
             format_settings.update({"{user_or_role}": maybe_user, "{reason}": reason})

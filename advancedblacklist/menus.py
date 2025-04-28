@@ -15,13 +15,12 @@
 
 from __future__ import annotations
 
-import discord
 from contextlib import suppress
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
+import discord
 from redbot.core import commands
 from redbot.core.bot import Red
-
 
 __all__ = ["Page", "Menu"]
 
