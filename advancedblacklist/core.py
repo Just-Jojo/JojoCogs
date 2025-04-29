@@ -12,40 +12,27 @@ try:
 except ImportError:
     from typing_extensions import Self  # type:ignore
 
+import datetime
+
+import yaml
 from redbot.core import Config, commands
 from redbot.core.bot import Red
+from redbot.core.dev_commands import cleanup_code  # NOTE lazy :p
 from redbot.core.i18n import Translator, cog_i18n
+from redbot.core.utils.chat_formatting import escape
 
 from ._types import (ChannelType, GlobalCache, GreedyUserOrRole, GuildCache, UserOrRole,
                      UsersOrRoles)
 from .constants import __author__, __version__, config_structure, default_format
 from .menus import Menu, Page
-# from .patching import destroy, startup
 from .patching import Patch
-
-try:
-    import orjson
-
-except ImportError:
-    import json as orjson  # type:ignore # mypy momen
-
-import datetime
-
-try:
-    from datetime import UTC as DATETIME_UTC
-
-except ImportError:
-    from datetime import timezone
-
-    DATETIME_UTC = timezone.utc
-
 
 # Damn chemicals in the water turning the frickin frogs gay
 trans = Translator("AdvancedBlacklist", __file__)
 
 
 def _timestamp() -> datetime.datetime:
-    return datetime.datetime.now(tz=DATETIME_UTC)
+    return datetime.datetime.now(tz=datetime.timezone.utc)
 
 
 __all___ = ["AdvancedBlacklist"]
@@ -308,7 +295,7 @@ class AdvancedBlacklist(commands.Cog):
         data = await self.bot.get_blacklist(guild)
         return int(actual) in data
 
-    @commands.command(name="advancedblacklistversion", hidden=True)
+    @commands.command(name="advancedblacklistversion", aliases=["advblversion"], hidden=True)
     async def advbl_version(self, ctx: commands.Context) -> None:
         """Get the version info for advancedblacklist"""
         version_info = trans(
@@ -347,12 +334,18 @@ class AdvancedBlacklist(commands.Cog):
     ) -> None:
         """Set the format for listing the block/allow list
 
-        Arguments:
+        **Arguments:**
             `new_format`    The new format the bot will use to list the block/allowlist.
-            This will be loaded as JSON.
+            This will be loaded as YAML.
 
-        Variables:
+        **Keys:**
+            \- `title`                 The title the list will use
+            \- `user_or_role`          The user/role and the reason they were added to the list
+            \- `footer`                The footer on the page
+
+        **Variables:**
             `{bot_name}` -> `[botname]`
+            `user_or_role` -> The user or role on the list
             `{allow_deny_list}` -> `allowlist` or `blocklist`
             `{version_info}` -> version of AdvancedBlacklist you are running
             `{reason}` -> reason for adding a user/role to the block/allow list
@@ -361,11 +354,12 @@ class AdvancedBlacklist(commands.Cog):
             await self._show_format(ctx)
             return
 
+        new_format = escape(cleanup_code(new_format))
+
         try:
-            json_obj = orjson.loads(new_format)
-        except orjson.JSONDecodeError:
-            # TODO(Amy) maybe use yaml instead :p
-            await ctx.send(trans("That was not valid JSON, please try again"))
+            json_obj = yaml.safe_load(new_format)
+        except yaml.scanner.ScannerError:
+            await ctx.send(trans("That was not valid yaml!"))
             return
         else:
             if isinstance(json_obj, list):
@@ -385,22 +379,41 @@ class AdvancedBlacklist(commands.Cog):
 
     async def _show_format(self, ctx: commands.Context) -> None:
         settings = await self.config.format()
+        if not await ctx.embed_requested():
+            await ctx.send(
+                trans(
+                    "# AdvancedBlacklist format\n\n"
+                    "**Title:** `{title}`\n"
+                    "**User or Role:** {users_or_roles}\n"
+                    "**Footer:** {footer}"
+                ).format(title=settings["title"], user_or_role=settings["user_or_role"])
+            )
+            return
+        embed = discord.Embed(
+            colour=await ctx.embed_colour(),
+            title=trans("AdvancedBlacklist format"),
+            timestamp=_timestamp(),
+        )
+        embed.add_field(name=trans("Title"), value=settings["title"])
+        embed.add_field(name=trans("User or Role"), value=settings["user_or_role"])
+        embed.add_field(name=trans("Footer"), value=settings["footer"])
+        await ctx.send(embed=embed)
 
     @blocklist.command(name="add")
     async def blocklist_add(
         self,
         ctx: commands.Context,
-        users_or_roles: GreedyUserOrRole,
+        users_roles: GreedyUserOrRole,
         *,
         reason: Optional[str] = None,
     ) -> None:
         """Add a user or role to the blocklist
 
-        **Arguments**
-            `users_or_roles`    The users or roles to add to the blocklist
-            `reason`                  Optional reason, defaults to "No reason provided."
+        **Arguments:**
+            \- `users_roles`           The users/roles to add to the blocklist
+            \- `reason`                Optional reason, defaults to "No reason provided."
         """
-        worked, users_or_roles = await _filter_bots(ctx, users_or_roles, "blacklist")
+        worked, users_or_roles = await _filter_bots(ctx, users_roles, "blacklist")
         if not worked:
             return
 
@@ -423,10 +436,14 @@ class AdvancedBlacklist(commands.Cog):
 
     @blocklist.command(name="remove", aliases=["del", "delete"])
     async def blocklist_remove(
-        self, ctx: commands.Context, users_or_roles: GreedyUserOrRole
+        self, ctx: commands.Context, users_roles: GreedyUserOrRole
     ) -> None:
-        """Remove users or roles from the blocklist"""
-        worked, users_or_roles = await _filter_bots(ctx, users_or_roles, "blacklist")
+        """Remove users/roles from the blocklist
+
+        **Arguments:**
+            \- `users_or_roles`        The users or roles to remove from the blocklist
+        """
+        worked, users_or_roles = await _filter_bots(ctx, users_roles, "blacklist")
         if not worked:
             return
 
@@ -442,9 +459,9 @@ class AdvancedBlacklist(commands.Cog):
     ) -> None:
         """Edit the reason for a blocklisted user/role
 
-        **Arguments**
-            `user_or_role`         The user or role to edit the reason of
-            `reason`                   The new reason
+        **Arguments:**
+            \- `user_or_role`          The user or role to edit the reason of
+            \- `reason`                The new reason
         """
         if isinstance(user_or_role, discord.Member) and user_or_role.bot:
             await ctx.send("That user is a bot!")
@@ -465,7 +482,8 @@ class AdvancedBlacklist(commands.Cog):
     async def allowlist(self, ctx: commands.Context) -> None:
         """Commands managing the allowlist on [botname]
 
-        Any users or roles added to the allowlist will be.
+        Any users or roles added to the allowlist will be the only users
+        able to use [botname]
         """
         pass
 
@@ -473,12 +491,17 @@ class AdvancedBlacklist(commands.Cog):
     async def allowlist_add(
         self,
         ctx: commands.Context,
-        users_or_roles: GreedyUserOrRole,
+        users_roles: GreedyUserOrRole,
         *,
         reason: Optional[str] = None,
     ) -> None:
-        """Add users/roles to the allowlist"""
-        worked, users_or_roles = await _filter_bots(ctx, users_or_roles, "whitelist")
+        """Add users/roles to the allowlist
+
+        **Arguments:**
+            \- `users_roles`           The users/roles to add to the allowlist
+            \- `reason`                Optional reason, defaults to "No reason provided"
+        """
+        worked, users_or_roles = await _filter_bots(ctx, users_roles, "whitelist")
 
         if not worked:
             return
@@ -503,6 +526,147 @@ class AdvancedBlacklist(commands.Cog):
                 ).format(reason=reason)
             )
 
+    @allowlist.command(name="remove", aliases=["del", "delete"])
+    async def allowlist_remove(
+        self, ctx: commands.Context, users_roles: GreedyUserOrRole
+    ) -> None:
+        """Remove users/roles from the allowlist
+
+        **Arguments:**
+            \- `users_roles`           The users/roles to remove from the allowlist
+        """
+        worked, users_or_roles = await _filter_bots(ctx, users_roles, "whitelist")
+        if not worked:
+            return
+
+        await self.remove_from_list(users_or_roles, white_black_list="whitelist", guild=ctx.guild)
+        if len(tuple(users_or_roles)) > 1:
+            await ctx.send(trans("Removed those users/roles from the allowlist"))
+        else:
+            await ctx.send(trans("Removed that user/role from the allowlist"))
+
+    @allowlist.command(name="list")
+    async def allowlist_list(self, ctx: commands.Context) -> None:
+        """Shows the users/roles on the allowlist"""
+        await self.send_list(ctx, white_black_list="whitelist", guild=None)
+
+    @commands.group(name="localblocklist", aliases=["localblacklist", "localdenylist"])
+    @commands.guild_only()
+    @commands.admin_or_permissions(administrator=True)
+    async def local_blocklist(self, ctx: commands.Context) -> None:
+        """Manage the users/roles on the local blocklist"""
+        pass
+
+    @local_blocklist.command(name="add")
+    async def local_blocklist_add(
+        self,
+        ctx: commands.Context,
+        users_or_roles: GreedyUserOrRole,
+        *,
+        reason: Optional[str] = None,
+    ) -> None:
+        """Add users or roles to the local blocklist
+
+        The users or users in the roles will not be able to use [botname]
+
+        **Arguments:**
+            \- `users_or_roles`        The users/roles to add to the local blocklist
+            \- `reason`                The reason you added the users/roles
+        """
+        worked, users_or_roles = await _filter_bots(ctx, users_or_roles, "blacklist")
+        if not worked:
+            return
+
+        if not reason:
+            reason = "No reason provided"
+
+        await self.add_to_list(
+            users_or_roles, white_black_list="blacklist", reason=reason, guild=ctx.guild
+        )
+        if len(tuple(users_or_roles)) > 1:
+            await ctx.send(trans("Added those users/roles to the local blocklist"))
+        else:
+            await ctx.send(trans("Added that user/role to the local blocklist"))
+
+    @local_blocklist.command(name="remove", aliases=["delete", "del"])
+    async def local_blocklist_remove(
+        self, ctx: commands.Context, users_or_roles: GreedyUserOrRole
+    ) -> None:
+        """Remove users/roles from the local blocklist
+
+        **Arguments**
+            \- `users_or_roles`        The users/roles to remove from the local blocklist
+        """
+        worked, users_or_roles = await _filter_bots(ctx, users_or_roles, "blacklist")
+        if not worked:
+            return
+
+        await self.remove_from_list(users_or_roles, white_black_list="blacklist", guild=ctx.guild)
+        if len(tuple(users_or_roles)) > 1:
+            await ctx.send(trans("Removed those users/roles from the local blocklist"))
+        else:
+            await ctx.send(trans("Removed that user/role from the local blocklist"))
+
+    @local_blocklist.command(name="list")
+    async def local_blocklist_list(self, ctx: commands.Context) -> None:
+        """List the users/roles in the local blocklist"""
+        await self.send_list(ctx, white_black_list="blacklist", guild=ctx.guild)
+
+    @commands.group(name="localallowlist")
+    @commands.guild_only()
+    @commands.admin_or_permissions(administrator=True)
+    async def local_allowlist(self, ctx: commands.Context) -> None:
+        """Manage the users/roles on the local allowlist
+
+        Any users or roles added to the local allowlist will be the only users
+        able to use [botname]
+        """
+        pass
+
+    @local_allowlist.command(name="add")
+    async def local_allowlist_add(self, ctx: commands.Context, users_roles: GreedyUserOrRole, *, reason: Optional[str] = None) -> None:
+        """Add users/roles to the local allowlist
+
+        **Arguments:**
+            \- `users_roles`           The users/roles to add to the local allowlist
+            \- `reason`                Optional reason, defaults to "No reason provided"
+        """
+        worked, users_or_roles = await _filter_bots(ctx, users_roles, "whitelist")
+        if not worked:
+            return
+
+        if not reason:
+            reason = "No reason provided"
+
+        await self.add_to_list(users_or_roles, white_black_list="whitelist", reason=reason, guild=ctx.guild)
+        if len(tuple(users_or_roles)) > 1:
+            await ctx.send(trans("Added those users/roles to the local allowlist"))
+        else:
+            await ctx.send(trans("Added that user/role to the local allowlist"))
+
+    @local_allowlist.command(name="remove", aliases=["del", "delete"])
+    async def local_allowlist_remove(self, ctx: commands.Context, users_roles: GreedyUserOrRole) -> None:
+        """Remove users/roles from the local allowlist
+        
+        **Arguments:**
+            \- `users_roles`           The users to remove from the local allowlist
+        """
+        worked, users_or_roles = await _filter_bots(ctx, users_roles, "whitelist")
+        if not worked:
+            return
+
+        await self.remove_from_list(users_or_roles, white_black_list="whitelist", guild=ctx.guild)
+
+        if len(tuple(users_or_roles)) > 1:
+            await ctx.send(trans("Removed those users/roles from the local allowlist"))
+        else:
+            await ctx.send(trans("Removed that user/role from the local allowlist"))
+
+    @local_allowlist.command(name="list")
+    async def local_allowlist_list(self, ctx: commands.Context):
+        """List the users/roles in the local allowlist"""
+        await self.send_list(ctx, white_black_list="whitelist", guild=ctx.guild)
+
     async def send_list(
         self,
         ctx: commands.Context,
@@ -526,7 +690,7 @@ class AdvancedBlacklist(commands.Cog):
         if not blocklist:
             allow_deny = "allowlist" if white_black_list == "whitelist" else "blocklist"
             await ctx.send(
-                trans("There are no users/roles on the {allow_deny}").format(allow_deny=allow_deny)
+                trans("There are no users/roles on the {allow_deny}".format(allow_deny=allow_deny))
             )
             return
         for item, reason in blocklist.items():
