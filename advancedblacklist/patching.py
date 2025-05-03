@@ -9,6 +9,7 @@
 import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, Final, List
+from functools import wraps
 
 from discord.utils import maybe_coroutine
 from redbot.core.bot import Red
@@ -23,6 +24,7 @@ _lock = asyncio.Lock()
 
 
 def _with_lock(func: Callable[[Any], Any]):
+    @wraps(func)
     async def inner(*args, **kwargs) -> Any:
         async with _lock:
             return await maybe_coroutine(func, *args, **kwargs)
@@ -45,9 +47,11 @@ class Patch:
         self._initialized = False
 
     def _patch_wrapper(self, method_name: str, func: Coro) -> Coro:
+        @wraps(func)
         async def inner(*args, **kwargs):
+            adv_bl = kwargs.pop("adv_bl", False)
             await func(*args, **kwargs)
-            self.bot.dispatch(f"on_{method_name}")
+            self.bot.dispatch(f"on_{method_name}", *args, **kwargs, adv_bl=adv_bl)
 
         return inner
 
