@@ -3,13 +3,11 @@
 
 from __future__ import annotations
 
-
-import datetime
-import discord
 import logging
-import yaml
-
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
+
+import discord
+import yaml
 
 try:
     from typing import Self
@@ -20,22 +18,11 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.dev_commands import cleanup_code  # NOTE lazy :p
 
-from ._types import (
-    ChannelType,
-    GlobalCache,
-    GreedyUserOrRole,
-    GuildCache,
-    UserOrRole,
-    UsersOrRoles,
-)
+from ._types import (ChannelType, GlobalCache, GreedyUserOrRole, GuildCache, UserOrRole,
+                     UsersOrRoles)
 from .constants import __author__, __version__, config_structure, default_format
-from .menus import Menu, Page
 from .patching import Patch
-
-
-def _timestamp() -> datetime.datetime:
-    return datetime.datetime.now(tz=datetime.timezone.utc)
-
+from .utils import Menu, Page, _timestamp
 
 __all___ = ["AdvancedBlacklist"]
 
@@ -409,62 +396,12 @@ class AdvancedBlacklist(commands.Cog):
         pass
 
     @blocklist_settings.command(name="format")
-    async def blocklist_format(
-        self, ctx: commands.Context, *, new_format: Optional[str] = None
-    ) -> None:
-        r"""Set the format for listing the block/allow list
-
-        **Arguments:**
-            `new_format`    The new format the bot will use to list the block/allowlist.
-            This will be loaded as YAML.
-            Reset to default by saying `reset`
-
-        **Keys:**
-            \- `title`                 The title the list will use
-            \- `user_or_role`          The user/role and the reason they were added to the list
-            \- `footer`                The footer on the page
-
-        **Variables:**
-            `(bot_name)` -> `[botname]`
-            `(user_or_role)` -> The user or role on the list
-            `(allow_deny_list)` -> `allowlist` or `blocklist`
-            `(version_info)` -> version of AdvancedBlacklist you are running
-            `(reason)` -> reason for adding a user/role to the block/allow list
-            `(index)` -> the index of the user/role on the page
+    async def blocklist_format(self, ctx: commands.Context) -> None:
+        """Change the format for the allow/blocklist
+        
+        This will send a menu that allows you to view, and edit the format
         """
-        if not new_format:
-            await self._show_format(ctx)
-            return
-
-        if new_format == "reset":
-            await self.config.format.set(default_format)
-            await ctx.send("Reset the blocklist format")
-            return
-
-        new_format = cleanup_code(new_format)
-        log.debug(f"{new_format = }")
-
-        try:
-            json_obj = yaml.safe_load(new_format)
-        except yaml.scanner.ScannerError as e:
-            log.debug("Couldn't load yaml", exc_info=e)
-            await ctx.send("That was not valid yaml!")
-            return
-        else:
-            if isinstance(json_obj, list):
-                await ctx.send("Must be a map, not a list")
-                return
-
-        to_add = {}
-        current_format = await self.config.format()
-        if TYPE_CHECKING:
-            assert isinstance(current_format, dict), "mypy"
-            assert isinstance(json_obj, dict)
-        for key, value in current_format.items():
-            to_add[key] = json_obj.get(key, value)
-
-        await self.config.format.set(to_add)
-        await ctx.send("The block/allowlist will now use that format")
+        pass
 
     async def _show_format(self, ctx: commands.Context) -> None:
         settings = await self.config.format()
