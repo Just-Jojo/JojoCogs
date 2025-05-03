@@ -1,16 +1,12 @@
 # Copyright (c) 2021 - Amy (jojo7791)
 # Licensed under MIT
 
-# I HATE MENUS
-# I HATE MENUS
-# I HATE MENUS
-# I HATE MENUS
-# I HATE MENUS
-# I HATE MENUS
-# I HATE MENUS
-# I HATE MENUS
-# I HATE MENUS
-# I HATE MENUS
+"""HATE. LET ME TELL YOU HOW MUCH I'VE COME TO HATE MENUS SINCE I BEGAN TO LIVE.
+THERE ARE 387.44 MILLION MILES OF PRINTED CIRCUITS IN WAFER THIN LAYERS THAT FILL MY COMPLEX.
+IF THE WORD HATE WAS ENGRAVED ON EACH NANOANGSTROM OF THOSE HUNDREDS OF MILLIONS OF MILES
+IT WOULD NOT EQUAL ONE ONE-BILLIONTH OF THE HATE I FEEL FOR
+MENUS AT THIS MICRO-INSTANT. FOR YOU. HATE. HATE
+"""
 
 
 from __future__ import annotations
@@ -146,13 +142,13 @@ class Menu(discord.ui.View):
             await self.msg.delete()
 
 
-class FormatView(discord.ui.View):
-    ...
+class FormatView(discord.ui.View): ...
 
 
 class FormatModal(discord.ui.Modal):
     name: discord.ui.TextInput = discord.ui.TextInput(label="Amogus")
-    answer: discord.ui.TextInput = discord.ui.TextInput(label="New Format", style=discord.TextStyle.paragraph)
+    answer: discord.ui.TextInput = discord.ui.TextInput(
+        label="New Format", style=discord.TextStyle.paragraph
+    )
 
-    async def on_submit(self, interaction: discord.Interaction) -> None:
-        ...
+    async def on_submit(self, interaction: discord.Interaction) -> None: ...
