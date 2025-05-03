@@ -26,7 +26,10 @@ from discord.utils import MISSING
 from redbot.core import commands, Config
 from redbot.core.bot import Red
 
-__all__ = ["_timestamp", "_str_timestamp", "Page", "Menu", "FormatModal"]
+from .constants import default_format
+
+
+__all__ = ["_timestamp", "_str_timestamp", "get_source", "Page", "Menu", "FormatView"]
 
 button_emojis = {
     (False, True): "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE}",
@@ -41,7 +44,7 @@ def _timestamp() -> datetime.datetime:
 
 
 def _str_timestamp(timestamp: datetime.datetime) -> str:
-    return f"<t:{timestamp.timestamp()}:f>"
+    return f"<t:{int(timestamp.timestamp())}:f>"
 
 
 def _humanize_str(string: str) -> str:
@@ -54,6 +57,21 @@ def _humanize_str(string: str) -> str:
             continue
         ret.append(s.capitalize())
     return " ".join(ret)
+
+
+async def get_source(ctx: commands.Context, embed: bool, title: str, settings: Dict[str, str]) -> Union[discord.Embed, str]:
+    settings = {_humanize_str(k): v for k, v in settings.items()}
+    if embed:
+        data = discord.Embed(title=title, colour=await ctx.embed_colour(), timestamp=_timestamp())
+        for setting, value in settings.items():
+            data.add_field(name=setting, value=f"`{value}`", inline=False)
+        return data
+    fmt = "\n".join(f"**{k}:** `{v}`" for k, v in settings.items())
+    return (
+        f"# {title}:\n"
+        f"{fmt}\n"
+        f"-# {_str_timestamp(_timestamp())}"
+    )
 
 
 class BaseButton(discord.ui.Button):
@@ -111,7 +129,7 @@ class Page:
             embed.set_footer(text=self.footer)
             return {"embed": embed}
         page = "\n".join(page)
-        string = f"# {self.title}\n\n{page}\n-# {self.footer}"
+        string = f"# {self.title}\n\n\t{page}\n-# {self.footer}"
         return {"content": string}
 
     def __len__(self) -> int:
@@ -199,11 +217,23 @@ class FormatButton(discord.ui.Button):
             return
 
         settings = {
-            "title": modal.input_title.value,
-            "user_or_role": modal.input_user_or_role.value,
-            "footer": modal.input_footer.value,
+            "title": modal.input_title.value or modal.input_title.placeholder,
+            "user_or_role": modal.input_user_or_role.value or modal.input_user_or_role.placeholder,
+            "footer": modal.input_footer.value or modal.input_footer.placeholder,
         }
         await self.view.update(settings)
+
+
+class FormatReset(discord.ui.Button):
+    if TYPE_CHECKING:
+        view: FormatView
+
+    def __init__(self):
+        super().__init__(style=discord.ButtonStyle.red, label="Reset Format")
+
+    async def callback(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
+        await self.view.update(default_format)
 
 
 class FormatView(discord.ui.View):
@@ -212,14 +242,19 @@ class FormatView(discord.ui.View):
         msg: discord.Message
 
     def __init__(self, bot: Red, source: Union[str, discord.Embed], title: str, config: Config, settings: Dict[str, str]) -> None:
-        super().__init__()
+        super().__init__(timeout=60.0)
         self._bot = bot
         self.title = title
         self.config = config
         self.source = source
         self.settings = settings
         self.add_item(FormatButton(title, **settings))
+        self.add_item(FormatReset())
         self.add_item(StopButton())
+
+    async def on_timeout(self) -> None:
+        with suppress(discord.Forbidden):
+            await self.msg.delete()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if not await self._bot.is_owner(interaction.user):
@@ -251,20 +286,7 @@ class FormatView(discord.ui.View):
 
     async def update(self, settings: Dict[str, str]) -> None:
         await self.config.format.set(settings)
-        data: Union[discord.Embed, str]
-        settings = {_humanize_str(k): v for k, v in settings.items()}
-        if self.is_embed:
-            data = discord.Embed(title=self.title, colour=await self.ctx.embed_colour(), timestamp=_timestamp())
-            for setting, value in settings.items():
-                data.add_field(name=setting, value=value)
-        else:
-            fmt = "\n".join(f"{k}: {v}" for k, v in settings.items())
-            data = f"""# {self.title}
-            {fmt}
-            -# {_str_timestamp(_timestamp())}
-            """
-            del fmt
-        self.source = data
+        self.source = await get_source(self.ctx, self.is_embed, self.title, settings)
         await self.start()
 
 class FormatModal(discord.ui.Modal):

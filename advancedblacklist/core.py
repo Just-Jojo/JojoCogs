@@ -22,7 +22,7 @@ from ._types import (ChannelType, GlobalCache, GreedyUserOrRole, GuildCache, Use
                      UsersOrRoles)
 from .constants import __author__, __version__, config_structure, default_format
 from .patching import Patch
-from .utils import Menu, Page, _timestamp
+from .utils import Menu, Page, _timestamp, FormatView, get_source
 
 __all___ = ["AdvancedBlacklist"]
 
@@ -401,7 +401,9 @@ class AdvancedBlacklist(commands.Cog):
         
         This will send a menu that allows you to view, and edit the format
         """
-        pass
+        current = await self.config.format()
+        data = await get_source(ctx, await ctx.embed_requested(), "AdvancedBlacklist Format", settings=current)
+        await FormatView(self.bot, data, "Change the format", self.config, current).start(ctx)
 
     async def _show_format(self, ctx: commands.Context) -> None:
         settings = await self.config.format()
@@ -769,12 +771,12 @@ class AdvancedBlacklist(commands.Cog):
         allow_deny = "allowlist" if white_black_list == "whitelist" else "blocklist"
         list_format: Dict[str, str] = await self.config.format()
         format_settings: Dict[str, str] = {
-            "(reason)": "",
-            "(bot_name)": ctx.me.name,
-            "(version_info)": str(__version__),
-            "(user_or_role)": "",
-            "(allow_deny_list)": allow_deny.capitalize(),
-            "index": "0",
+            "{reason}": "",
+            "{bot_name}": ctx.me.name,
+            "{version_info}": str(__version__),
+            "{user_or_role}": "",
+            "{allow_deny_list}": allow_deny.capitalize(),
+            "{index}": "0",
         }
         title = _format_str(list_format["title"], format_settings)
         footer = _format_str(list_format["footer"], format_settings)
