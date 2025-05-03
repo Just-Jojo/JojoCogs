@@ -19,7 +19,6 @@ except ImportError:
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.dev_commands import cleanup_code  # NOTE lazy :p
-from redbot.core.utils.chat_formatting import escape
 
 from ._types import (
     ChannelType,
@@ -47,7 +46,7 @@ _WhiteBlacklist = Literal["whitelist", "blacklist"]
 
 
 def _format_pages(show: List[str]) -> List[str]:
-    pages: List[str]
+    pages: List[str] = []
     current_page: str = ""
     for page in show:
         current_page += f"\n{page}"
@@ -74,10 +73,20 @@ async def _filter_internal(
             i = discord.Object(i)  # type:ignore
         if await c.bot.is_owner(i):  # type:ignore
             return [], "You cannot add yourself to the blocklist"
-        elif isinstance(i, discord.Member) and i.bot:
+        elif (isinstance(i, discord.Member) or isinstance(i, discord.User)) and i.bot:
             continue
         r.append(getattr(i, "id", i))  # type:ignore
     return r, ""
+
+
+async def _filter_msg(c: commands.Context, i: int, l: int) -> None:
+    if i == 0:
+        await c.send_help()
+        return
+    if l > 1:
+        await c.send("Those users were bots!")
+        return
+    await c.send("That user was a bot!")
 
 
 async def _filter_bots(
@@ -85,12 +94,10 @@ async def _filter_bots(
     users_or_roles: UsersOrRoles,
     white_black_list: _WhiteBlacklist,
 ) -> Tuple[bool, UsersOrRoles]:
+    length = len(tuple(users_or_roles))
     for i in range(2):
         if not users_or_roles:
-            if i == 1:
-                await ctx.send("Those users were bots!")
-            else:
-                await ctx.send_help()
+            await _filter_msg(ctx, i, length)
             return False, []
         if white_black_list == "whitelist":
             # NOTE Since the allowlist is just people who
@@ -98,6 +105,7 @@ async def _filter_bots(
             # However the blocklist needs some more finagling as
             # adding the owner to the blocklist is kinda not good
             users_or_roles = filter(lambda x: not getattr(x, "bot", False), users_or_roles)
+            log.debug(f"{users_or_roles = }")
             continue
         users_or_roles, string = await _filter_internal(ctx, users_or_roles)
         if string:
@@ -280,6 +288,7 @@ class AdvancedBlacklist(commands.Cog):
         """
         config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
         cache = self._get_cache(white_black_list, guild)
+        log.debug(f"Removing {users_or_roles = }, {guild = }")
 
         async with config() as blacklist:
             for item in users_or_roles:
@@ -374,7 +383,7 @@ class AdvancedBlacklist(commands.Cog):
 
     @commands.command(name="advancedblacklistversion", aliases=["advblversion"], hidden=True)
     async def advbl_version(self, ctx: commands.Context) -> None:
-        """Get the version info for advancedblacklist"""
+        r"""Get the version info for advancedblacklist"""
         version_info = (
             "{bot_name} running version {__version__}\n"
             "For more information/bug reporting, see [the github]"
@@ -388,7 +397,7 @@ class AdvancedBlacklist(commands.Cog):
     @commands.group(name="blocklist", aliases=["denylist", "blacklist"])
     @commands.is_owner()
     async def blocklist(self, ctx: commands.Context) -> None:
-        """Commands manage the blocklist on [botname].
+        r"""Commands manage the blocklist on [botname].
 
         Use `[p]blocklist clear` to disable the blocklist
         """
@@ -396,22 +405,19 @@ class AdvancedBlacklist(commands.Cog):
 
     @blocklist.group(name="settings", aliases=["set"])
     async def blocklist_settings(self, ctx: commands.Context) -> None:
-        """Settings for AdvancedBlacklist"""
+        r"""Settings for AdvancedBlacklist"""
         pass
-
-    @blocklist.command(name="showsettings", aliases=["show"])
-    async def blocklist_settings_showsettings(self, ctx: commands.Context) -> None:
-        """Show the settings for AdvancedBlacklist"""
 
     @blocklist_settings.command(name="format")
     async def blocklist_format(
         self, ctx: commands.Context, *, new_format: Optional[str] = None
     ) -> None:
-        """Set the format for listing the block/allow list
+        r"""Set the format for listing the block/allow list
 
         **Arguments:**
             `new_format`    The new format the bot will use to list the block/allowlist.
             This will be loaded as YAML.
+            Reset to default by saying `reset`
 
         **Keys:**
             \- `title`                 The title the list will use
@@ -419,21 +425,29 @@ class AdvancedBlacklist(commands.Cog):
             \- `footer`                The footer on the page
 
         **Variables:**
-            `{bot_name}` -> `[botname]`
-            `user_or_role` -> The user or role on the list
-            `{allow_deny_list}` -> `allowlist` or `blocklist`
-            `{version_info}` -> version of AdvancedBlacklist you are running
-            `{reason}` -> reason for adding a user/role to the block/allow list
+            `(bot_name)` -> `[botname]`
+            `(user_or_role)` -> The user or role on the list
+            `(allow_deny_list)` -> `allowlist` or `blocklist`
+            `(version_info)` -> version of AdvancedBlacklist you are running
+            `(reason)` -> reason for adding a user/role to the block/allow list
+            `(index)` -> the index of the user/role on the page
         """
         if not new_format:
             await self._show_format(ctx)
             return
 
-        new_format = escape(cleanup_code(new_format))
+        if new_format == "reset":
+            await self.config.format.set(default_format)
+            await ctx.send("Reset the blocklist format")
+            return
+
+        new_format = cleanup_code(new_format)
+        log.debug(f"{new_format = }")
 
         try:
             json_obj = yaml.safe_load(new_format)
-        except yaml.scanner.ScannerError:
+        except yaml.scanner.ScannerError as e:
+            log.debug("Couldn't load yaml", exc_info=e)
             await ctx.send("That was not valid yaml!")
             return
         else:
@@ -454,8 +468,9 @@ class AdvancedBlacklist(commands.Cog):
 
     async def _show_format(self, ctx: commands.Context) -> None:
         settings = await self.config.format()
+        log.debug(f"{settings = }")
         title = settings["title"]
-        users_or_roles = settings["users_or_roles"]
+        users_or_roles = settings["user_or_role"]
         footer = settings["footer"]
         if not await ctx.embed_requested():
             await ctx.send(
@@ -485,7 +500,7 @@ class AdvancedBlacklist(commands.Cog):
         *,
         reason: Optional[str] = None,
     ) -> None:
-        """Add a user or role to the blocklist
+        r"""Add a user or role to the blocklist
 
         **Arguments:**
             \- `users_roles`           The users/roles to add to the blocklist
@@ -514,16 +529,17 @@ class AdvancedBlacklist(commands.Cog):
 
     @blocklist.command(name="remove", aliases=["del", "delete"])
     async def blocklist_remove(self, ctx: commands.Context, users_roles: GreedyUserOrRole) -> None:
-        """Remove users/roles from the blocklist
+        r"""Remove users/roles from the blocklist
 
         **Arguments:**
             \- `users_or_roles`        The users or roles to remove from the blocklist
         """
+        log.debug(f"{users_roles = }")
         worked, users_or_roles = await _filter_bots(ctx, users_roles, "blacklist")
         if not worked:
             return
 
-        await self.remove_from_list(users_or_roles, white_black_list="whitelist", guild=None)
+        await self.remove_from_list(users_or_roles, white_black_list="blacklist", guild=None)
         if len(list(users_or_roles)) > 1:
             await ctx.send("Removed those users/roles from the blocklist")
         else:
@@ -533,7 +549,7 @@ class AdvancedBlacklist(commands.Cog):
     async def blocklist_edit(
         self, ctx: commands.Context, user_or_role: UserOrRole, *, reason: str
     ) -> None:
-        """Edit the reason for a blocklisted user/role
+        r"""Edit the reason for a blocklisted user/role
 
         **Arguments:**
             \- `user_or_role`          The user or role to edit the reason of
@@ -550,13 +566,13 @@ class AdvancedBlacklist(commands.Cog):
 
     @blocklist.command(name="list")
     async def blocklist_list(self, ctx: commands.Context) -> None:
-        """List the users/roles in the bot's blocklist"""
+        r"""List the users/roles in the bot's blocklist"""
         await self.send_list(ctx, white_black_list="blacklist", guild=None)
 
     @commands.group(name="allowlist", aliases=["whitelist"])
     @commands.is_owner()
     async def allowlist(self, ctx: commands.Context) -> None:
-        """Commands managing the allowlist on [botname]
+        r"""Commands managing the allowlist on [botname]
 
         Any users or roles added to the allowlist will be the only users
         able to use [botname]
@@ -571,7 +587,7 @@ class AdvancedBlacklist(commands.Cog):
         *,
         reason: Optional[str] = None,
     ) -> None:
-        """Add users/roles to the allowlist
+        r"""Add users/roles to the allowlist
 
         **Arguments:**
             \- `users_roles`           The users/roles to add to the allowlist
@@ -602,7 +618,7 @@ class AdvancedBlacklist(commands.Cog):
     async def allowlist_edit(
         self, ctx: commands.Context, user_or_role: UserOrRole, *, reason: str
     ) -> None:
-        """Edit the reason for an allowlisted user/role
+        r"""Edit the reason for an allowlisted user/role
 
         **Arguments:**
             \- `user_or_role`          The user or role to edit the reason of
@@ -620,7 +636,7 @@ class AdvancedBlacklist(commands.Cog):
 
     @allowlist.command(name="remove", aliases=["del", "delete"])
     async def allowlist_remove(self, ctx: commands.Context, users_roles: GreedyUserOrRole) -> None:
-        """Remove users/roles from the allowlist
+        r"""Remove users/roles from the allowlist
 
         **Arguments:**
             \- `users_roles`           The users/roles to remove from the allowlist
@@ -637,14 +653,14 @@ class AdvancedBlacklist(commands.Cog):
 
     @allowlist.command(name="list")
     async def allowlist_list(self, ctx: commands.Context) -> None:
-        """Shows the users/roles on the allowlist"""
+        r"""Shows the users/roles on the allowlist"""
         await self.send_list(ctx, white_black_list="whitelist", guild=None)
 
     @commands.group(name="localblocklist", aliases=["localblacklist", "localdenylist"])
     @commands.guild_only()
     @commands.admin_or_permissions(administrator=True)
     async def local_blocklist(self, ctx: commands.Context) -> None:
-        """Manage the users/roles on the local blocklist"""
+        r"""Manage the users/roles on the local blocklist"""
         pass
 
     @local_blocklist.command(name="add")
@@ -655,7 +671,7 @@ class AdvancedBlacklist(commands.Cog):
         *,
         reason: Optional[str] = None,
     ) -> None:
-        """Add users or roles to the local blocklist
+        r"""Add users or roles to the local blocklist
 
         The users or users in the roles will not be able to use [botname]
 
@@ -682,7 +698,7 @@ class AdvancedBlacklist(commands.Cog):
     async def local_blocklist_edit(
         self, ctx: commands.Context, user_or_role: UserOrRole, *, reason: str
     ) -> None:
-        """Edit the reason for a locally blocklisted user/role
+        r"""Edit the reason for a locally blocklisted user/role
 
         **Arguments:**
             \- `user_or_role`          The user or role to edit the reason of
@@ -703,7 +719,7 @@ class AdvancedBlacklist(commands.Cog):
     async def local_blocklist_remove(
         self, ctx: commands.Context, users_or_roles: GreedyUserOrRole
     ) -> None:
-        """Remove users/roles from the local blocklist
+        r"""Remove users/roles from the local blocklist
 
         **Arguments**
             \- `users_or_roles`        The users/roles to remove from the local blocklist
@@ -720,14 +736,14 @@ class AdvancedBlacklist(commands.Cog):
 
     @local_blocklist.command(name="list")
     async def local_blocklist_list(self, ctx: commands.Context) -> None:
-        """List the users/roles in the local blocklist"""
+        r"""List the users/roles in the local blocklist"""
         await self.send_list(ctx, white_black_list="blacklist", guild=ctx.guild)
 
     @commands.group(name="localallowlist")
     @commands.guild_only()
     @commands.admin_or_permissions(administrator=True)
     async def local_allowlist(self, ctx: commands.Context) -> None:
-        """Manage the users/roles on the local allowlist
+        r"""Manage the users/roles on the local allowlist
 
         Any users or roles added to the local allowlist will be the only users
         able to use [botname]
@@ -738,7 +754,7 @@ class AdvancedBlacklist(commands.Cog):
     async def local_allowlist_add(
         self, ctx: commands.Context, users_roles: GreedyUserOrRole, *, reason: Optional[str] = None
     ) -> None:
-        """Add users/roles to the local allowlist
+        r"""Add users/roles to the local allowlist
 
         **Arguments:**
             \- `users_roles`           The users/roles to add to the local allowlist
@@ -763,7 +779,7 @@ class AdvancedBlacklist(commands.Cog):
     async def local_allowlist_remove(
         self, ctx: commands.Context, users_roles: GreedyUserOrRole
     ) -> None:
-        """Remove users/roles from the local allowlist
+        r"""Remove users/roles from the local allowlist
 
         **Arguments:**
             \- `users_roles`           The users to remove from the local allowlist
@@ -783,7 +799,12 @@ class AdvancedBlacklist(commands.Cog):
     async def local_allowlist_edit(
         self, ctx: commands.Context, user_or_role: UserOrRole, *, reason: str
     ) -> None:
-        """"""
+        r"""Edit the reason for a locally allowlisted user/role
+
+        **Arguments:**
+            \- `user_or_role`          The user or role to edit the reason of
+            \- `reason`                The new reason
+        """
         if isinstance(user_or_role, discord.Member) and user_or_role.bot:
             await ctx.send("That user is a bot!")
             return
@@ -798,7 +819,7 @@ class AdvancedBlacklist(commands.Cog):
 
     @local_allowlist.command(name="list")
     async def local_allowlist_list(self, ctx: commands.Context):
-        """List the users/roles in the local allowlist"""
+        r"""List the users/roles in the local allowlist"""
         await self.send_list(ctx, white_black_list="whitelist", guild=ctx.guild)
 
     async def send_list(
@@ -808,12 +829,15 @@ class AdvancedBlacklist(commands.Cog):
         white_black_list: _WhiteBlacklist,
         guild: Optional[discord.Guild],
     ) -> None:
+        allow_deny = "allowlist" if white_black_list == "whitelist" else "blocklist"
         list_format: Dict[str, str] = await self.config.format()
-        format_settings = {
-            "{reason}": "",
-            "{bot_name}": ctx.me.name,
-            "{version_info}": str(__version__),
-            "{user_or_role}": "",
+        format_settings: Dict[str, str] = {
+            "(reason)": "",
+            "(bot_name)": ctx.me.name,
+            "(version_info)": str(__version__),
+            "(user_or_role)": "",
+            "(allow_deny_list)": allow_deny.capitalize(),
+            "index": "0",
         }
         title = _format_str(list_format["title"], format_settings)
         footer = _format_str(list_format["footer"], format_settings)
@@ -822,14 +846,13 @@ class AdvancedBlacklist(commands.Cog):
 
         blocklist = await self.get_list(white_black_list=white_black_list, guild=guild)
         if not blocklist:
-            allow_deny = "allowlist" if white_black_list == "whitelist" else "blocklist"
-            await ctx.send("There are no users/roles on the {allow_deny}").format(
-                allow_deny=allow_deny
+            await ctx.send(
+                "There are no users/roles on the {allow_deny}".format(allow_deny=allow_deny)
             )
             return
-        for item, reason in blocklist.items():
+        for index, (item, reason) in enumerate(blocklist.items(), 1):
             maybe_user = getattr(self.bot.get_user(int(item)), "name", item)
-            format_settings.update({"{user_or_role}": maybe_user, "{reason}": reason})
+            format_settings.update({"(user_or_role)": maybe_user, "(index)": str(index)})
             show.append(_format_str(user_or_role, format_settings))
         del maybe_user, item, reason
 

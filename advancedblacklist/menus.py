@@ -16,13 +16,14 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 import discord
+from discord.utils import MISSING
 from redbot.core import commands
 from redbot.core.bot import Red
 
-__all__ = ["Page", "Menu"]
+__all__ = ["Page", "Menu", "FormatModal"]
 
 button_emojis = {
     (False, True): "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE}",
@@ -143,3 +144,15 @@ class Menu(discord.ui.View):
     async def on_timeout(self) -> None:
         with suppress(discord.Forbidden):
             await self.msg.delete()
+
+
+class FormatView(discord.ui.View):
+    ...
+
+
+class FormatModal(discord.ui.Modal):
+    name: discord.ui.TextInput = discord.ui.TextInput(label="Amogus")
+    answer: discord.ui.TextInput = discord.ui.TextInput(label="New Format", style=discord.TextStyle.paragraph)
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        ...

@@ -14,16 +14,23 @@ from functools import wraps
 from discord.utils import maybe_coroutine
 from redbot.core.bot import Red
 
+
 __all__ = ["Patch"]
 
 _log = logging.getLogger("redbot.jojocogs.advancedblacklist.patch")
-
 Coro = Callable[..., Coroutine[Any, Any, Any]]
-
 _lock = asyncio.Lock()
+_names: Final[List[str]] = [
+    "add_to_blacklist",
+    "remove_from_blacklist",
+    "clear_blacklist",
+    "add_to_whitelist",
+    "remove_from_whitelist",
+    "clear_whitelist",
+]
 
 
-def _with_lock(func: Callable[[Any], Any]):
+def _with_lock(func: Callable[[Any], Any]) -> Coro:
     @wraps(func)
     async def inner(*args, **kwargs) -> Any:
         async with _lock:
@@ -35,14 +42,6 @@ def _with_lock(func: Callable[[Any], Any]):
 class Patch:
     def __init__(self, bot: Red):
         self.bot = bot
-        self._names = [
-            "add_to_blacklist",
-            "remove_from_blacklist",
-            "clear_blacklist",
-            "add_to_whitelist",
-            "remove_from_whitelist",
-            "clear_whitelist",
-        ]
         self._funcs: Dict[str, Coro] = {}
         self._initialized = False
 
@@ -59,7 +58,7 @@ class Patch:
     def startup(self) -> None:
         if self._initialized:
             return
-        for name in self._names:
+        for name in _names:
             func = getattr(self.bot, name)
             if not func:
                 # Shouldn't really happen let's log just in case

@@ -32,7 +32,7 @@ ConfigType = Union[
     int,
     Dict[str, str],
 ]
-UserOrRole = Union[int, discord.User, discord.Member, discord.Role]
+UserOrRole = Union[discord.Member, discord.User, discord.Role]
 UsersOrRoles = Iterable[UserOrRole]
 
 if TYPE_CHECKING:
