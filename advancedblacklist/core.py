@@ -129,8 +129,8 @@ class AdvancedBlacklist(commands.Cog):
             global_com = bot.remove_command(name)
             local_com = bot.remove_command(local)
             if TYPE_CHECKING:
-                assert isinstance(global_com, commands.Command), "mypy"
-                assert isinstance(local_com, commands.Command), "mypy"
+                assert isinstance(global_com, commands.Group), "mypy"
+                assert isinstance(local_com, commands.Group), "mypy"
             self._original_coms.append(global_com)
             self._original_coms.append(local_com)
         del name, local, global_com, local_com
@@ -279,7 +279,7 @@ class AdvancedBlacklist(commands.Cog):
         """
         config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
         cache = self._get_cache(white_black_list, guild)
-        log.info(f"Removing {users_or_roles = }, {guild = }")
+        log.info(f"Removing these users from the {white_black_list}\n{users_or_roles = }, {guild = }")
 
         async with config() as blacklist:
             for item in users_or_roles:

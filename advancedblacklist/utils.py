@@ -15,7 +15,6 @@ import datetime
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-import logging
 import discord
 from discord.ui.button import button as button_dec
 from redbot.core import commands, Config
@@ -40,9 +39,6 @@ button_emojis = {
     (True, False): "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}",
     (True, True): "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE}",
 }
-
-
-log = logging.getLogger("redbot.jojocogs.advancedblacklist.utils")
 
 
 def _timestamp() -> datetime.datetime:
@@ -71,7 +67,6 @@ async def get_source(
     settings = {_humanize_str(k): v for k, v in settings.items()}
     if embed:
         data = discord.Embed(title=title, colour=await ctx.embed_colour(), timestamp=_timestamp())
-        log.debug(f"{data = }")
         for setting, value in settings.items():
             data.add_field(name=setting, value=f"`{value}`", inline=False)
         return data
@@ -119,7 +114,7 @@ class BaseButton(discord.ui.Button):
 
 class StopButton(discord.ui.Button):
     if TYPE_CHECKING:
-        view: Menu
+        view: Union[Menu, FormatView]
 
     def __init__(self):
         super().__init__(
