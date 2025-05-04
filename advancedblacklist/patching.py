@@ -9,7 +9,7 @@
 import asyncio
 import logging
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, Final, List
+from typing import Any, Callable, Coroutine, Dict, Final, List
 
 from discord.utils import maybe_coroutine
 from redbot.core.bot import Red

@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
 import contextlib
 import discord
-import yaml
 
 try:
     from typing import Self
@@ -17,11 +16,9 @@ except ImportError:
 
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.dev_commands import cleanup_code  # NOTE lazy :p
 
-from ._types import (ChannelType, GlobalCache, GreedyUserOrRole, GuildCache, UserOrRole,
-                     UsersOrRoles)
-from .constants import __author__, __version__, config_structure, default_format
+from ._types import GlobalCache, GreedyUserOrRole, GuildCache, UserOrRole, UsersOrRoles
+from .constants import __author__, __version__, config_structure
 from .patching import Patch
 from .utils import Menu, Page, _timestamp, FormatView, get_source, ConfirmView
 
@@ -400,11 +397,13 @@ class AdvancedBlacklist(commands.Cog):
     @blocklist.command(name="format")
     async def blocklist_format(self, ctx: commands.Context) -> None:
         """Change the format for the allow/blocklist
-        
+
         This will send a menu that allows you to view, and edit the format
         """
         current = await self.config.format()
-        data = await get_source(ctx, await ctx.embed_requested(), "AdvancedBlacklist Format", settings=current)
+        data = await get_source(
+            ctx, await ctx.embed_requested(), "AdvancedBlacklist Format", settings=current
+        )
         await FormatView(self.bot, data, "Change the format", self.config, current).start(ctx)
 
     async def _show_format(self, ctx: commands.Context) -> None:
@@ -605,7 +604,13 @@ class AdvancedBlacklist(commands.Cog):
         """Clears the allowlist"""
         await self._handle_clearing(ctx, confirm, "whitelist", None)
 
-    async def _handle_clearing(self, ctx: commands.Context, confirm: bool, white_black_list: _WhiteBlacklist, guild: Optional[discord.Guild]) -> None:
+    async def _handle_clearing(
+        self,
+        ctx: commands.Context,
+        confirm: bool,
+        white_black_list: _WhiteBlacklist,
+        guild: Optional[discord.Guild],
+    ) -> None:
         allow_deny = "allowlist" if white_black_list == "whitelist" else "blocklist"
         local = "local " if guild else ""
         if not await self.get_list(white_black_list=white_black_list, guild=guild):
@@ -822,7 +827,9 @@ class AdvancedBlacklist(commands.Cog):
             return
         for index, (item, reason) in enumerate(blocklist.items(), 1):
             maybe_user = getattr(self.bot.get_user(int(item)), "name", item)
-            format_settings.update({"{user_or_role}": maybe_user, "{reason}": reason, "{index}": str(index)})
+            format_settings.update(
+                {"{user_or_role}": maybe_user, "{reason}": reason, "{index}": str(index)}
+            )
             show.append(_format_str(user_or_role, format_settings))
         del maybe_user, item, reason
 
@@ -841,6 +848,7 @@ class AdvancedBlacklist(commands.Cog):
         elif view.value is None:
             await ctx.send("Sorry, that timed out!")
         return False
+
     @commands.Cog.listener()
     async def on_add_to_blacklist(
         self, users: UsersOrRoles, guild: Optional[discord.Guild], adv_bl: bool = False

@@ -15,23 +15,24 @@ import datetime
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-try:
-    from typing import Self
-except ImportError:
-    from typing_extensions import Self  # type:ignore
-
 import logging
 import discord
 from discord.ui.button import button as button_dec
-from discord.ui.item import Item
-from discord.utils import MISSING
 from redbot.core import commands, Config
 from redbot.core.bot import Red
 
 from .constants import default_format
 
 
-__all__ = ["_timestamp", "_str_timestamp", "get_source", "ConfirmView", "Page", "Menu", "FormatView"]
+__all__ = [
+    "_timestamp",
+    "_str_timestamp",
+    "get_source",
+    "ConfirmView",
+    "Page",
+    "Menu",
+    "FormatView",
+]
 
 button_emojis = {
     (False, True): "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE}",
@@ -64,7 +65,9 @@ def _humanize_str(string: str) -> str:
     return " ".join(ret)
 
 
-async def get_source(ctx: commands.Context, embed: bool, title: str, settings: Dict[str, str]) -> Union[discord.Embed, str]:
+async def get_source(
+    ctx: commands.Context, embed: bool, title: str, settings: Dict[str, str]
+) -> Union[discord.Embed, str]:
     settings = {_humanize_str(k): v for k, v in settings.items()}
     if embed:
         data = discord.Embed(title=title, colour=await ctx.embed_colour(), timestamp=_timestamp())
@@ -73,11 +76,7 @@ async def get_source(ctx: commands.Context, embed: bool, title: str, settings: D
             data.add_field(name=setting, value=f"`{value}`", inline=False)
         return data
     fmt = "\n".join(f"**{k}:** `{v}`" for k, v in settings.items())
-    return (
-        f"# {title}:\n"
-        f"{fmt}\n"
-        f"-# {_str_timestamp(_timestamp())}"
-    )
+    return f"# {title}:\n" f"{fmt}\n" f"-# {_str_timestamp(_timestamp())}"
 
 
 class ConfirmView(discord.ui.View):
@@ -177,7 +176,7 @@ class Menu(discord.ui.View):
             self.add_item(BaseButton(False, True))
         self.add_item(BaseButton(False, False, disabled=not len(self.source) == 0))
         self.add_item(StopButton())
-        self.add_item(BaseButton(True, False, disabled= not len(self.source) == 0))
+        self.add_item(BaseButton(True, False, disabled=not len(self.source) == 0))
         if len(self.source) > 4:
             self.add_item(BaseButton(True, True))
 
@@ -238,8 +237,15 @@ class FormatButton(discord.ui.Button):
         await interaction.response.send_modal(modal)
         await modal.wait()
 
-        if not any((getattr(modal, f"input_{x}").value != getattr(self, x) for x in ("title", "footer", "user_or_role"))):
-            await interaction.response.send_message("You didn't input anything new!", ephemeral=True)
+        if not any(
+            (
+                getattr(modal, f"input_{x}").value != getattr(self, x)
+                for x in ("title", "footer", "user_or_role")
+            )
+        ):
+            await interaction.response.send_message(
+                "You didn't input anything new!", ephemeral=True
+            )
             return
 
         settings = {
@@ -267,7 +273,14 @@ class FormatView(discord.ui.View):
         ctx: commands.Context
         msg: discord.Message
 
-    def __init__(self, bot: Red, source: Union[str, discord.Embed], title: str, config: Config, settings: Dict[str, str]) -> None:
+    def __init__(
+        self,
+        bot: Red,
+        source: Union[str, discord.Embed],
+        title: str,
+        config: Config,
+        settings: Dict[str, str],
+    ) -> None:
         super().__init__(timeout=60.0)
         self._bot = bot
         self.title = title
@@ -296,7 +309,10 @@ class FormatView(discord.ui.View):
             key = "embed"
         else:
             key = "content"
-        kwargs: Dict[str, Union[str, discord.Embed, discord.ui.View]] = {key: self.source, "view": self}
+        kwargs: Dict[str, Union[str, discord.Embed, discord.ui.View]] = {
+            key: self.source,
+            "view": self,
+        }
         if ctx:
             self.msg = await self.ctx.send(**kwargs)
         else:
@@ -314,6 +330,7 @@ class FormatView(discord.ui.View):
         await self.config.format.set(settings)
         self.source = await get_source(self.ctx, self.is_embed, self.title, settings)
         await self.start()
+
 
 class FormatModal(discord.ui.Modal):
     input_title: discord.ui.TextInput = discord.ui.TextInput(
