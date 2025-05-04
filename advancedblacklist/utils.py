@@ -20,7 +20,9 @@ try:
 except ImportError:
     from typing_extensions import Self  # type:ignore
 
+import logging
 import discord
+from discord.ui.button import button as button_dec
 from discord.ui.item import Item
 from discord.utils import MISSING
 from redbot.core import commands, Config
@@ -29,7 +31,7 @@ from redbot.core.bot import Red
 from .constants import default_format
 
 
-__all__ = ["_timestamp", "_str_timestamp", "get_source", "Page", "Menu", "FormatView"]
+__all__ = ["_timestamp", "_str_timestamp", "get_source", "ConfirmView", "Page", "Menu", "FormatView"]
 
 button_emojis = {
     (False, True): "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE}",
@@ -37,6 +39,9 @@ button_emojis = {
     (True, False): "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}",
     (True, True): "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE}",
 }
+
+
+log = logging.getLogger("redbot.jojocogs.advancedblacklist.utils")
 
 
 def _timestamp() -> datetime.datetime:
@@ -63,6 +68,7 @@ async def get_source(ctx: commands.Context, embed: bool, title: str, settings: D
     settings = {_humanize_str(k): v for k, v in settings.items()}
     if embed:
         data = discord.Embed(title=title, colour=await ctx.embed_colour(), timestamp=_timestamp())
+        log.debug(f"{data = }")
         for setting, value in settings.items():
             data.add_field(name=setting, value=f"`{value}`", inline=False)
         return data
@@ -72,6 +78,25 @@ async def get_source(ctx: commands.Context, embed: bool, title: str, settings: D
         f"{fmt}\n"
         f"-# {_str_timestamp(_timestamp())}"
     )
+
+
+class ConfirmView(discord.ui.View):
+    def __init__(self, ctx: commands.Context):
+        super().__init__(timeout=30.0)
+        self.ctx = ctx
+        self.value: Optional[bool] = None
+
+    @button_dec(label="Confirm", style=discord.ButtonStyle.green)
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        await interaction.response.defer()
+        self.value = True
+        self.stop()
+
+    @button_dec(label="Deny", style=discord.ButtonStyle.red)
+    async def deny(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        await interaction.response.defer()
+        self.value = False
+        self.stop()
 
 
 class BaseButton(discord.ui.Button):
@@ -125,6 +150,7 @@ class Page:
                 title=self.title,
                 description=page,
                 colour=await self.ctx.embed_colour(),
+                timestamp=_timestamp(),
             )
             embed.set_footer(text=self.footer)
             return {"embed": embed}
@@ -149,9 +175,9 @@ class Menu(discord.ui.View):
     def _add_buttons(self) -> None:
         if len(self.source) > 4:
             self.add_item(BaseButton(False, True))
-        self.add_item(BaseButton(False, False, disabled=len(self.source) == 0))
+        self.add_item(BaseButton(False, False, disabled=not len(self.source) == 0))
         self.add_item(StopButton())
-        self.add_item(BaseButton(True, False, disabled=len(self.source) == 0))
+        self.add_item(BaseButton(True, False, disabled= not len(self.source) == 0))
         if len(self.source) > 4:
             self.add_item(BaseButton(True, True))
 

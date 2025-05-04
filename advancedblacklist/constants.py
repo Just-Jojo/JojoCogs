@@ -13,7 +13,7 @@ __version__ = "3.0.0.dev0"
 
 default_format: Final[Dict[str, str]] = {
     "title": "{allow_deny_list}",
-    "user_or_role": "- {user_or_role}: {reason}",
+    "user_or_role": "{index}. {user_or_role}: {reason}",
     "footer": "{bot_name} running AdvancedBlacklist {version_info}",
 }
 config_structure: Final[Dict[str, Dict[str, ConfigType]]] = {

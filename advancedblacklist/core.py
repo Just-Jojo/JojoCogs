@@ -6,6 +6,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
+import contextlib
 import discord
 import yaml
 
@@ -22,7 +23,7 @@ from ._types import (ChannelType, GlobalCache, GreedyUserOrRole, GuildCache, Use
                      UsersOrRoles)
 from .constants import __author__, __version__, config_structure, default_format
 from .patching import Patch
-from .utils import Menu, Page, _timestamp, FormatView, get_source
+from .utils import Menu, Page, _timestamp, FormatView, get_source, ConfirmView
 
 __all___ = ["AdvancedBlacklist"]
 
@@ -92,7 +93,6 @@ async def _filter_bots(
             # However the blocklist needs some more finagling as
             # adding the owner to the blocklist is kinda not good
             users_or_roles = filter(lambda x: not getattr(x, "bot", False), users_or_roles)
-            log.debug(f"{users_or_roles = }")
             continue
         users_or_roles, string = await _filter_internal(ctx, users_or_roles)
         if string:
@@ -241,13 +241,20 @@ class AdvancedBlacklist(commands.Cog):
         override: `bool` Don't add to the list, should only be used in listener methods
         """
         config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
+        log.debug(f"Adding these users/roles to the blocklist.\n{users_or_roles = }, {reason =}")
 
         async with config() as blacklist:
             for item in users_or_roles:
                 actual = str(getattr(item, "id", item))
                 blacklist[actual] = reason
                 cache = self._get_cache(white_black_list, guild)
-                cache[actual] = reason
+                if not cache:
+                    # Loading the cog and adding someone to the blocklist
+                    # will not properly allow the cache to update
+                    # so we have to do this :3
+                    cache = blacklist
+                else:
+                    cache[actual] = reason
         del blacklist, item, actual
         if not override:
             await getattr(self.bot, f"add_to_{white_black_list}")(
@@ -275,7 +282,7 @@ class AdvancedBlacklist(commands.Cog):
         """
         config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
         cache = self._get_cache(white_black_list, guild)
-        log.debug(f"Removing {users_or_roles = }, {guild = }")
+        log.info(f"Removing {users_or_roles = }, {guild = }")
 
         async with config() as blacklist:
             for item in users_or_roles:
@@ -390,12 +397,7 @@ class AdvancedBlacklist(commands.Cog):
         """
         pass
 
-    @blocklist.group(name="settings", aliases=["set"])
-    async def blocklist_settings(self, ctx: commands.Context) -> None:
-        r"""Settings for AdvancedBlacklist"""
-        pass
-
-    @blocklist_settings.command(name="format")
+    @blocklist.command(name="format")
     async def blocklist_format(self, ctx: commands.Context) -> None:
         """Change the format for the allow/blocklist
         
@@ -407,7 +409,6 @@ class AdvancedBlacklist(commands.Cog):
 
     async def _show_format(self, ctx: commands.Context) -> None:
         settings = await self.config.format()
-        log.debug(f"{settings = }")
         title = settings["title"]
         users_or_roles = settings["user_or_role"]
         footer = settings["footer"]
@@ -473,7 +474,6 @@ class AdvancedBlacklist(commands.Cog):
         **Arguments:**
             \- `users_or_roles`        The users or roles to remove from the blocklist
         """
-        log.debug(f"{users_roles = }")
         worked, users_or_roles = await _filter_bots(ctx, users_roles, "blacklist")
         if not worked:
             return
@@ -507,6 +507,11 @@ class AdvancedBlacklist(commands.Cog):
     async def blocklist_list(self, ctx: commands.Context) -> None:
         r"""List the users/roles in the bot's blocklist"""
         await self.send_list(ctx, white_black_list="blacklist", guild=None)
+
+    @blocklist.command(name="clear")
+    async def blocklist_clear(self, ctx: commands.Context, confirm: bool = False) -> None:
+        """Clears the blocklist"""
+        await self._handle_clearing(ctx, confirm, "blacklist", None)
 
     @commands.group(name="allowlist", aliases=["whitelist"])
     @commands.is_owner()
@@ -595,6 +600,22 @@ class AdvancedBlacklist(commands.Cog):
         r"""Shows the users/roles on the allowlist"""
         await self.send_list(ctx, white_black_list="whitelist", guild=None)
 
+    @allowlist.command(name="clear")
+    async def allowlist_clear(self, ctx: commands.Context, confirm: bool = False) -> None:
+        """Clears the allowlist"""
+        await self._handle_clearing(ctx, confirm, "whitelist", None)
+
+    async def _handle_clearing(self, ctx: commands.Context, confirm: bool, white_black_list: _WhiteBlacklist, guild: Optional[discord.Guild]) -> None:
+        allow_deny = "allowlist" if white_black_list == "whitelist" else "blocklist"
+        local = "local " if guild else ""
+        if not await self.get_list(white_black_list=white_black_list, guild=guild):
+            await ctx.send(f"There's no one in the {local}{allow_deny}!")
+            return
+        if not confirm and not await self._handle_confirm(ctx):
+            return
+        await self.clear_list(white_black_list=white_black_list, guild=guild)
+        await ctx.send(f"Okay, I've cleared the {local}{allow_deny}")
+
     @commands.group(name="localblocklist", aliases=["localblacklist", "localdenylist"])
     @commands.guild_only()
     @commands.admin_or_permissions(administrator=True)
@@ -677,6 +698,11 @@ class AdvancedBlacklist(commands.Cog):
     async def local_blocklist_list(self, ctx: commands.Context) -> None:
         r"""List the users/roles in the local blocklist"""
         await self.send_list(ctx, white_black_list="blacklist", guild=ctx.guild)
+
+    @local_blocklist.command(name="clear")
+    async def local_blocklist_clear(self, ctx: commands.Context, confirm: bool = False):
+        """Clears the local blocklist"""
+        await self._handle_clearing(ctx, confirm, "blacklist", ctx.guild)
 
     @commands.group(name="localallowlist")
     @commands.guild_only()
@@ -761,6 +787,11 @@ class AdvancedBlacklist(commands.Cog):
         r"""List the users/roles in the local allowlist"""
         await self.send_list(ctx, white_black_list="whitelist", guild=ctx.guild)
 
+    @local_allowlist.command(name="clear")
+    async def local_allowlist_clear(self, ctx: commands.Context, confirm: bool = False) -> None:
+        """Clear the local allowlist"""
+        await self._handle_clearing(ctx, confirm, "whitelist", ctx.guild)
+
     async def send_list(
         self,
         ctx: commands.Context,
@@ -791,7 +822,7 @@ class AdvancedBlacklist(commands.Cog):
             return
         for index, (item, reason) in enumerate(blocklist.items(), 1):
             maybe_user = getattr(self.bot.get_user(int(item)), "name", item)
-            format_settings.update({"(user_or_role)": maybe_user, "(index)": str(index)})
+            format_settings.update({"{user_or_role}": maybe_user, "{reason}": reason, "{index}": str(index)})
             show.append(_format_str(user_or_role, format_settings))
         del maybe_user, item, reason
 
@@ -799,6 +830,17 @@ class AdvancedBlacklist(commands.Cog):
         page = Page(ctx, show, title=title, footer=footer)
         await Menu.start(page, ctx)
 
+    async def _handle_confirm(self, ctx: commands.Context) -> bool:
+        view = ConfirmView(ctx)
+        msg = await ctx.send("Do you want to clear the blocklist?", view=view)
+        await view.wait()
+        with contextlib.suppress(discord.Forbidden):
+            await msg.delete()
+        if view.value:
+            return True
+        elif view.value is None:
+            await ctx.send("Sorry, that timed out!")
+        return False
     @commands.Cog.listener()
     async def on_add_to_blacklist(
         self, users: UsersOrRoles, guild: Optional[discord.Guild], adv_bl: bool = False
@@ -809,6 +851,7 @@ class AdvancedBlacklist(commands.Cog):
             # need to set a reason here
             return
             # TODO(Amy) make ErrorBlacklist use this feature as well
+            # NOTE I forgor what I wanted to make error blacklist do???
 
         reason = "No reason provided."
         await self.add_to_list(
