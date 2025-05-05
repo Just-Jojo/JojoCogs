@@ -105,6 +105,14 @@ async def _filter_bots(
     return True, users_or_roles
 
 
+def _check_author(guild: discord.Guild, author: discord.Member, users_or_roles: UsersOrRoles) -> Optional[bool]:
+    if guild.owner_id == author.id:
+        return None
+    if any(u in users_or_roles for u in (author, author.id)):  # type:ignore
+        return False
+    return True
+
+
 class AdvancedBlacklist(commands.Cog):
     """An extension of the core blocklisting and allowlisting commands
 
@@ -647,8 +655,15 @@ class AdvancedBlacklist(commands.Cog):
             \- `users_or_roles`        The users/roles to add to the local blocklist
             \- `reason`                The reason you added the users/roles
         """
+        if TYPE_CHECKING:
+            assert ctx.guild is not None
+            assert isinstance(ctx.author, discord.Member)
         worked, users_or_roles = await _filter_bots(ctx, users_or_roles, "blacklist")
         if not worked:
+            return
+
+        if _check_author(ctx.guild, ctx.author, users_or_roles) is False:
+            await ctx.send("You cannot add yourself to the local blocklist!")
             return
 
         if not reason:
@@ -733,8 +748,15 @@ class AdvancedBlacklist(commands.Cog):
             \- `users_roles`           The users/roles to add to the local allowlist
             \- `reason`                Optional reason, defaults to "No reason provided."
         """
+        if TYPE_CHECKING:
+            assert ctx.guild is not None
+            assert isinstance(ctx.author, discord.Member)
         worked, users_or_roles = await _filter_bots(ctx, users_roles, "whitelist")
         if not worked:
+            return
+
+        if _check_author(ctx.guild, ctx.author, users_or_roles) is True:
+            await ctx.send(f"You are not in the local allowlist so adding those users will block you from using {ctx.me.name}!")
             return
 
         if not reason:
@@ -757,8 +779,17 @@ class AdvancedBlacklist(commands.Cog):
         **Arguments:**
             \- `users_roles`           The users to remove from the local allowlist
         """
+        if TYPE_CHECKING:
+            assert ctx.guild is not None
+            assert isinstance(ctx.author, discord.Member)
         worked, users_or_roles = await _filter_bots(ctx, users_roles, "whitelist")
         if not worked:
+            return
+
+        check_author = _check_author(ctx.guild, ctx.author, users_or_roles) 
+
+        if check_author is False:
+            await ctx.send(f"I cannot remove you from the local allowlist as you wouldn't be able to use {ctx.me.name}")
             return
 
         await self.remove_from_list(users_or_roles, white_black_list="whitelist", guild=ctx.guild)
