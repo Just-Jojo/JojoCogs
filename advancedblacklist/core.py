@@ -17,7 +17,15 @@ except ImportError:
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
-from ._types import _WhiteBlacklist, GlobalCache, GreedyUserOrRole, GuildCache, UserOrRole, UsersOrRoles
+from ._types import (
+    _WhiteBlacklist,
+    GlobalCache,
+    GreedyUserOrRole,
+    GuildCache,
+    UserOrRole,
+    UsersOrRoles,
+)
+from .cache import Cache
 from .constants import __author__, __version__, config_structure
 from .patching import Patch
 from .utils import Menu, Page, _timestamp, FormatView, get_source, ConfirmView
@@ -114,10 +122,7 @@ class AdvancedBlacklist(commands.Cog):
             getattr(self.config, f"register_{config_type}")(**data)
         del config_type, data
         self._original_coms: List[commands.Command] = []
-        self._bl_cache: GlobalCache = {}
-        self._bl_guild_cache: GuildCache = {}
-        self._wl_cache: GlobalCache = {}
-        self._wl_guild_cache: GuildCache = {}
+        self._cache = Cache()
 
     @classmethod
     async def async_init(cls, bot: Red) -> Self:
@@ -167,18 +172,18 @@ class AdvancedBlacklist(commands.Cog):
                 if actual in user_data:
                     del user_data[actual]
                 if list_type == "whitelist":
-                    self._wl_guild_cache[guild].update(user_data)
+                    self._cache.update_whitelist(guild, user_data)
                 else:
-                    self._bl_guild_cache[guild].update(user_data)
+                    self._cache.update_blacklist(guild, user_data)
 
         async with self.config.blacklist() as bl:
             if actual in bl:
                 del bl[actual]
-                self._bl_cache.update(bl)
+                self._cache.update_blacklist(None, bl)
         async with self.config.whitelist() as wl:
             if actual in wl:
                 del wl[actual]
-                self._wl_cache.update(wl)
+                self._cache.update_whitelist(None, wl)
 
     async def maybe_send_embed(
         self,
@@ -205,15 +210,6 @@ class AdvancedBlacklist(commands.Cog):
                 message += f"\n\n-# {footer}"
             data = {"content": message}
         return await ctx.send(**data)
-
-    def _get_cache(
-        self, white_black_list: _WhiteBlacklist, guild: Optional[discord.Guild]
-    ) -> Dict[str, str]:
-        if guild:
-            return (
-                self._bl_guild_cache if white_black_list == "blacklist" else self._wl_guild_cache
-            ).get(guild.id, {})
-        return self._bl_cache if white_black_list == "blacklist" else self._wl_cache
 
     async def add_to_list(
         self,
@@ -243,32 +239,14 @@ class AdvancedBlacklist(commands.Cog):
             for item in users_or_roles:
                 actual = str(getattr(item, "id", item))
                 blacklist[actual] = reason
-                cache = self._get_cache(white_black_list, guild)
-                if not cache:
-                    # Loading the cog and adding someone to the blocklist
-                    # will not properly allow the cache to update
-                    # so we have to do this :3
-                    self._set_cache(white_black_list, blacklist, guild=guild)
+                if white_black_list == "whitelist":
+                    self._cache.update_whitelist(guild, blacklist)
                 else:
-                    cache[actual] = reason
+                    self._cache.update_blacklist(guild, blacklist)
         del blacklist, item, actual
         if not override:
             coro = getattr(self.bot, f"add_to_{white_black_list}")
-            await coro(
-                users_or_roles, guild=guild, adv_bl=True
-            )
-
-    def _set_cache(self, white_black_list: _WhiteBlacklist, data: Dict[str, str], *, guild: Optional[discord.Guild]) -> None:
-        if white_black_list == "whitelist":
-            if guild:
-                self._wl_guild_cache[guild.id] = data
-                return
-            self._wl_cache = data
-            return
-        if guild:
-            self._bl_guild_cache[guild.id] = data
-            return
-        self._bl_cache = data
+            await coro(users_or_roles, guild=guild, adv_bl=True)
 
     async def remove_from_list(
         self,
@@ -290,16 +268,19 @@ class AdvancedBlacklist(commands.Cog):
         override: `bool` Don't remove from the list, should only be used in listener methods
         """
         config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
-        cache = self._get_cache(white_black_list, guild)
-        log.debug(f"Removing these users from the {white_black_list}\n{users_or_roles = }, {guild = }")
+        log.debug(
+            f"Removing these users from the {white_black_list}\n{users_or_roles = }, {guild = }"
+        )
 
         async with config() as blacklist:
             for item in users_or_roles:
                 actual = str(getattr(item, "id", item))
                 if actual in blacklist:
                     del blacklist[actual]
-                if actual in cache:
-                    cache.pop(actual)
+                    if white_black_list == "whitelist":
+                        self._cache.update_whitelist(guild, blacklist)
+                    else:
+                        self._cache.update_blacklist(guild, blacklist)
 
         del blacklist, item, actual
         if not override:
@@ -314,8 +295,10 @@ class AdvancedBlacklist(commands.Cog):
         guild: Optional[discord.Guild] = None,
         override: bool = False,
     ) -> None:
-        cache = self._get_cache(white_black_list, guild)
-        cache.clear()
+        if white_black_list == "whitelist":
+            self._cache.clear_whitelist(guild)
+        else:
+            self._cache.clear_blacklist(guild)
         if override:
             return
 
@@ -328,7 +311,10 @@ class AdvancedBlacklist(commands.Cog):
     async def get_list(
         self, *, white_black_list: _WhiteBlacklist, guild: Optional[discord.Guild] = None
     ) -> Dict[str, str]:
-        blacklist = self._get_cache(white_black_list, guild)
+        if white_black_list == "whitelist":
+            blacklist = self._cache.get_whitelist(guild)
+        else:
+            blacklist = self._cache.get_blacklist(guild)
         if blacklist:
             return blacklist
         config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
@@ -354,11 +340,13 @@ class AdvancedBlacklist(commands.Cog):
         guild: Optional[discord.Guild] = None,
     ) -> None:
         config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
-        cache = self._get_cache(white_black_list, guild)
         async with config() as blacklist:
             actual = str(getattr(user_or_role, "id", user_or_role))
             blacklist[actual] = reason
-            cache[actual] = reason
+            if white_black_list == "whitelist":
+                self._cache.update_whitelist(guild, blacklist)
+            else:
+                self._cache.update_blacklist(guild, blacklist)
         del blacklist, actual
 
     async def in_list(
@@ -369,8 +357,11 @@ class AdvancedBlacklist(commands.Cog):
         guild: Optional[discord.Guild] = None,
     ) -> bool:
         actual = str(getattr(user_or_role, "id", user_or_role))
-        cache = self._get_cache(white_black_list, guild)
-        if actual in cache:
+        if white_black_list == "whitelist":
+            cached = self._cache.get_whitelist_user(guild, user_or_role)
+        else:
+            cached = self._cache.get_blacklist_user(guild, user_or_role)
+        if cached:
             return True
         config = getattr((self.config.guild(guild) if guild else self.config), white_black_list)
         data = await config()
@@ -834,9 +825,7 @@ class AdvancedBlacklist(commands.Cog):
 
         blocklist = await self.get_list(white_black_list=white_black_list, guild=guild)
         if not blocklist:
-            await ctx.send(
-                f"There are no users/roles on the {local}{allow_deny}"
-            )
+            await ctx.send(f"There are no users/roles on the {local}{allow_deny}")
             return
         for index, (item, reason) in enumerate(blocklist.items(), 1):
             maybe_user = getattr(self.bot.get_user(int(item)), "name", item)
