@@ -3,12 +3,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, Iterable, Union
+from typing import TYPE_CHECKING, Dict, Iterable, Union, Literal
 
 import discord.abc
 from redbot.core import commands
 
 __all__ = [
+    "_WhiteBlacklist",
     "ChannelType",
     "ConfigType",
     "GlobalCache",
@@ -18,7 +19,7 @@ __all__ = [
     "UsersOrRoles",
 ]
 
-
+_WhiteBlacklist = Literal["whitelist", "blacklist"]
 GlobalCache = Dict[str, str]
 GuildCache = Dict[int, Dict[str, str]]
 ChannelType = Union[
