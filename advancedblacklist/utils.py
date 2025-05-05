@@ -23,7 +23,7 @@ from redbot.core.bot import Red
 from .constants import default_format
 
 
-__all__ = [
+__all__ = (
     "_timestamp",
     "_str_timestamp",
     "get_source",
@@ -31,7 +31,7 @@ __all__ = [
     "Page",
     "Menu",
     "FormatView",
-]
+)
 
 button_emojis = {
     (False, True): "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE}",

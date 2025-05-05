@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, Union, Literal
 import discord.abc
 from redbot.core import commands
 
-__all__ = [
+__all__ = (
     "_WhiteBlacklist",
     "ChannelType",
     "ConfigType",
@@ -17,7 +17,7 @@ __all__ = [
     "GuildCache",
     "UserOrRole",
     "UsersOrRoles",
-]
+)
 
 _WhiteBlacklist = Literal["whitelist", "blacklist"]
 GlobalCache = Dict[str, str]

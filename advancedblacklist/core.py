@@ -30,7 +30,7 @@ from .constants import __author__, __version__, config_structure
 from .patching import Patch
 from .utils import Menu, Page, _timestamp, FormatView, get_source, ConfirmView
 
-__all___ = ["AdvancedBlacklist"]
+__all___ = ("AdvancedBlacklist",)
 
 
 log = logging.getLogger("redbot.jojocogs.advancedblacklist")

@@ -14,7 +14,7 @@ from typing import Any, Callable, Coroutine, Dict, Final, List
 from discord.utils import maybe_coroutine
 from redbot.core.bot import Red
 
-__all__ = ["Patch"]
+__all__ = ("Patch",)
 
 _log = logging.getLogger("redbot.jojocogs.advancedblacklist.patch")
 Coro = Callable[..., Coroutine[Any, Any, Any]]

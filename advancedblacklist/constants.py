@@ -5,7 +5,7 @@ from typing import Dict, Final
 
 from ._types import ConfigType
 
-__all__ = ["__author__", "__version__", "config_structure", "default_format"]
+__all__ = ("__author__", "__version__", "config_structure", "default_format")
 
 
 __author__ = "Amy (jojo7791)"
