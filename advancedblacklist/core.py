@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Set, Tuple, Union
 
 import contextlib
 import discord
@@ -58,17 +58,21 @@ def _format_str(string: str, replace: Dict[str, str]) -> str:
 
 async def _filter_internal(
     c: commands.Context, u: UsersOrRoles
-) -> Tuple[UsersOrRoles, Optional[str]]:
+) -> Tuple[Set[UserOrRole], Optional[str]]:
     r: UsersOrRoles = []
     for i in u:
         if isinstance(i, int):
             i = discord.Object(i)  # type:ignore
-        if await c.bot.is_owner(i):  # type:ignore
-            return [], "You cannot add yourself to the blocklist"
+        if TYPE_CHECKING:
+            assert isinstance(i, discord.Member)
+        if c.guild and (c.guild.owner_id == i.id and not await c.bot.is_owner(c.author)):
+            return set(), "You cannot add the guild owner to the local blocklist!"
+        if await c.bot.is_owner(i) or c.author.id == i.id:
+            return set(), "You cannot add yourself to the blocklist"
         elif (isinstance(i, discord.Member) or isinstance(i, discord.User)) and i.bot:
             continue
         r.append(getattr(i, "id", i))  # type:ignore
-    return r, ""
+    return set(r), ""
 
 
 async def _filter_msg(c: commands.Context, i: int, l: int) -> None:
@@ -85,12 +89,12 @@ async def _filter_bots(
     ctx: commands.Context,
     users_or_roles: UsersOrRoles,
     white_black_list: _WhiteBlacklist,
-) -> Tuple[bool, UsersOrRoles]:
+) -> Tuple[bool, Set[UserOrRole]]:
     length = len(tuple(users_or_roles))
     for i in range(2):
         if not users_or_roles:
             await _filter_msg(ctx, i, length)
-            return False, []
+            return False, set()
         if white_black_list == "whitelist":
             # NOTE Since the allowlist is just people who
             # can use the bot, we can just filter out the bots.
@@ -101,14 +105,30 @@ async def _filter_bots(
         users_or_roles, string = await _filter_internal(ctx, users_or_roles)
         if string:
             await ctx.send(string)
-            return False, []
+            return False, set()
+    if TYPE_CHECKING:
+        assert isinstance(users_or_roles, set), "mypy"
     return True, users_or_roles
 
 
-def _check_author(guild: discord.Guild, author: discord.Member, users_or_roles: UsersOrRoles) -> Optional[bool]:
+def _check_author(
+    guild: discord.Guild,
+    author: discord.Member,
+    users_or_roles: UsersOrRoles,
+    current_whitelist: Set[UserOrRole],
+    removing: bool = False,
+) -> Optional[bool]:
     if guild.owner_id == author.id:
         return None
-    if any(u in users_or_roles for u in (author, author.id)):  # type:ignore
+
+    uids = {getattr(u, "id", u) for u in users_or_roles}
+    if removing:
+        theoretical = current_whitelist - uids
+    else:
+        theoretical = current_whitelist.union(uids)
+    log.debug(f"{theoretical = }, {uids = }")
+    ids = {i for i in (author.id, *(getattr(author, "_roles", [])))}
+    if theoretical and ids.isdisjoint(theoretical):
         return False
     return True
 
@@ -380,7 +400,10 @@ class AdvancedBlacklist(commands.Cog):
 
         # Okay, didn't find it in the config
         # Let's try in the bot
-        data = await self.bot.get_blacklist(guild)
+        if white_black_list == "blacklist":
+            data = await self.bot.get_blacklist(guild)
+        else:
+            data = await self.bot.get_whitelist(guild)
         return int(actual) in data
 
     @commands.command(name="advancedblacklistversion", aliases=["advblversion"], hidden=True)
@@ -662,9 +685,8 @@ class AdvancedBlacklist(commands.Cog):
         if not worked:
             return
 
-        if _check_author(ctx.guild, ctx.author, users_or_roles) is False:
-            await ctx.send("You cannot add yourself to the local blocklist!")
-            return
+        if ctx.author in users_or_roles or ctx.author.id in users_or_roles:
+            ...
 
         if not reason:
             reason = "No reason provided."
@@ -755,8 +777,14 @@ class AdvancedBlacklist(commands.Cog):
         if not worked:
             return
 
-        if _check_author(ctx.guild, ctx.author, users_or_roles) is True:
-            await ctx.send(f"You are not in the local allowlist so adding those users will block you from using {ctx.me.name}!")
+        author_check = _check_author(
+            ctx.guild, ctx.author, users_or_roles, await self.bot.get_whitelist()
+        )
+
+        if author_check is False:
+            await ctx.send(
+                f"You are not in the local allowlist so adding those users will block you from using {ctx.me.name}!"
+            )
             return
 
         if not reason:
@@ -786,10 +814,14 @@ class AdvancedBlacklist(commands.Cog):
         if not worked:
             return
 
-        check_author = _check_author(ctx.guild, ctx.author, users_or_roles) 
+        check_author = _check_author(
+            ctx.guild, ctx.author, users_or_roles, await self.bot.get_whitelist(ctx.guild)
+        )
 
         if check_author is False:
-            await ctx.send(f"I cannot remove you from the local allowlist as you wouldn't be able to use {ctx.me.name}")
+            await ctx.send(
+                f"I cannot remove you from the local allowlist as you wouldn't be able to use {ctx.me.name}"
+            )
             return
 
         await self.remove_from_list(users_or_roles, white_black_list="whitelist", guild=ctx.guild)
@@ -960,4 +992,4 @@ class AdvancedBlacklist(commands.Cog):
             f"Added {user.name} ({user.id}) to the blocklist as they used the command "
             f"`{command.qualified_name}` which errored too many times"
         )
-        await self.add_to_list({user}, white_black_list="blacklist", reason=reason, override=True)
+        await self.add_to_list({user}, white_black_list="blacklist", reason=reason, override=True)\
