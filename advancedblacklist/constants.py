@@ -9,7 +9,7 @@ __all__ = ("__author__", "__version__", "config_structure", "default_format")
 
 
 __author__ = "Amy (jojo7791)"
-__version__ = "3.0.0.dev0"
+__version__ = "3.0.0"
 
 default_format: Final[Dict[str, str]] = {
     "title": "{allow_deny_list}",

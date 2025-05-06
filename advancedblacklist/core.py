@@ -727,7 +727,7 @@ class AdvancedBlacklist(commands.Cog):
         """Clears the local blocklist"""
         await self._handle_clearing(ctx, confirm, "blacklist", ctx.guild)
 
-    @commands.group(name="localallowlist")
+    @commands.group(name="localallowlist", aliases=["localwhitelist"])
     @commands.guild_only()
     @commands.admin_or_permissions(administrator=True)
     async def local_allowlist(self, ctx: commands.Context) -> None:
