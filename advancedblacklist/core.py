@@ -58,8 +58,8 @@ def _format_str(string: str, replace: Dict[str, str]) -> str:
 
 async def _filter_internal(
     c: commands.Context, u: UsersOrRoles
-) -> Tuple[Set[UserOrRole], Optional[str]]:
-    r: UsersOrRoles = []
+) -> Tuple[Set[int], Optional[str]]:
+    r: List[int] = []
     for i in u:
         if isinstance(i, int):
             i = discord.Object(i)  # type:ignore
@@ -71,7 +71,7 @@ async def _filter_internal(
             return set(), "You cannot add yourself to the blocklist"
         elif (isinstance(i, discord.Member) or isinstance(i, discord.User)) and i.bot:
             continue
-        r.append(getattr(i, "id", i))  # type:ignore
+        r.append(i.id)
     return set(r), ""
 
 
@@ -154,6 +154,7 @@ class AdvancedBlacklist(commands.Cog):
 
     @classmethod
     async def async_init(cls, bot: Red) -> Self:
+        """NOTE only initialize an instance using this method"""
         self = cls(bot)
         await self._patch.startup()
         for name in _original_commands:
@@ -175,11 +176,11 @@ class AdvancedBlacklist(commands.Cog):
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         original = super().format_help_for_context(ctx)
-        return f"""{original}
-
-        **Author:** {__author__}
-        **Version:** {__version__}
-        """
+        return (
+            f"{original}\n\n"
+            f"**Author:** {__author__}\n"
+            f"**Version:** {__version__}\n"
+        )
 
     async def red_delete_data_for_user(
         self,
@@ -272,9 +273,10 @@ class AdvancedBlacklist(commands.Cog):
                 else:
                     self._cache.update_blacklist(guild, blacklist)
         del blacklist, item, actual
-        if not override:
-            coro = getattr(self.bot, f"add_to_{white_black_list}")
-            await coro(users_or_roles, guild=guild, adv_bl=True)
+        if override:
+            return
+        coro = getattr(self.bot, f"add_to_{white_black_list}")
+        await coro(users_or_roles, guild=guild, adv_bl=True)
 
     async def remove_from_list(
         self,
@@ -311,10 +313,11 @@ class AdvancedBlacklist(commands.Cog):
                         self._cache.update_blacklist(guild, blacklist)
 
         del blacklist, item, actual
-        if not override:
-            await getattr(self.bot, f"remove_from_{white_black_list}")(
-                users_or_roles, guild=guild, adv_bl=True
-            )
+        if override:
+            return
+        await getattr(self.bot, f"remove_from_{white_black_list}")(
+            users_or_roles, guild=guild, adv_bl=True
+        )
 
     async def clear_list(
         self,
@@ -350,8 +353,8 @@ class AdvancedBlacklist(commands.Cog):
         if blacklist:
             return blacklist
 
-        # We don't have anyone in the blacklist currently
-        # Let's check if the bot has anybody in the blacklist
+        # We don't have anyone in the block/allowlist currently
+        # Let's check if the bot has anybody in the block/allowlist
         bot_blacklist = await getattr(self.bot, f"get_{white_black_list}")(guild)
         if not bot_blacklist:
             return {}
