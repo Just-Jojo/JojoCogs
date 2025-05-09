@@ -971,4 +971,4 @@ class AdvancedBlacklist(commands.Cog):
             f"Added {user.name} ({user.id}) to the blocklist as they used the command "
             f"`{command.qualified_name}` which errored too many times"
         )
-        await self.add_to_list({user}, white_black_list="blacklist", reason=reason, override=True)\
+        await self.add_to_list({user}, white_black_list="blacklist", reason=reason, override=True)
