@@ -305,12 +305,13 @@ class AdvancedBlacklist(commands.Cog):
         async with config() as blacklist:
             for item in users_or_roles:
                 actual = str(getattr(item, "id", item))
-                if actual in blacklist:
-                    del blacklist[actual]
-                    if white_black_list == "whitelist":
-                        self._cache.update_whitelist(guild, blacklist)
-                    else:
-                        self._cache.update_blacklist(guild, blacklist)
+                if actual not in blacklist:
+                    continue
+                del blacklist[actual]
+                if white_black_list == "whitelist":
+                    self._cache.update_whitelist(guild, blacklist)
+                else:
+                    self._cache.update_blacklist(guild, blacklist)
 
         del blacklist, item, actual
         if override:
