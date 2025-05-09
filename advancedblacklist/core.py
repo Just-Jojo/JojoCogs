@@ -897,6 +897,7 @@ class AdvancedBlacklist(commands.Cog):
         self, users: UsersOrRoles, guild: Optional[discord.Guild], adv_bl: bool = False
     ) -> None:
         if adv_bl:
+            # Explanation:
             # NOTE this should only be true if this is being
             # ran from `[p]blocklist add <user>` so we won't
             # need to set a reason here
@@ -914,7 +915,7 @@ class AdvancedBlacklist(commands.Cog):
         self, users: UsersOrRoles, guild: Optional[discord.Guild], adv_bl: bool = False
     ) -> None:
         if adv_bl:
-            # NOTE see above
+            # NOTE see above `Explanation`
             return
 
         await self.remove_from_list(
@@ -956,7 +957,6 @@ class AdvancedBlacklist(commands.Cog):
     async def on_whitelist_clear(
         self, guild: Optional[discord.Guild], adv_bl: bool = False
     ) -> None:
-        log.info(f"{adv_bl = }")
         if adv_bl:
             return
 
