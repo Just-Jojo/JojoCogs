@@ -6,6 +6,7 @@ from typing import Any, Dict, Final, List, TYPE_CHECKING
 
 import discord
 from redbot.core import Config, commands, modlog
+from redbot.core.commands import GuildContext as Context
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import box, pagify
@@ -24,14 +25,6 @@ _config_structure: Dict[str, Dict[str, Any]] = {
         "notes": [],
     },
 }
-
-if TYPE_CHECKING:
-    class Context(commands.Context):
-        guild: discord.Guild
-        author: discord.Member
-
-else:
-    Context = commands.Context
 
 
 class ModNotes(commands.Cog):
