@@ -8,15 +8,16 @@ from typing import TYPE_CHECKING
 import discord
 from redbot.core import commands
 
-__all__ = ["NonBotMember", "PositiveInt"]
+__all__ = ["NonBotMember", "NonBotStrict", "PositiveInt"]
 
 
 if TYPE_CHECKING:
     NonBotMember = discord.User
+    NonBotStrict = NonBotMember
 else:
 
     class NonBotMember(commands.UserConverter):
-        def __init__(self, strict: bool = True):
+        def __init__(self, strict: bool = False):
             self.strict = strict
             super().__init__()
 
@@ -33,6 +34,10 @@ else:
                 elif user == ctx.author:
                     raise commands.BadArgument("The user cannot be yourself")
                 return user
+
+    class NonBotStrict(NonBotMember):
+        def __init__(self):
+            super().__init__(strict=True)
 
 
 if TYPE_CHECKING:

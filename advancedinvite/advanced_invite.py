@@ -1,10 +1,9 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-import asyncio
 import datetime
 import logging
-from typing import Any, Dict, Final, List, Optional, Union, Tuple, TypeVar, TYPE_CHECKING
+from typing import Any, Dict, Final, List, Optional, Union, Tuple, TYPE_CHECKING
 
 import aiohttp
 import discord
@@ -12,7 +11,7 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import humanize_list, humanize_number
 
-from .utils import *
+from .utils import NoneConverter, Emoji, EmojiConverter, InviteNoneConverter
 
 log = logging.getLogger("red.JojoCogs.advanced_invite")
 
@@ -153,7 +152,7 @@ class AdvancedInvite(commands.Cog):
         kwargs["view"] = view
         try:
             await channel.send(**kwargs)
-        except discord.Forbidden: # Couldn't dm
+        except discord.Forbidden:  # Couldn't dm
             if channel == ctx.author.dm_channel:
                 return await ctx.send("I could not dm you!")
             await ctx.send(
@@ -162,14 +161,16 @@ class AdvancedInvite(commands.Cog):
             )
         except discord.HTTPException:
             await ctx.send(
-                "I'm sorry, something went wrong when trying to send the invite."
+                "I'm sorry, something went wrong when trying to send the invite. "
                 "Please let my owner know if this problem continues."
             )
 
     @staticmethod
     def _make_button(url: str, label: str, emoji: Optional[Emoji]) -> discord.ui.Button:
         emoji_data = emoji.as_emoji() if emoji else None
-        return discord.ui.Button(style=discord.ButtonStyle.url, label=label, url=url, emoji=emoji_data)
+        return discord.ui.Button(
+            style=discord.ButtonStyle.url, label=label, url=url, emoji=emoji_data
+        )
 
     @staticmethod
     def _get_items(settings: dict, keys: List[str], ctx: commands.Context) -> list:
@@ -281,12 +282,14 @@ class AdvancedInvite(commands.Cog):
         """Set whether the invite command should send in the channel it was invoked in
 
         **Arguments**
-            - `toggle` Whether or not the invite command should be sent in the channel it was used in.
+            - `toggle` Whether or not the invite command
+            should be sent in the channel it was used in.
         """
         await self.config.send_in_channel.set(toggle)
         now_no_longer = "now" if toggle else "no longer"
         await ctx.send(
-            f"The invite command will {now_no_longer} send the message in the channel it was invoked in"
+            f"The invite command will {now_no_longer} "
+            f"send the message in the channel it was invoked in"
         )
 
     @invite_settings.command(name="supportserveremoji", aliases=["ssemoji"])
@@ -320,13 +323,14 @@ class AdvancedInvite(commands.Cog):
         await ctx.send(f"Set the invite emoji to {emoji.as_emoji()}")
 
     @invite_settings.command(name="thumbnailurl")
-    async def invite_custom_url(self, ctx: commands.Context, url: str = None):
+    async def invite_custom_url(self, ctx: commands.Context, url: Optional[str] = None):
         """Set the thumbnail url for the invite command's embed
 
         This setting only applies for embeds.
 
         **Arguments**
-            - `url` The thumbnail url for embed command. This can also be a file (upload the image when you run the command)
+            - `url` The thumbnail url for embed command.
+            This can also be a file (upload the image when you run the command)
             Type `none` to reset the url.
         """
         if len(ctx.message.attachments) == 0 and url is None:
@@ -346,7 +350,8 @@ class AdvancedInvite(commands.Cog):
                 url = url[1:-1]
             if not url.endswith(self._supported_images):
                 return await ctx.send(
-                    f"That url does not point to a proper image type, ({', '.join(self._supported_images)})"
+                    f"That url does not point to a proper image type, "
+                    f"({', '.join(self._supported_images)})"
                 )
             async with ctx.typing():
                 async with aiohttp.ClientSession() as sess:
@@ -363,7 +368,7 @@ class AdvancedInvite(commands.Cog):
         await ctx.send("Done. I have set the thumbnail url.")
 
     @invite_settings.command(name="imageurl", usage="<url or image>")
-    async def invite_image_url(self, ctx: commands.Context, url: str = None):
+    async def invite_image_url(self, ctx: commands.Context, url: Optional[str] = None):
         """Set the image url for the invite command.
 
         This setting only applies for embeds.
@@ -435,9 +440,11 @@ class AdvancedInvite(commands.Cog):
             kwargs = {"embed": embed}
         await ctx.send(**kwargs)
 
-    async def _get_channel(self, ctx: commands.Context) -> Union[discord.TextChannel, discord.DMChannel]:
+    async def _get_channel(
+        self, ctx: commands.Context
+    ) -> Union[discord.TextChannel, discord.DMChannel]:
         if await self.config.send_in_channel():
-            return ctx.channel
+            return ctx.channel  # type:ignore
 
         if ret := ctx.author.dm_channel:
             return ret
@@ -448,4 +455,6 @@ class AdvancedInvite(commands.Cog):
             return False
         if isinstance(channel, discord.DMChannel):
             return True
+        if TYPE_CHECKING:
+            assert isinstance(ctx.me, discord.Member), "mypy"
         return channel.permissions_for(ctx.me).embed_links

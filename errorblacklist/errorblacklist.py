@@ -1,10 +1,8 @@
 # Copyright (c) 2021 - Jojo#7791
 # Licensed under MIT
 
-# type:ignore[missing-import]
-
 import logging
-from typing import Any, Dict, Final, List, Literal
+from typing import Dict, Final, List, Tuple, Literal, Union, TYPE_CHECKING
 
 import discord
 from discord.ext import tasks
@@ -12,16 +10,15 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
 
-from .api import *
 from .menus import Menu, Page
-from .utils import *
+from .utils import humanize_list, PositiveInt, UserOrCommandCog, ChannelOrGuild, NoneConverter
 
 __all__ = ["ErrorBlacklist"]
 
 log = logging.getLogger("red.JojoCogs.error_blacklist")
 RequestType = Literal["discord_deleted_user", "owner", "user", "user_strict"]
 
-_config_structure: Final[Dict[str, Dict[str, Any]]] = {
+_config_structure: Final[Dict[str, Dict[str, Union[list, str, bool, int, dict]]]] = {
     "global": {
         "enabled": False,
         "amount": 5,
@@ -49,6 +46,8 @@ _config_structure: Final[Dict[str, Dict[str, Any]]] = {
 
 
 async def enabled(ctx: commands.Context) -> bool:
+    if TYPE_CHECKING:
+        assert isinstance(ctx.cog, ErrorBlacklist), "mypy"
     return await ctx.cog.config.message_enabled()
 
 
@@ -78,7 +77,7 @@ class ErrorBlacklist(commands.Cog):
         self._cache: dict = {}
         self.first_run: bool = True
 
-    async def cog_check(self, ctx: commands.Context) -> bool:
+    async def cog_check(self, ctx: commands.Context) -> bool:  # type:ignore
         return await ctx.bot.is_owner(ctx.author)
 
     async def cog_load(self) -> None:
@@ -86,7 +85,7 @@ class ErrorBlacklist(commands.Cog):
             self.clear_cache.start()
         self._cache = await self.config.all_users()
 
-    def cog_unload(self) -> None:
+    async def cog_unload(self) -> None:
         if self.clear_cache.is_running():
             self.clear_cache.cancel()
 
@@ -98,7 +97,8 @@ class ErrorBlacklist(commands.Cog):
     async def errblversion(self, ctx: commands.Context):
         """Get the version of error blacklist"""
         await ctx.maybe_send_embed(
-            f"Error blacklist. Version `{self.__version__}`, written by {', '.join(self.__authors__)}"
+            f"Error blacklist. Version `{self.__version__}`, "
+            f"written by {', '.join(self.__authors__)}"
         )
 
     @commands.is_owner()
@@ -216,13 +216,8 @@ class ErrorBlacklist(commands.Cog):
         **Arguments**
             - `user_or_command` The user, cog, or command to whitelist.
         """
-        if is_user := isinstance(user_com_or_cog, discord.User):
-            user = "user"
-        elif isinstance(user_com_or_cog, commands.Command):
-            user = "command"
-        else:
-            user = "cog"
-        to_add = getattr(user_com_or_cog, "qualified_name", user_com_or_cog.id)
+        is_user, user, to_add = self._get_user_or_com(user_com_or_cog)
+
         val = getattr(self.config.whitelist, f"{user}s")
         if to_add in await val():
             return await ctx.send(f"That {user} is already in the whitelist.")
@@ -240,13 +235,8 @@ class ErrorBlacklist(commands.Cog):
         **Arguments**
             - `user_or_command` The user, cog, or command to be removed from the whitelist
         """
-        user = "command"
-        if is_user := isinstance(user_com_or_cog, discord.User):
-            user = "user"
-        elif isinstance(user_com_or_cog, commands.Cog):
-            user = "cog"
+        is_user, user, to_add = self._get_user_or_com(user_com_or_cog)
         val = getattr(self.config.whitelist, f"{user}s")
-        to_add = getattr(user_com_or_cog, "qualified_name", user_com_or_cog.id)
         if to_add not in await val():
             return await ctx.send(f"That {user} is not in the whitelist.")
         user = f"{user} id" if is_user else user
@@ -254,6 +244,13 @@ class ErrorBlacklist(commands.Cog):
 
         async with val() as f:
             f.remove(to_add)
+
+    @staticmethod
+    def _get_user_or_com(maybe_user: UserOrCommandCog) -> Tuple[bool, str, Union[str, int]]:
+        if isinstance(maybe_user, discord.User):
+            return True, "user", maybe_user.id
+        cog = "cog" if isinstance(maybe_user, commands.Cog) else "command"
+        return False, cog, maybe_user.qualified_name
 
     @error_blacklist_whitelist.command(name="list")
     async def whitelist_list(self, ctx: commands.Context):
@@ -288,8 +285,8 @@ class ErrorBlacklist(commands.Cog):
             - `message` The message sent to warn the user. Type `None` to reset it.
         """
         set_reset = "set" if message else "reset"
-        message = message or _config_structure["message"]
-        await self.config.message.set(message)
+        actual = message or _config_structure["message"]
+        await self.config.message.set(actual)
         await ctx.send(f"The message has been {set_reset}")
 
     @error_blacklist_message.command(name="enable", aliases=("toggle", "disable"))
@@ -312,19 +309,17 @@ class ErrorBlacklist(commands.Cog):
         }
         if data["Message enabled"]:
             data["Message"] = await coro.message()
-        kwargs = {
-            "content": (
-                f"**Error Blacklist settings**\n"
-                "\n".join(f"**{key}:** {value}" for key, value in data.items())
-            )
-        }
         if await ctx.embed_requested():
             embed = discord.Embed(
                 title="Error Blacklist settings", colour=await ctx.embed_colour()
             )
             [embed.add_field(name=key, value=value, inline=False) for key, value in data.items()]
-            kwargs = {"embed": embed}
-        await ctx.send(**kwargs)
+            await ctx.send(embed=embed)
+            return
+        await ctx.send(
+            "**Error Blacklist settings**\n"
+            "\n".join(f"**{key}:** {value}" for key, value in data.items())
+        )
 
     @commands.Cog.listener()
     async def on_command_error(
@@ -340,7 +335,6 @@ class ErrorBlacklist(commands.Cog):
         if not isinstance(err, commands.CommandInvokeError) or not ctx.command.cog:
             return
 
-        whitelist = await self.config.whitelist()
         user = ctx.author
         if not await self.config.enabled() or await self.bot.is_owner(user):
             return
@@ -376,9 +370,10 @@ class ErrorBlacklist(commands.Cog):
         amount = await self.config.amount()
         if (am := self._cache[user.id].get(ctx.command.name)) and am >= amount:
             log.info(
-                f"Blacklisted {user} ({user.id}) as they have used a command that has errored {am} times."
+                f"Blacklisted {user} ({user.id}) as they have "
+                f"used a command that has errored {am} times."
             )
-            await add_to_blacklist(self.bot, {user})
+            await self.bot.add_to_blacklist({user})
             self.bot.dispatch("error_blacklist", user, ctx.command)
 
     @tasks.loop(hours=24)

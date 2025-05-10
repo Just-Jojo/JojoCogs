@@ -9,7 +9,6 @@ from typing import Union, TYPE_CHECKING
 import datetime
 import discord
 from redbot.core import commands
-from redbot.core.bot import Red
 
 __all__ = ["Menu", "Page"]
 
@@ -78,7 +77,7 @@ class Menu(discord.ui.View):
         self.ctx: commands.Context = ctx
 
         self.current_page: int = 0
-        self.msg: discord.Message = None # type:ignore
+        self.msg: discord.Message
         self.add_buttons()
 
     def add_item(self, item: discord.ui.Item):
@@ -98,7 +97,8 @@ class Menu(discord.ui.View):
     def add_buttons(self) -> None:
         single_disabled = self.source.max_pages <= 1
         multi_disabled = self.source.max_pages <= 5
-        [self.add_item(i) for i in [
+        [
+            self.add_item(i) for i in [
                 MenuButton(False, True, multi_disabled),
                 MenuButton(False, False, single_disabled),
                 StopButton(),

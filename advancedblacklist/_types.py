@@ -12,16 +12,12 @@ __all__ = (
     "_WhiteBlacklist",
     "ChannelType",
     "ConfigType",
-    "GlobalCache",
     "GreedyUserOrRole",
-    "GuildCache",
     "UserOrRole",
     "UsersOrRoles",
 )
 
 _WhiteBlacklist = Literal["whitelist", "blacklist"]
-GlobalCache = Dict[str, str]
-GuildCache = Dict[int, Dict[str, str]]
 ChannelType = Union[
     discord.TextChannel,
     discord.abc.PrivateChannel,

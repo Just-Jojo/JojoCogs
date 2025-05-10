@@ -19,9 +19,7 @@ from redbot.core.bot import Red
 
 from ._types import (
     _WhiteBlacklist,
-    GlobalCache,
     GreedyUserOrRole,
-    GuildCache,
     UserOrRole,
     UsersOrRoles,
 )
@@ -56,9 +54,7 @@ def _format_str(string: str, replace: Dict[str, str]) -> str:
     return string
 
 
-async def _filter_internal(
-    c: commands.Context, u: UsersOrRoles
-) -> Tuple[Set[int], Optional[str]]:
+async def _filter_internal(c: commands.Context, u: UsersOrRoles) -> Tuple[Set[int], Optional[str]]:
     r: List[int] = []
     for i in u:
         if isinstance(i, int):
@@ -75,11 +71,11 @@ async def _filter_internal(
     return set(r), ""
 
 
-async def _filter_msg(c: commands.Context, i: int, l: int) -> None:
+async def _filter_msg(c: commands.Context, i: int, ln: int) -> None:
     if i == 0:
         await c.send_help()
         return
-    if l > 1:
+    if ln > 1:
         await c.send("Those users were bots!")
         return
     await c.send("That user was a bot!")
@@ -176,11 +172,7 @@ class AdvancedBlacklist(commands.Cog):
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         original = super().format_help_for_context(ctx)
-        return (
-            f"{original}\n\n"
-            f"**Author:** {__author__}\n"
-            f"**Version:** {__version__}\n"
-        )
+        return f"{original}\n\n" f"**Author:** {__author__}\n" f"**Version:** {__version__}\n"
 
     async def red_delete_data_for_user(
         self,
@@ -465,9 +457,9 @@ class AdvancedBlacklist(commands.Cog):
             )
             return
         await ctx.send(
-            (
-                "I have added that user/role to the blocklist with the reason: `{reason}`"
-            ).format(reason=reason)
+            ("I have added that user/role to the blocklist with the reason: `{reason}`").format(
+                reason=reason
+            )
         )
 
     @blocklist.command(name="remove", aliases=["del", "delete"])
@@ -557,9 +549,7 @@ class AdvancedBlacklist(commands.Cog):
                 f"I have added those users/roles to the allowlist with the reason: `{reason}`"
             )
             return
-        await ctx.send(
-            f"I have added that user/role to the allowlist with the reason: `{reason}`"
-        )
+        await ctx.send(f"I have added that user/role to the allowlist with the reason: `{reason}`")
 
     @allowlist.command(name="edit")
     async def allowlist_edit(
@@ -754,7 +744,8 @@ class AdvancedBlacklist(commands.Cog):
 
         if author_check is False:
             await ctx.send(
-                f"You are not in the local allowlist so adding those users will block you from using {ctx.me.name}!"
+                f"You are not in the local allowlist so adding those"
+                f"users will block you from using {ctx.me.name}!"
             )
             return
 
@@ -791,7 +782,8 @@ class AdvancedBlacklist(commands.Cog):
 
         if check_author is False:
             await ctx.send(
-                f"I cannot remove you from the local allowlist as you wouldn't be able to use {ctx.me.name}"
+                f"I cannot remove you from the local allowlist"
+                f"as you wouldn't be able to use {ctx.me.name}"
             )
             return
 
@@ -872,7 +864,12 @@ class AdvancedBlacklist(commands.Cog):
             if TYPE_CHECKING:
                 assert maybe_user is not None
             format_settings.update(
-                {"{user_or_role}": maybe_user, "{reason}": reason, "{index}": str(index), "{ur_id}": str(item)},
+                {
+                    "{user_or_role}": maybe_user,
+                    "{reason}": reason,
+                    "{index}": str(index),
+                    "{ur_id}": str(item),
+                },
             )
             show.append(_format_str(user_or_role, format_settings))
         del maybe_user, item, reason

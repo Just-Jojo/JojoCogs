@@ -3,30 +3,28 @@
 
 from __future__ import annotations
 
-import abc
 from contextlib import suppress
 from typing import Union, TYPE_CHECKING
 
-import discord  # type:ignore
+import discord
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import box
-from redbot.vendored.discord.ext import menus  # type:ignore
 
 
 if TYPE_CHECKING:
     from typing_extensions import Self
 
+    class Button(discord.ui.Button):
+        view: Menu
 
-class ButtonABC(abc.ABC):
-    def __init__(self, *_args):
-        self.view: Menu
-        super().__init__()
+else:
+    Button = discord.ui.Button
 
 
-class FirstPageButton(discord.ui.Button, ButtonABC):
+class FirstPageButton(Button):
     def __init__(self, disabled: bool = False):
         super().__init__(
-            style=discord.ButtonStyle.gray, 
+            style=discord.ButtonStyle.gray,
             emoji="\N{BLACK LEFT-POINTING DOUBLE TRIANGLE}",
             disabled=disabled,
         )
@@ -35,7 +33,7 @@ class FirstPageButton(discord.ui.Button, ButtonABC):
         await self.view.show_page(0)
 
 
-class PreviousPageButton(discord.ui.Button, ButtonABC):
+class PreviousPageButton(Button):
     def __init__(self, disabled: bool = False):
         super().__init__(
             style=discord.ButtonStyle.gray,
@@ -47,7 +45,7 @@ class PreviousPageButton(discord.ui.Button, ButtonABC):
         await self.view.show_checked_page(self.view.current_page - 1)
 
 
-class StopButton(discord.ui.Button, ButtonABC):
+class StopButton(Button):
     def __init__(self):
         super().__init__(
             style=discord.ButtonStyle.red,
@@ -61,7 +59,7 @@ class StopButton(discord.ui.Button, ButtonABC):
             await self.view.msg.delete()
 
 
-class NextPageButton(discord.ui.Button, ButtonABC):
+class NextPageButton(Button):
     def __init__(self, disabled: bool = False):
         super().__init__(
             style=discord.ButtonStyle.gray,
@@ -73,7 +71,7 @@ class NextPageButton(discord.ui.Button, ButtonABC):
         await self.view.show_checked_page(self.view.current_page + 1)
 
 
-class LastPageButton(discord.ui.Button, ButtonABC):
+class LastPageButton(Button):
     def __init__(self, disabled: bool = False):
         super().__init__(
             style=discord.ButtonStyle.gray,
@@ -96,14 +94,13 @@ class Page:
         ctx: commands.Context = menu.ctx
         footer = f"Page {menu.current_page + 1}/{self.max_pages}"
         page = box(page, "md") if self.use_md else page
-        ret = f"**{self.title}**\n{page}\n{footer}"
         if await ctx.embed_requested():
-            ret = discord.Embed(
+            return discord.Embed(
                 title=self.title,
                 description=page,
                 colour=await ctx.embed_colour(),
             ).set_footer(text=footer)
-        return ret
+        return f"**{self.title}**\n{page}\n{footer}"
 
     async def get_page(self, page_number: int) -> str:
         return self.data[page_number]
@@ -163,9 +160,7 @@ class Menu(discord.ui.View):
             return {"embed": data}
         return {"content": str(data)}
 
-    async def start(
-        self
-    ) -> discord.Message:
+    async def start(self) -> None:
         page = await self.source.get_page(0)
         self.current_page = 0
         kwargs = await self._get_kwargs_from_page(page)

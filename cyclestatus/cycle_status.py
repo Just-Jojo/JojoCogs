@@ -88,7 +88,8 @@ else:
             ret = getattr(ActivityType, arg, None)
             if not ret:
                 raise commands.BadArgument(
-                    f"The argument must be one of the following: {humanize_enum_vals(ActivityType)}"
+                    f"The argument must be one of the following: "
+                    f"{humanize_enum_vals(ActivityType)}"
                 )
             return ret
 
@@ -202,7 +203,7 @@ class CycleStatus(commands.Cog):
         await ctx.send(f"Done, set the status mode to `{mode.value}`.")
 
     @status.command()
-    @commands.check(lambda ctx: ctx.cog.random is False) # type:ignore
+    @commands.check(lambda ctx: ctx.cog.random is False)  # type:ignore
     async def forcenext(self, ctx: commands.Context) -> None:
         """Force the next status to display on the bot"""
 
@@ -243,10 +244,12 @@ class CycleStatus(commands.Cog):
     async def status_add(self, ctx: commands.Context, *, status: str):
         """Add a status to the list
 
-        Put `{bot_guild_count}` or `{bot_member_count}` in your message to have the user count and guild count of your bot!
+        Put `{bot_guild_count}` or `{bot_member_count}` in your message
+        to have the user count and guild count of your bot
         If `showbots` is enabled it will include bots in the user count.
 
-        You can also put `{bot_prefix}` in your message to have the bot's prefix be displayed (eg. `{bot_prefix}ping`)
+        You can also put `{bot_prefix}` in your message to have the
+        bot's prefix be displayed (eg. `{bot_prefix}ping`)
 
         **Arguments**
             - `status` The status to add to the cycle.
@@ -328,7 +331,8 @@ class CycleStatus(commands.Cog):
     async def status_toggle(self, ctx: commands.Context, value: Optional[bool]) -> None:
         """Toggle whether the status should be cycled.
 
-        This is handy for if you want to keep your statuses but don't want them displayed at the moment
+        This is handy for if you want to keep your statuses
+        but don't want them displayed at the moment
 
         **Arguments**
             - `value` Whether to toggle cycling statues
@@ -443,7 +447,8 @@ class CycleStatus(commands.Cog):
         if use_help:
             status += f" | {prefix}help"
 
-        # For some reason using `discord.Activity(type=discord.ActivityType.custom)` will result in the bot not changing its status
+        # For some reason using `discord.Activity(type=discord.ActivityType.custom)`
+        # will result in the bot not changing its status
         # So I'm gonna use this until I figure out something better lmao
         game: discord.BaseActivity
         status_type = await self.config.status_type()

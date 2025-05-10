@@ -10,7 +10,7 @@ from typing import Any, Callable, Final, Iterable, List, Optional, Union, TYPE_C
 import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import humanize_list, inline, pagify
+from redbot.core.utils.chat_formatting import humanize_list, inline, pagify as _pagify
 from redbot.core.utils.predicates import MessagePredicate
 
 from .converters import CommandOrCogConverter, NoneChannelConverter
@@ -33,7 +33,20 @@ def listify(func: Callable):
     return wrapper
 
 
-pagify = listify(pagify)
+pagify = listify(_pagify)
+
+ChannelType = Union[discord.TextChannel, discord.Thread]
+
+
+async def get_or_fetch_channel(bot: Red, channel_id: int) -> ChannelType:
+    channel = bot.get_channel(channel_id)
+    if not channel:
+        channel = await bot.fetch_channel(channel_id)
+
+    if TYPE_CHECKING:
+        assert isinstance(channel, discord.TextChannel) or isinstance(channel, discord.Thread)
+
+    return channel
 
 
 class CmdLogger(commands.Cog):
@@ -46,7 +59,7 @@ class CmdLogger(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 544974305445019651, True)
         self.config.register_global(log_channel=None, commands=[], cogs=[], ignore_owner=True)
-        if 544974305445019651 in self.bot.owner_ids: # type:ignore
+        if 544974305445019651 in self.bot.owner_ids:  # type:ignore
             with suppress(RuntimeError):
                 self.bot.add_dev_env_value("cmdlog", lambda x: self)
 
@@ -65,7 +78,7 @@ class CmdLogger(commands.Cog):
             f"Version: `{self.__version__}`"
         )
 
-    async def cog_check(self, ctx: commands.Context) -> bool: # type:ignore
+    async def cog_check(self, ctx: commands.Context) -> bool:  # type:ignore
         return await ctx.bot.is_owner(ctx.author)
 
     @commands.group(name="cmdlogger", aliases=["cmdlog"])
@@ -89,7 +102,8 @@ class CmdLogger(commands.Cog):
     ):
         """Log every command used
 
-        This is not recommended if your bot is semi-large (or large) and you have a log channel set.
+        This is not recommended if your bot is semi-large
+        (or large) and you have a log channel set.
 
         **Arguments**
             - `confirm` Skips the confirmation check
@@ -165,7 +179,8 @@ class CmdLogger(commands.Cog):
         """Remove a command or cog from being tracked
 
         If it is a command this command will no longer be tracked by the bot.
-        If it is a cog any commands in this cog will not be tracked by the bot (unless otherwise defined).
+        If it is a cog any commands in this cog will not
+        be tracked by the bot (unless otherwise defined).
 
         **Arguments**
             - `command or cog` The command or cog to remove from the tracker.
@@ -201,46 +216,42 @@ class CmdLogger(commands.Cog):
         if cogs:
             cogs.insert(0, "**Cogs**")
         cmds.extend(cogs)
-        data: list = pagify("\n".join(cmds), page_length=200) # type:ignore
+        data: list = pagify("\n".join(cmds), page_length=200)  # type:ignore
         await Menu(Page(data), ctx).start()
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):
         conf = await self.config.all()
-        name = ctx.command.qualified_name
         if (
-            not conf["log_all"]
-            and (conf["ignore_owner"] and await ctx.bot.is_owner(ctx.author))
-            and ctx.command.qualified_name not in conf["commands"]
-            and (ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"])
+            not conf["log_all"] and (
+                conf["ignore_owner"] and await ctx.bot.is_owner(ctx.author)
+            ) and ctx.command.qualified_name not in conf["commands"] and (
+                ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"]
+            )
         ):
             return  # Large if statements are fucking dumb
         if await self.bot.is_owner(ctx.author) and conf["ignore_owner"]:
             return
         guild_data = "Guild: None" if not ctx.guild else f"Guild: {ctx.guild} ({ctx.guild.id})"
-        msg = f"Command '{ctx.command.qualified_name}' was used by {ctx.author} ({ctx.author.id}). {guild_data}"
+        msg = (
+            f"Command '{ctx.command.qualified_name}' was "
+            f"used by {ctx.author} ({ctx.author.id}). {guild_data}"
+        )
         log.info(msg)
         if not self.log_channel:
             channel = conf["log_channel"]
             if not channel:
                 return
 
-            async def get_or_fetch_channel(bot, channel_id: int):
-                channel = bot.get_channel(channel_id)
-                if not channel:
-                    channel = await bot.fetch_channel(channel_id)
-                return channel
-
             try:
                 self.log_channel = await get_or_fetch_channel(self.bot, channel)
-            except discord.HTTPException as e:
+            except discord.HTTPException:
                 # I'd rather just catch exception rather than any discord related exception
                 # as it's possible I could miss some
                 log.warning("I could not find the log channel")
                 await self.config.log_channel.clear()
                 return
-        if TYPE_CHECKING:
-            assert isinstance(self.log_channel, discord.TextChannel), "mypy momen"
+
         try:
             await self.log_channel.send(msg)
         except discord.Forbidden:

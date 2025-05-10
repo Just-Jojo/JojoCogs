@@ -66,7 +66,8 @@ class NoteApi:
                 case_num = case.case_number  # type:ignore
             notes.append({"author": moderator.id, "note": note, "case_number": case_num})
         log.debug(
-            f"Moderator {moderator.name} ({moderator.id}) added note '{note}' to {user.name}'s ({user.id}) notes"
+            f"Moderator {moderator.name} ({moderator.id}) added note "
+            f"'{note}' to {user.name}'s ({user.id}) notes"
         )
 
     async def edit_note(
@@ -77,12 +78,12 @@ class NoteApi:
         moderator: discord.Member,
         new_note: str,
     ) -> str:
-        old_note: Optional[str] = None
+        old_note: str
         async with self.config.member_from_ids(guild.id, user.id).notes() as notes:
             data = notes[index]
             if (
-                data["author"] != moderator.id
-                and not await self.config.guild(guild).allow_other_edits()
+                data["author"] != moderator.id and not
+                await self.config.guild(guild).allow_other_edits()
             ):
                 raise NotAuthor(moderator)
             old_note = data["note"]
@@ -123,8 +124,8 @@ class NoteApi:
         async with self.config.member_from_ids(guild.id, user_id).notes() as notes:
             note = notes[index]
             if (
-                note["author"] != moderator.id
-                and not await self.config.guild(guild).allow_other_edits()
+                note["author"] != moderator.id and not
+                await self.config.guild(guild).allow_other_edits()
             ):
                 raise NotAuthor(moderator)
             notes.pop(index)

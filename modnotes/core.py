@@ -2,8 +2,9 @@
 # Licensed under MIT
 
 import logging
-from typing import Any, Dict, Final, List
+from typing import Any, Dict, Final, List, TYPE_CHECKING
 
+import discord
 from redbot.core import Config, commands, modlog
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
@@ -11,7 +12,7 @@ from redbot.core.utils.chat_formatting import box, pagify
 
 from .api import NotAuthor, NoteApi, modlog_exists
 from .menus import Menu, Page
-from .utils import NonBotMember, PositiveInt
+from .utils import NonBotMember, NonBotStrict, PositiveInt
 
 log = logging.getLogger("red.JojoCogs.advanced_log")
 _config_structure: Dict[str, Dict[str, Any]] = {
@@ -23,6 +24,14 @@ _config_structure: Dict[str, Dict[str, Any]] = {
         "notes": [],
     },
 }
+
+if TYPE_CHECKING:
+    class Context(commands.Context):
+        guild: discord.Guild
+        author: discord.Member
+
+else:
+    Context = commands.Context
 
 
 class ModNotes(commands.Cog):
@@ -45,7 +54,7 @@ class ModNotes(commands.Cog):
         except RuntimeError:
             pass
 
-    async def cog_check(self, ctx: commands.Context) -> bool:
+    async def cog_check(self, ctx: Context) -> bool:  # type:ignore
         return ctx.guild is not None
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
@@ -69,13 +78,13 @@ class ModNotes(commands.Cog):
 
     @commands.group()
     @commands.admin_or_permissions(administrator=True)
-    async def modnoteset(self, ctx: commands.Context):
+    async def modnoteset(self, ctx: Context):
         """Setup modnotes"""
         pass
 
     @modnoteset.command()
-    async def usemodlog(self, ctx: commands.Context, toggle: bool):
-        """Toggle whether to use the modlog or not.
+    async def usemodlog(self, ctx: Context, toggle: bool):
+        r"""Toggle whether to use the modlog or not.
 
         If toggled, whenever a note is created on a user it will create a case in the modlog.
 
@@ -84,7 +93,8 @@ class ModNotes(commands.Cog):
         """
         if toggle and not await modlog_exists(ctx.guild):
             return await ctx.send(
-                "I could not find the modlog channel. Please set one up in order to use this feature."
+                "I could not find the modlog channel. "
+                "Please set one up in order to use this feature."
             )
         current = await self.config.guild(ctx.guild).modlog_enabled()
         disabled = "enabled" if toggle else "disabled"
@@ -94,9 +104,9 @@ class ModNotes(commands.Cog):
         await self.config.guild(ctx.guild).modlog_enabled.set(toggle)
 
     @modnoteset.command(name="nonauthoredits", aliases=("nae",))
-    async def non_author_edits(self, ctx: commands.Context, toggle: bool):
-        """Allow any moderator to edit notes, regardless of who authored it
-        
+    async def non_author_edits(self, ctx: Context, toggle: bool):
+        r"""Allow any moderator to edit notes, regardless of who authored it
+
         **Arguments**
             \- `toggle` Whether moderators other than the author can edit notes.
         """
@@ -113,9 +123,9 @@ class ModNotes(commands.Cog):
     @commands.guild_only()
     @commands.mod_or_permissions(administrator=True)
     async def modnote(
-        self, ctx: commands.Context, user: NonBotMember(False), *, note: str  # type:ignore
+        self, ctx: Context, user: NonBotMember, *, note: str  # type:ignore
     ):
-        """Create a note for a user. This user cannot be a bot.
+        r"""Create a note for a user. This user cannot be a bot.
 
         If enabled this will also log to the modlog.
 
@@ -127,7 +137,7 @@ class ModNotes(commands.Cog):
         await self.api.create_note(ctx.guild, user, ctx.author, note)
 
     @modnote.command(name="listall")
-    async def modnote_list_all(self, ctx: commands.Context):
+    async def modnote_list_all(self, ctx: Context):
         """List all the members with notes in this guild"""
         data = await self.config.all_members(ctx.guild)
         if not data:
@@ -147,13 +157,16 @@ class ModNotes(commands.Cog):
         await Menu(ctx, Page(list(pagify(msg, page_length=200)), title, use_md=False)).start()
 
     @modnote.command()
-    async def remove(self, ctx: commands.Context, user: NonBotMember, index: PositiveInt):
-        """Remove a note from a user. This user cannot be a bot.
+    async def remove(self, ctx: Context, user: NonBotStrict, index: PositiveInt):
+        r"""Remove a note from a user. This user cannot be a bot.
 
         **Arguments**
             \- `user` The user to remove a note from.
             \- `index` The index of the note to remove.
         """
+        if TYPE_CHECKING:
+            assert ctx.guild is not None, "mypy"
+            assert isinstance(ctx.author, discord.Member), "mypy"
         try:
             await self.api.remove_note(ctx.guild, index - 1, user.id, ctx.author)
         except NotAuthor:
@@ -165,9 +178,9 @@ class ModNotes(commands.Cog):
 
     @modnote.command()
     async def edit(
-        self, ctx: commands.Context, user: NonBotMember, index: PositiveInt, *, note: str
+        self, ctx: Context, user: NonBotStrict, index: PositiveInt, *, note: str
     ):
-        """Edit a note on a user. This user cannot be a bot.
+        r"""Edit a note on a user. This user cannot be a bot.
 
         **Arguments**
             \- `user` The user to edit a note on. This user cannot be a bot.
@@ -188,8 +201,8 @@ class ModNotes(commands.Cog):
             await ctx.send(message)
 
     @modnote.command(name="list")
-    async def modnote_list(self, ctx: commands.Context, user: NonBotMember):
-        """List the notes on a certain user.
+    async def modnote_list(self, ctx: Context, user: NonBotStrict):
+        r"""List the notes on a certain user.
 
         This user cannot be a bot.
 

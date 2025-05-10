@@ -4,11 +4,11 @@
 import logging
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, List, Union, Optional
+from typing import TYPE_CHECKING, Any, Dict, Union, Optional
 
 import discord
 try:
-    from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
+    from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH  # type:ignore
 except ImportError:
     from emoji import EMOJI_DATA as UNICODE_EMOJI_ENGLISH
 from redbot.core import commands
@@ -51,7 +51,9 @@ class TimestampFormats(Enum):
 
 
 @create_doc()
-def timestamp_format(dt: Optional[datetime] = None, *, dt_format: Optional[TimestampFormats] = None) -> str:
+def timestamp_format(
+    dt: Optional[datetime] = None, *, dt_format: Optional[TimestampFormats] = None
+) -> str:
     if not dt:
         dt = datetime.now()
     if not dt_format or dt_format == TimestampFormats.DEFAULT:

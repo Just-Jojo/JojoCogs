@@ -33,7 +33,9 @@ if TYPE_CHECKING:
 else:
 
     class NoneChannelConverter(commands.Converter):
-        async def convert(self, ctx: commands.Context, arg: str) -> Union[discord.GuildChannel, discord.Thread]:
+        async def convert(
+            self, ctx: commands.Context, arg: str
+        ) -> Union[discord.GuildChannel, discord.Thread]:
             if arg == "None":
                 return None
 

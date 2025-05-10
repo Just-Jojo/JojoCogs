@@ -4,14 +4,15 @@
 from typing import TYPE_CHECKING, Any, List, Union
 
 import discord
-from discord.utils import copy_doc
+
+from functools import wraps
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_list as hl
 
 __all__ = ["humanize_list", "PositiveInt", "UserOrCommandCog", "ChannelOrGuild", "NoneConverter"]
 
 
-@copy_doc(hl)
+@wraps(hl)
 def humanize_list(items: List[Any], *args) -> str:
     return hl([f"`{x}`" for x in items], *args)
 
