@@ -16,6 +16,7 @@ body:
         - CycleStatus
         - ErrorBlacklist
         - ModNotes
+        - SimpleTag
         - ToDo
     validations:
       required: true
