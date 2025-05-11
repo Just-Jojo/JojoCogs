@@ -3,14 +3,16 @@
     "short": "Create simple tags",
     "description": "Create simple tags",
     "end_user_data_statement": "This cog stores data provided by users for the express purpose of redisplaying. It does not store user data which was not provided through a command. Users may remove their own data without making a data removal request. This cog does not support data reqeusts, but will respect deletion requests",
-    "install_msg": "Thank you for installing SimpleTag\nThis cog allows users to add tags",
+    "install_msg": "Thank you for installing SimpleTag\nThis cog allows users to add tags.\n\n# NOTE this cog does NOT work if you have another cog named `Tags`",
     "author": [
         "Amy (jojo7791)"
     ],
     "required_cogs": {},
     "requirements": [],
     "tags": [
-        "custom command"
+        "custom command",
+        "tags",
+        "tag"
     ],
     "min_bot_version": "3.5.0",
     "hidden": false,
