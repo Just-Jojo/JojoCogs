@@ -22,7 +22,9 @@ button_emojis = {
 
 class MenuButton(discord.ui.Button):
     def __init__(self, forward: bool, skip: bool, disabled: bool):
-        super().__init__(emoji=button_emojis[(forward, skip)], style=discord.ButtonStyle.grey, disabled=disabled)
+        super().__init__(
+            emoji=button_emojis[(forward, skip)], style=discord.ButtonStyle.grey, disabled=disabled
+        )
         self.forward = forward
         self.skip = skip
         if TYPE_CHECKING:
@@ -65,7 +67,7 @@ class Page:
                 title="Command Logging",
                 description=page,
                 colour=await ctx.embed_colour(),
-                timestamp=datetime.datetime.now(tz=datetime.timezone.utc)
+                timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
             ).set_footer(text=footer)
         return f"**Command Logging**\n\n{page}\n\n{footer}"
 
@@ -98,7 +100,8 @@ class Menu(discord.ui.View):
         single_disabled = self.source.max_pages <= 1
         multi_disabled = self.source.max_pages <= 5
         [
-            self.add_item(i) for i in [
+            self.add_item(i)
+            for i in [
                 MenuButton(False, True, multi_disabled),
                 MenuButton(False, False, single_disabled),
                 StopButton(),

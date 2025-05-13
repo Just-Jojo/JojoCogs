@@ -4,6 +4,7 @@
 from typing import Optional, Union, TYPE_CHECKING
 
 import discord
+
 try:
     from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH
 except ImportError:
@@ -22,7 +23,9 @@ async def pretty(ctx: commands.Context) -> bool:
 
 
 class EmojiConverter(commands.EmojiConverter):
-    async def convert(self, ctx: commands.Context, arg: str) -> Union[str, discord.Emoji]:  # type:ignore
+    async def convert(
+        self, ctx: commands.Context, arg: str
+    ) -> Union[str, discord.Emoji]:  # type:ignore
         arg = arg.strip()
         return arg if arg in UNICODE_EMOJI_ENGLISH.keys() else await super().convert(ctx, arg)
 
@@ -31,8 +34,7 @@ class Emojis(TodoMixin):
     """Emojis for todo... fun"""
 
     @commands.group(name="todoset")
-    async def todo_settings(self, *args):
-        ...
+    async def todo_settings(self, *args): ...
 
     @todo_settings.group(name="categoryemojis", aliases=["catemojis"])
     async def category_emoji(self, ctx: commands.Context):

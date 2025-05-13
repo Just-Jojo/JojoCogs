@@ -82,8 +82,8 @@ class NoteApi:
         async with self.config.member_from_ids(guild.id, user.id).notes() as notes:
             data = notes[index]
             if (
-                data["author"] != moderator.id and not
-                await self.config.guild(guild).allow_other_edits()
+                data["author"] != moderator.id
+                and not await self.config.guild(guild).allow_other_edits()
             ):
                 raise NotAuthor(moderator)
             old_note = data["note"]
@@ -124,8 +124,8 @@ class NoteApi:
         async with self.config.member_from_ids(guild.id, user_id).notes() as notes:
             note = notes[index]
             if (
-                note["author"] != moderator.id and not
-                await self.config.guild(guild).allow_other_edits()
+                note["author"] != moderator.id
+                and not await self.config.guild(guild).allow_other_edits()
             ):
                 raise NotAuthor(moderator)
             notes.pop(index)

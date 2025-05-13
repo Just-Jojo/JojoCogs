@@ -50,7 +50,7 @@ class StopButton(Button):
         super().__init__(
             style=discord.ButtonStyle.red,
             emoji="\N{HEAVY MULTIPLICATION X}\N{VARIATION SELECTOR-16}",
-            disabled=False
+            disabled=False,
         )
 
     async def callback(self, inter: discord.Interaction) -> None:
@@ -64,7 +64,7 @@ class NextPageButton(Button):
         super().__init__(
             style=discord.ButtonStyle.gray,
             emoji="\N{BLACK RIGHT-POINTING TRIANGLE}",
-            disabled=disabled
+            disabled=disabled,
         )
 
     async def callback(self, inter: discord.Interaction) -> None:

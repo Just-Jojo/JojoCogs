@@ -17,8 +17,7 @@ class Edit(TodoMixin):
     """Edit todos!"""
 
     @commands.group()
-    async def todo(self, *args):
-        ...
+    async def todo(self, *args): ...
 
     @todo.command(name="edit")
     async def todo_edit(self, ctx: commands.Context, index: PositiveInt, *, new_todo: str):

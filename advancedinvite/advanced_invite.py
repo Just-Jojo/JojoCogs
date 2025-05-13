@@ -19,6 +19,7 @@ log = logging.getLogger("red.JojoCogs.advanced_invite")
 if TYPE_CHECKING:
     NoneStrict = NoneConverter
 else:
+
     class NoneStrict(NoneConverter):
         strict = True
 
@@ -59,9 +60,13 @@ class AdvancedInvite(commands.Cog):
         self._supported_images: Tuple[str, ...] = ("jpg", "jpeg", "png", "gif")
 
     async def cog_unload(self) -> None:
-        self.bot.remove_command("invite"), self.bot.add_command(  # type:ignore
-            self._invite_command
-        ) if self._invite_command else None
+        self.bot.remove_command("invite"), (
+            self.bot.add_command(  # type:ignore
+                self._invite_command
+            )
+            if self._invite_command
+            else None
+        )
 
     @staticmethod
     def _humanize_list(data: List[str]) -> str:
@@ -110,23 +115,21 @@ class AdvancedInvite(commands.Cog):
         time = datetime.datetime.now(tz=datetime.timezone.utc)
         support_msg = (
             f"Join the support server <{support}>\n"
-            if (support := settings.get("support_server")) else ""
+            if (support := settings.get("support_server"))
+            else ""
         )
         invite_emoji, support_emoji = (
             Emoji.from_data(settings.get(x)) for x in ("invite_emoji", "support_emoji")
         )
         footer = settings.get("footer")
         if footer:
-            footer = footer.replace("{bot_name}", ctx.me.name).replace(
-                "{guild_count}", humanize_number(len(ctx.bot.guilds))
-            ).replace(
-                "{user_count}",
-                humanize_number(len(self.bot.users))
+            footer = (
+                footer.replace("{bot_name}", ctx.me.name)
+                .replace("{guild_count}", humanize_number(len(ctx.bot.guilds)))
+                .replace("{user_count}", humanize_number(len(self.bot.users)))
             )
         kwargs: Dict[str, Any] = {
-            "content": (
-                f"**{title}**\n\n{message}\n<{url}>\n{support_msg}\n\n{footer}"
-            ),
+            "content": (f"**{title}**\n\n{message}\n<{url}>\n{support_msg}\n\n{footer}"),
         }
         if await self._embed_requested(ctx, channel):
             message = f"{message}\n{url}" if settings.get("extra_link") else f"[{message}]({url})"
@@ -176,8 +179,10 @@ class AdvancedInvite(commands.Cog):
     def _get_items(settings: dict, keys: List[str], ctx: commands.Context) -> list:
         return [
             settings.get(key, _config_structure[key]).replace(
-                "{bot_name}", ctx.me.name,
-            ) for key in keys
+                "{bot_name}",
+                ctx.me.name,
+            )
+            for key in keys
         ]
 
     @invite.group(name="settings", aliases=("set",))

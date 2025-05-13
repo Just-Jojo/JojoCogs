@@ -8,16 +8,19 @@ import enum
 import logging
 import random
 import re
+
 try:
     from datetime import datetime, UTC as DatetimeUTC
 
     def get_datetime():
         return datetime.now(DatetimeUTC)
+
 except ImportError:
     from datetime import datetime
 
     def get_datetime():
         return datetime.utcnow()
+
 
 from typing import Final, List, Optional, Iterable, Dict, Union, TYPE_CHECKING
 
@@ -82,6 +85,7 @@ class ActivityType(enum.Enum):
 if TYPE_CHECKING:
     ActivityConverter = ActivityType
 else:
+
     class ActivityConverter(commands.Converter):
         async def convert(self, ctx: commands.Context, arg: str) -> ActivityType:
             arg = arg.lower()
@@ -106,6 +110,7 @@ class Status(enum.Enum):
 if TYPE_CHECKING:
     StatusConverter = Status
 else:
+
     class StatusConverter(commands.Converter):
         async def convert(self, ctx: commands.Context, arg: str) -> Status:
             arg = arg.lower().replace(" ", "_")

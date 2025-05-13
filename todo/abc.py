@@ -32,12 +32,12 @@ class TodoMixin(ABC):
         self._no_completed_message: str
 
     @abstractmethod
-    async def page_logic(self, ctx: commands.Context, data: list, title: str, **settings) -> None:
-        ...
+    async def page_logic(
+        self, ctx: commands.Context, data: list, title: str, **settings
+    ) -> None: ...
 
     @abstractmethod
-    async def _embed_requested(self, ctx: commands.Context, user: discord.User) -> bool:
-        ...
+    async def _embed_requested(self, ctx: commands.Context, user: discord.User) -> bool: ...
 
     @staticmethod
     @abstractmethod

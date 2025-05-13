@@ -388,5 +388,6 @@ class SimpleTag(commands.Cog):
                 embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
             menu.append(embed)
         await SimpleMenu(
-            menu, disable_after_timeout=True,  # type:ignore
+            menu,  # type:ignore
+            disable_after_timeout=True,
         ).start(ctx, user=ctx.author)

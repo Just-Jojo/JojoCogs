@@ -146,11 +146,9 @@ class _MenuMixin(discord.ui.View, ABC):
             return {"embed": data}
         return {"content": str(data)}
 
-    async def show_page(self, page_number: int) -> None:
-        ...
+    async def show_page(self, page_number: int) -> None: ...
 
-    async def show_checked_page(self, page_number: int) -> None:
-        ...
+    async def show_checked_page(self, page_number: int) -> None: ...
 
     def _add_buttons(self, *, stop_button: bool = True) -> None:
         """DRY"""
@@ -236,7 +234,9 @@ class TodoPrivateMenu(_MenuMixin):
         self._add_buttons(stop_button=False)
 
     async def show_checked_page(self, page_number: int, interaction: discord.Interaction) -> None:
-        max_pages = self.source.max_pages # no need to do this but writing `self.source.` is tough!!!!
+        max_pages = (
+            self.source.max_pages
+        )  # no need to do this but writing `self.source.` is tough!!!!
         try:
             if max_pages > page_number >= 0:
                 await self.show_page(page_number, interaction)
@@ -273,7 +273,9 @@ class PrivateMenuStarter(discord.ui.View):
         self.msg: discord.Message = None
 
     async def start(self) -> None:
-        self.msg = await self.ctx.send("Click the \N{CHEQUERED FLAG} emoji to start your menu", view=self)
+        self.msg = await self.ctx.send(
+            "Click the \N{CHEQUERED FLAG} emoji to start your menu", view=self
+        )
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if self.author_id != interaction.user.id:
@@ -285,7 +287,9 @@ class PrivateMenuStarter(discord.ui.View):
         return True
 
     @discord.ui.button(style=discord.ButtonStyle.green, emoji="\N{CHEQUERED FLAG}")
-    async def start_menu(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    async def start_menu(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ) -> None:
         view = TodoPrivateMenu(self.source, self.ctx.bot)
         page = await self.source.get_page(0)
         kwargs = await view._get_kwargs_from_page(page)
@@ -347,7 +351,7 @@ class EditModal(discord.ui.Modal):
             default=x if not isinstance((x := self.todo), dict) else self.todo["task"],
             required=True,
             min_length=1,
-            max_length=2000
+            max_length=2000,
         )
         self.add_item(self.text)
         self.button = button
@@ -416,14 +420,16 @@ class ViewTodo(discord.ui.View):
         task = self.todo if self.completed else self.todo["task"]
 
         if not self.completed and (ts := self.todo.get("timestamp")):
-            task = f"{task} - Added {timestamp_format(ts, ts_format=TimestampFormats.RELATIVE_TIME)}"
+            task = (
+                f"{task} - Added {timestamp_format(ts, ts_format=TimestampFormats.RELATIVE_TIME)}"
+            )
 
         if await self.cog._embed_requested(self.ctx, self.ctx.author):
             embed = discord.Embed(
                 title=title,
                 description=task,
                 colour=await self.cog._embed_colour(self.ctx),
-                timestamp=datetime.datetime.now(datetime.timezone.utc)
+                timestamp=datetime.datetime.now(datetime.timezone.utc),
             )
             if not self.completed:
                 embed.add_field(name="Pinned", value=self.todo["pinned"])

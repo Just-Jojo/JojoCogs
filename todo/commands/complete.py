@@ -20,7 +20,9 @@ __all__ = ["Complete"]
 class Complete(TodoMixin):
     """Commands that have to do with completed todos"""
 
-    _no_completed_message: str = "You do not have any completed todos. You can add one with `{prefix}todo complete <indexes...>`"
+    _no_completed_message: str = (
+        "You do not have any completed todos. You can add one with `{prefix}todo complete <indexes...>`"
+    )
 
     @commands.group()
     async def todo(self, *args):

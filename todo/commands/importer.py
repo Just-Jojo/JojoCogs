@@ -17,8 +17,7 @@ class Importer(TodoMixin):
     _epic_guy_config: Config = Config.get_conf(None, 6732102719277, True, cog_name="Todo")
 
     @commands.group()
-    async def todo(self, *args):
-        ...
+    async def todo(self, *args): ...
 
     @todo.command(name="importall")
     @commands.is_owner()  # First owner only command in todo :ducksweat:

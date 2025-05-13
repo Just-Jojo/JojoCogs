@@ -170,9 +170,7 @@ class ModNotes(commands.Cog):
             await ctx.send(f"Removed a note from that user at index {index}.")
 
     @modnote.command()
-    async def edit(
-        self, ctx: Context, user: NonBotStrict, index: PositiveInt, *, note: str
-    ):
+    async def edit(self, ctx: Context, user: NonBotStrict, index: PositiveInt, *, note: str):
         r"""Edit a note on a user. This user cannot be a bot.
 
         **Arguments**
@@ -187,10 +185,7 @@ class ModNotes(commands.Cog):
         except IndexError:
             await ctx.send(f"I could not find a note at index {index}.")
         else:
-            message = (
-                f"Edited the note at index {index}.\n\n"
-                f"**Old**\n{box(old)}"
-            )
+            message = f"Edited the note at index {index}.\n\n" f"**Old**\n{box(old)}"
             await ctx.send(message)
 
     @modnote.command(name="list")

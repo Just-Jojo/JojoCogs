@@ -7,6 +7,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, Union, Optional
 
 import discord
+
 try:
     from emoji.unicode_codes import UNICODE_EMOJI_ENGLISH  # type:ignore
 except ImportError:
@@ -65,6 +66,7 @@ def timestamp_format(
 if TYPE_CHECKING:
     NoneConverter = Optional[str]
 else:
+
     class NoneConverter(commands.Converter):
         """A simple converter for NoneType args for commands"""
 

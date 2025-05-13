@@ -15,8 +15,7 @@ class Miscellaneous(TodoMixin):
     """Miscellaneous todo commands"""
 
     @commands.group()
-    async def todo(self, *args):
-        ...
+    async def todo(self, *args): ...
 
     @todo.command(name="version", hidden=True)
     async def todo_version(self, ctx: commands.Context):

@@ -223,11 +223,10 @@ class CmdLogger(commands.Cog):
     async def on_command_completion(self, ctx: commands.Context):
         conf = await self.config.all()
         if (
-            not conf["log_all"] and (
-                conf["ignore_owner"] and await ctx.bot.is_owner(ctx.author)
-            ) and ctx.command.qualified_name not in conf["commands"] and (
-                ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"]
-            )
+            not conf["log_all"]
+            and (conf["ignore_owner"] and await ctx.bot.is_owner(ctx.author))
+            and ctx.command.qualified_name not in conf["commands"]
+            and (ctx.cog is None or ctx.cog.qualified_name not in conf["cogs"])
         ):
             return  # Large if statements are fucking dumb
         if await self.bot.is_owner(ctx.author) and conf["ignore_owner"]:
