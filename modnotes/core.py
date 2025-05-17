@@ -2,9 +2,8 @@
 # Licensed under MIT
 
 import logging
-from typing import Any, Dict, Final, List, TYPE_CHECKING
+from typing import Any, Dict, Final, List
 
-import discord
 from redbot.core import Config, commands, modlog
 from redbot.core.commands import GuildContext as Context
 from redbot.core.bot import Red
@@ -157,9 +156,6 @@ class ModNotes(commands.Cog):
             \- `user` The user to remove a note from.
             \- `index` The index of the note to remove.
         """
-        if TYPE_CHECKING:
-            assert ctx.guild is not None, "mypy"
-            assert isinstance(ctx.author, discord.Member), "mypy"
         try:
             await self.api.remove_note(ctx.guild, index - 1, user.id, ctx.author)
         except NotAuthor:
