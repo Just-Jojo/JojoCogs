@@ -8,19 +8,16 @@ import enum
 import logging
 import random
 import re
-
 try:
     from datetime import datetime, UTC as DatetimeUTC
 
     def get_datetime():
         return datetime.now(DatetimeUTC)
-
 except ImportError:
     from datetime import datetime
 
     def get_datetime():
         return datetime.utcnow()
-
 
 from typing import Final, List, Optional, Iterable, Dict, Union, TYPE_CHECKING
 
@@ -46,11 +43,13 @@ _config_structure: Dict[str, Dict[str, Union[list, int, str, bool]]] = {
         "status_type": 0,  # int, the value corresponds with a `discord.ActivityType` value
         "status_mode": "online",  # str, the value that corresponds with a `discord.Status` value
         "show_bots": False,
+        "cycle_time": 60,
     },
 }
 
 _bot_guild_var: Final[str] = r"{bot_guild_count}"
 _bot_member_var: Final[str] = r"{bot_member_count}"
+_bot_total_member_var: Final[str] = r"{bot_total_member_count}"
 _bot_prefix_var: Final[str] = r"{bot_prefix}"
 
 
@@ -85,15 +84,13 @@ class ActivityType(enum.Enum):
 if TYPE_CHECKING:
     ActivityConverter = ActivityType
 else:
-
     class ActivityConverter(commands.Converter):
         async def convert(self, ctx: commands.Context, arg: str) -> ActivityType:
             arg = arg.lower()
             ret = getattr(ActivityType, arg, None)
             if not ret:
                 raise commands.BadArgument(
-                    f"The argument must be one of the following: "
-                    f"{humanize_enum_vals(ActivityType)}"
+                    f"The argument must be one of the following: {humanize_enum_vals(ActivityType)}"
                 )
             return ret
 
@@ -110,7 +107,6 @@ class Status(enum.Enum):
 if TYPE_CHECKING:
     StatusConverter = Status
 else:
-
     class StatusConverter(commands.Converter):
         async def convert(self, ctx: commands.Context, arg: str) -> Status:
             arg = arg.lower().replace(" ", "_")
@@ -121,16 +117,15 @@ else:
                     f"The argument must be one of the following: {humanize_enum_vals(Status)}"
                 )
 
-
-# TODO(Amy) Since I'm starting to work on cogs again, maybe add the ability
-# to change the amount of time the bot cycles status
 class CycleStatus(commands.Cog):
     """Automatically change the status of your bot every minute"""
 
     __authors__: Final[List[str]] = ["Jojo#7791"]
+    # This guy added features for this cog!
+    __contributors__: Final[List[str]] = ["evanroby"]
     # These people have suggested something for this cog!
     __suggesters__: Final[List[str]] = ["ItzXenonUnity | Lou#2369", "StormyGalaxy#1297"]
-    __version__: Final[str] = "1.0.17"
+    __version__: Final[str] = "1.1.0"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -140,22 +135,23 @@ class CycleStatus(commands.Cog):
         self.random: Optional[bool] = None
         self.last_random: Optional[int] = None
         self.main_task.start()
+        self.cycle_time: Optional[int] = None
 
     async def cog_load(self) -> None:
         self.toggled = await self.config.toggled()
         self.random = await self.config.random()
+        self.cycle_time = await self.config.cycle_time()
+        await self._update_task_interval()
 
     async def cog_unload(self) -> None:
         self.main_task.cancel()
 
     async def red_delete_data_for_user(self, *, requester: str, user_id: int) -> None:
         """Nothing to delete"""
-
         return
 
     async def red_get_data_for_user(self, *, user_id: int) -> dict:
         """Nothing to return"""
-
         return {}
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
@@ -164,14 +160,20 @@ class CycleStatus(commands.Cog):
         return (
             f"{pre}\n"
             f"Author{plural}: `{humanize_list(self.__authors__)}`\n"
+            f"Contributor: `{humanize_number(self.__contributor__)}`"
             f"Version: `{self.__version__}`\n"
             f"People who have put in suggestions: `{humanize_list(self.__suggesters__)}`"
         )
 
+    async def _update_task_interval(self) -> None:
+        """Update the task interval based on configured cycle time"""
+        self.main_task.change_interval(seconds=self.cycle_time)
+        if self.main_task.is_running():
+            self.main_task.restart()
+
     @commands.command(name="cyclestatusversion", aliases=["csversion"], hidden=True)
     async def cycle_status_version(self, ctx: commands.Context):
         """Get the version of Cycle Status that [botname] is running"""
-
         await ctx.send(
             f"Cycle Status, Version `{self.__version__}`. Made with :heart: by Jojo#7791"
         )
@@ -180,7 +182,6 @@ class CycleStatus(commands.Cog):
     @commands.is_owner()
     async def status(self, ctx: commands.Context):
         """Commands working with cycling statuses"""
-
         pass
 
     @status.command(name="type")
@@ -191,7 +192,6 @@ class CycleStatus(commands.Cog):
             - `status` The status type. Valid types are
             `playing, listening, watching, custom, and competing`
         """
-
         await self.config.status_type.set(status.value)
         await ctx.send(f"Done, set the status type to `{status.name}`.")
 
@@ -203,15 +203,13 @@ class CycleStatus(commands.Cog):
             - `mode` The mode type. Valid types are:
             `online, idle, dnd, and do not disturb`
         """
-
         await self.config.status_mode.set(mode.value)
         await ctx.send(f"Done, set the status mode to `{mode.value}`.")
 
     @status.command()
-    @commands.check(lambda ctx: ctx.cog.random is False)  # type:ignore
+    @commands.check(lambda ctx: ctx.cog.random is False) # type:ignore
     async def forcenext(self, ctx: commands.Context) -> None:
         """Force the next status to display on the bot"""
-
         nl = await self.config.next_iter()
         statuses = await self.config.statuses()
         if not statuses:
@@ -237,7 +235,6 @@ class CycleStatus(commands.Cog):
         **Arguments**
             - `toggle` Whether help should be used or not.
         """
-
         if toggle is None:
             msg = f"Added help is {_enabled(await self.config.use_help())}"
             await ctx.send(msg)
@@ -247,19 +244,21 @@ class CycleStatus(commands.Cog):
 
     @status.command(name="add")
     async def status_add(self, ctx: commands.Context, *, status: str):
-        """Add a status to the list
+        """
+        Add a status message to the rotation list.
 
-        Put `{bot_guild_count}` or `{bot_member_count}` in your message
-        to have the user count and guild count of your bot
-        If `showbots` is enabled it will include bots in the user count.
+        You can use special variables in your status to include dynamic bot information:
 
-        You can also put `{bot_prefix}` in your message to have the
-        bot's prefix be displayed (eg. `{bot_prefix}ping`)
+        - `{bot_guild_count}`: Number of servers the bot is in.
+        - `{bot_member_count}`: Count of unique users (optionally excludes bots based on `showbots` setting).
+        - `{bot_total_member_count}`: Total number of members across all servers (users counted per server, not uniquely).
+        - `{bot_prefix}`: The bot's command prefix (e.g., `{bot_prefix}ping`).
+
+        If `showbots` is enabled, bot accounts will be included in the `{bot_member_count}` total.
 
         **Arguments**
-            - `status` The status to add to the cycle.
+            - `status`: The status message to add to the cycle.
         """
-
         if len(status) > 100:
             await ctx.send("Statuses cannot be longer than 100 characters.")
             return
@@ -274,7 +273,6 @@ class CycleStatus(commands.Cog):
         **Arguments**
             - `num` The index of the status you want to remove.
         """
-
         if num is None:
             await self._status_list(ctx)
             return
@@ -288,7 +286,6 @@ class CycleStatus(commands.Cog):
     @status.command(name="list")
     async def status_list(self, ctx: commands.Context) -> None:
         """List the available statuses"""
-
         await self._status_list(ctx)
 
     async def _status_list(self, ctx: commands.Context) -> None:
@@ -300,7 +297,6 @@ class CycleStatus(commands.Cog):
     @status.command(name="clear")
     async def status_clear(self, ctx: commands.Context) -> None:
         """Clear all of the statuses"""
-
         msg = await ctx.send("Would you like to clear all of your statuses? (y/n)")
         pred = MessagePredicate.yes_or_no()
         try:
@@ -323,7 +319,6 @@ class CycleStatus(commands.Cog):
         **Arguments**
             - `value` Whether to have random statuses be enabled or not
         """
-
         if value == self.random:
             await ctx.send(f"Random statuses are already {_enabled(value)}")
             return
@@ -336,13 +331,11 @@ class CycleStatus(commands.Cog):
     async def status_toggle(self, ctx: commands.Context, value: Optional[bool]) -> None:
         """Toggle whether the status should be cycled.
 
-        This is handy for if you want to keep your statuses
-        but don't want them displayed at the moment
+        This is handy for if you want to keep your statuses but don't want them displayed at the moment
 
         **Arguments**
             - `value` Whether to toggle cycling statues
         """
-
         if value is None:
             await ctx.send(f"Cycling Statuses is {'enabled' if self.toggled else 'disabled'}")
             return
@@ -361,7 +354,6 @@ class CycleStatus(commands.Cog):
         **Arguments**
             \- `toggle`Whether or not to show bots in the member count (defaults to False)
         """
-
         old = await self.config.show_bots()
         enabled = _enabled(toggle)
         if old == toggle:
@@ -369,6 +361,26 @@ class CycleStatus(commands.Cog):
             return
         await self.config.show_bots.set(toggle)
         await ctx.send(f"Show bots in the user count is now {enabled}.")
+
+    @status.command(name="cycletime", aliases=["interval"])
+    async def set_cycle_time(self, ctx: commands.Context, seconds: PositiveInt):
+        """Set how often the status should cycle (in seconds)
+        
+        Minimum: 15 seconds
+        Maximum: 86400 seconds (24 hours)
+        
+        **Arguments**
+            - seconds: How often to cycle statuses (in seconds)
+        """
+        if seconds < 15:
+            return await ctx.send("Cycle time must be at least 15 seconds.")
+        if seconds > 86400:
+            return await ctx.send("Cycle time must be less than 24 hours (86400 seconds).")
+            
+        await self.config.cycle_time.set(seconds)
+        self.cycle_time = seconds
+        await self._update_task_interval()
+        await ctx.send(f"Statuses will now cycle every {seconds} seconds.")
 
     @status.command(name="settings")
     async def status_settings(self, ctx: commands.Context) -> None:
@@ -379,6 +391,7 @@ class CycleStatus(commands.Cog):
             "Statuses?": f"See `{ctx.clean_prefix}cyclestatus list`",
             "Status Type?": ActivityType(await self.config.status_type()).name,
             "Show bots?": await self.config.show_bots(),
+            "Cycle Time?": f"{await self.config.cycle_time()} seconds",
         }
         title = "Your Cycle Status settings"
         if await ctx.embed_requested():
@@ -390,7 +403,36 @@ class CycleStatus(commands.Cog):
             return
         await ctx.send(f"**{title}**\n\n" + "\n".join(f"**{k}** {v}" for k, v in settings.items()))
 
-    @tasks.loop(minutes=1)
+    async def _status_add(self, status: str, use_help: bool) -> None:
+        status = status.replace(_bot_guild_var, humanize_number(len(self.bot.guilds)))
+
+        if await self.config.show_bots():
+            members = len(self.bot.users)
+        else:
+            members = _get_non_bot_users(self.bot.users)
+        status = status.replace(_bot_member_var, humanize_number(members))
+
+        total_members = len(list(self.bot.get_all_members()))
+        status = status.replace(_bot_total_member_var, humanize_number(total_members))
+
+        prefix = (await self.bot.get_valid_prefixes())[0]
+        if TYPE_CHECKING:
+            assert self.bot.user is not None, "mypy"
+        prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
+        status = status.replace(_bot_prefix_var, prefix)
+
+        if use_help:
+            status += f" | {prefix}help"
+
+        status_type = await self.config.status_type()
+        if status_type == 4:
+            game = discord.CustomActivity(name=status)
+        else:
+            game = discord.Activity(type=status_type, name=status)
+
+        await self.bot.change_presence(activity=game, status=await self.config.status_mode())
+
+    @tasks.loop(seconds=60)
     async def main_task(self) -> None:
         msg: str
         nl: int = 0
@@ -433,33 +475,3 @@ class CycleStatus(commands.Cog):
             title="Statuses",
         )
         await Menu(source=source, bot=self.bot, ctx=ctx).start()
-
-    async def _status_add(self, status: str, use_help: bool) -> None:
-        status = status.replace(_bot_guild_var, humanize_number(len(self.bot.guilds)))
-        if await self.config.show_bots():
-            members = len(self.bot.users)
-        else:
-            members = _get_non_bot_users(self.bot.users)
-        status = status.replace(_bot_member_var, humanize_number(members))
-
-        prefix = (await self.bot.get_valid_prefixes())[0]
-        if TYPE_CHECKING:
-            assert self.bot.user is not None, "mypy"
-        prefix = re.sub(rf"<@!?{self.bot.user.id}>", f"@{self.bot.user.name}", prefix)
-
-        status = status.replace(_bot_prefix_var, prefix)
-
-        if use_help:
-            status += f" | {prefix}help"
-
-        # For some reason using `discord.Activity(type=discord.ActivityType.custom)`
-        # will result in the bot not changing its status
-        # So I'm gonna use this until I figure out something better lmao
-        game: discord.BaseActivity
-        status_type = await self.config.status_type()
-
-        if status_type == 4:
-            game = discord.CustomActivity(name=status)
-        else:
-            game = discord.Activity(type=status_type, name=status)
-        await self.bot.change_presence(activity=game, status=await self.config.status_mode())
