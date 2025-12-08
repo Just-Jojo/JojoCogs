@@ -210,7 +210,7 @@ class SimpleTag(commands.Cog):
     @tag_global.command(name="deleteall", aliases=("delall", "removeall", "rmall"))
     @commands.is_owner()
     async def tag_global_delete_all(self, ctx: commands.Context, confirm: bool = False) -> None:
-        """"""
+        """Delete all of the global tags"""
         if not confirm and not await _handle_confirm(ctx):
             return
         await self.config.tags.clear()

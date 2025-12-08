@@ -3,17 +3,13 @@
 
 from __future__ import annotations
 
-from typing import Final, Tuple
-
 from redbot.core.bot import Red
 from redbot.core.errors import CogLoadError
 from redbot.core.utils import get_end_user_data_statement
 
 from .core import SimpleTag
 
-__all__: Final[Tuple[str, ...]] = ("__red_end_user_data_statement__", "setup")
-
-
+__all__ = ("__red_end_user_data_statement__", "setup")
 __red_end_user_data_statement__ = get_end_user_data_statement(__file__)
 
 
